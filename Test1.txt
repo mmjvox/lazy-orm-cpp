@@ -1,0 +1,33 @@
+CREATE DATABASE school;
+
+CREATE TABLE info_school(        
+	school_id INT PRIMARY KEY AUTO_INCREMENT,
+	name_school VARCHAR(50) NOT NULL,
+	es_date DATE,
+	sec_edu VARCHAR(30) NOT NULL
+);	
+
+CREATE TABLE teachers(
+	teacher_id INT PRIMARY KEY AUTO_INCREMENT,
+	first_name VARCHAR(50) NOT NULL,
+	last_name VARCHAR(50) NOT NULL,
+	birth_date DATE,
+	email VARCHAR(50) NOT NULL,
+	gender VARCHAR(20) NOT NULL,
+	mobile INT,
+	school_id INT,
+	FOREIGN KEY(school_id) REFERENCES info_school(school_id) ON DELETE SET NULL
+);      
+                     
+CREATE TABLE student(
+	student_id INT PRIMARY KEY AUTO_INCREMENT,
+	first_name VARCHAR(50) NOT NULL,
+	last_name VARCHAR(50) NOT NULL,
+	birth_date DATE,
+	gender VARCHAR(20) NOT NULL,
+	name_father VARCHAR(50) NOT NULL,
+	teacher_id INT,
+	FOREIGN KEY(teacher_id) REFERENCES teachers(teacher_id) ON DELETE SET NULL,
+	school_id INT,
+	FOREIGN KEY(school_id) REFERENCES info_school(school_id) ON DELETE SET NULL
+);	
