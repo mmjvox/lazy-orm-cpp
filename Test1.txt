@@ -30,4 +30,7 @@ CREATE TABLE student(
 	FOREIGN KEY(teacher_id) REFERENCES teachers(teacher_id) ON DELETE SET NULL,
 	school_id INT,
 	FOREIGN KEY(school_id) REFERENCES info_school(school_id) ON DELETE SET NULL
-);	
+);
+
+INSERT INTO student(first_name , last_name , gender , name_father) VALUES ("ali" , "yavari" , "male" , "reza");
+select *from student;
