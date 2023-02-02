@@ -1,0 +1,4 @@
+#ifndef ABSTRACTLAZY_H
+#define ABSTRACTLAZY_H
+
+#endif // ABSTRACTLAZY_H
