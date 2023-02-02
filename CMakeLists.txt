@@ -9,9 +9,14 @@ include_directories(
     include/
 )
 
-add_library(
-    lazy-orm STATIC
+add_library(lazy-orm STATIC
+
     include/AbstractLazy.h
+    src/AbstractLazy.cpp
+    include/MariadbLazy.h
+    src/MariadbLazy.cpp
 )
+
+target_compile_definitions(lazy-orm PRIVATE lazy-orm_LIBRARY)
 
 add_subdirectory(tests)

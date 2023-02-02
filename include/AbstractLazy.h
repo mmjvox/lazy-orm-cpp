@@ -1,4 +1,64 @@
 #ifndef ABSTRACTLAZY_H
 #define ABSTRACTLAZY_H
 
+#include <list>
+#include <vector>
+#include <map>
+#include <variant>
+#include <string>
+
+namespace LazyOrm {
+
+typedef std::variant<int,std::string> dbTypes;
+
+enum Query
+{
+  UNDEFINED = -1,
+  INIT      = 0,
+  INSERT    = 10,
+  SELECT,
+  UPDATE,
+  DELETE,
+  INSERT_OR_UPDATE,
+};
+
+class AbstractLazy
+{
+private:
+  Query mQueryType=UNDEFINED;
+
+  struct dbTypeToString
+  {
+//    std::string operator()(const dbTypes &value){
+//      using T = std::decay_t<decltype(value)>;
+//      if constexpr (std::is_same_v<T, std::string>){
+//        return "str";
+//      }
+//      return "value";
+//    }
+    std::string operator()(const std::string &value){return value;}
+    std::string operator()(const int value){return std::to_string(value);}
+  };
+
+protected:
+  std::string mQueryString;
+  std::string mTabeName;
+  std::map<std::string, dbTypes> mProperties;
+  std::string toString(const dbTypes &value);
+  std::string string_join(const std::string &delimiter, const std::vector<std::string> &container);
+
+  virtual void insert_query() = 0;
+
+public:
+  std::string queryString();
+
+  void setTabeName(const std::string &name);
+
+//  std::string operator[](const std::string &key) const;
+  dbTypes & operator[](const std::string &key);
+  void setProperty(const std::string &key, const dbTypes value);
+  void setQueryType(Query queryType);
+};
+}
+
 #endif // ABSTRACTLAZY_H
