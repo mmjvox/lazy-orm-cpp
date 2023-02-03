@@ -10,6 +10,7 @@ int main()
   lazyOrm["name"]="ania";
   lazyOrm["age"]= 6;
   lazyOrm["hair"]="pink";
+  lazyOrm["cute"]=true;
   std::cout << lazyOrm.queryString() << std::endl;
 
 

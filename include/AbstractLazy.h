@@ -9,7 +9,7 @@
 
 namespace LazyOrm {
 
-typedef std::variant<int,std::string> dbTypes;
+typedef std::variant<int,double,float,bool,std::string> dbTypes;
 
 enum Query
 {
@@ -37,7 +37,12 @@ private:
 //      return "value";
 //    }
     std::string operator()(const std::string &value){return value;}
-    std::string operator()(const int value){return std::to_string(value);}
+    //numbers
+    std::string operator()(const int &value){return std::to_string(value);}
+    std::string operator()(const double &value){return std::to_string(value);}
+    std::string operator()(const float &value){return std::to_string(value);}
+    // boolean
+    std::string operator()(const bool &value){return value?"true":"false";}
   };
 
 protected:
