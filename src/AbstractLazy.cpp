@@ -59,6 +59,12 @@ std::string AbstractLazy::queryString()
   case SELECT:
     select_query();
   break;
+  case UPDATE:
+    update_query();
+  break;
+  case DELETE:
+    delete_query();
+  break;
   default:
   break;
   }
