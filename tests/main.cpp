@@ -6,8 +6,9 @@ int main()
 {
   std::cout << "Hello Lazy!" << std::endl;
 
-  LazyOrm::MariadbLazy lazyOrm("student", LazyOrm::INSERT);
-  lazyOrm["name"]="ania";
+  LazyOrm::MariadbLazy lazyOrm;
+  lazyOrm[LazyOrm::INSERT]="student";
+  lazyOrm["name"]="anya";
   lazyOrm["age"]= 6;
   lazyOrm["hair"]="pink";
   lazyOrm["cute"]=true;

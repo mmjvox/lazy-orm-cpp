@@ -11,6 +11,7 @@ protected:
   void insert_query() override;
 
 public:
+  MariadbLazy();
   MariadbLazy(const std::string &table, const Query &queryType);
 };
 }

@@ -14,14 +14,21 @@ void AbstractLazy::setTabeName(const std::string &name)
 //  return "";
 //}
 
+
 dbTypes &AbstractLazy::operator[](const std::string &key)
 {
   return mProperties[key];
 }
 
-void AbstractLazy::setQueryType(Query queryType)
+void AbstractLazy::setQueryType(LazyOrm::Query queryType)
 {
   mQueryType = queryType;
+}
+
+std::string & AbstractLazy::operator[](const Query &queryType)
+{
+  mQueryType = queryType;
+  return mTabeName;
 }
 
 std::string AbstractLazy::toString(const dbTypes &value){

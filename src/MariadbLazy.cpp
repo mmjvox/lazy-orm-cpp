@@ -3,6 +3,11 @@
 namespace LazyOrm
 {
 
+MariadbLazy::MariadbLazy()
+{
+
+}
+
 MariadbLazy::MariadbLazy(const std::string &table, const Query &queryType)
 {
   setTabeName(table);

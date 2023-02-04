@@ -62,7 +62,8 @@ public:
 //  std::string operator[](const std::string &key) const;
   dbTypes & operator[](const std::string &key);
   void setProperty(const std::string &key, const dbTypes value);
-  void setQueryType(Query queryType);
+  void setQueryType(LazyOrm::Query queryType);
+  std::string & operator[](const LazyOrm::Query &queryType);
 };
 }
 
