@@ -98,6 +98,7 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+build/
 
 # ---> KDevelop4
 *.kdev4
@@ -705,7 +706,8 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
