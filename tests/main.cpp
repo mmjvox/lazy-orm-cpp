@@ -14,11 +14,10 @@ int main()
   lazyOrm["cute"]=true;
   std::cout << lazyOrm.queryString() << std::endl;
 
-//  LazyOrm::MariadbLazy lazyOrm1;
-//  lazyOrm1[LazyOrm::INSERT]="student";
-////  lazyOrm1<<{"name","mamad"};
-////  lazyOrm1<<{"age","13"};
-//  std::cout << lazyOrm1.queryString() << std::endl;
+  LazyOrm::MariadbLazy lazyOrm1;
+  lazyOrm1[LazyOrm::INSERT]="student";
+  lazyOrm1.setProperties({{"name","ahmad"},{"age",27},{"cute",false}});
+  std::cout << lazyOrm1.queryString() << std::endl;
 
   LazyOrm::MariadbLazy lazyOrm2;
   lazyOrm2[LazyOrm::SELECT]="student";
@@ -29,6 +28,13 @@ int main()
   lazyOrm3[LazyOrm::SELECT]="student";
   lazyOrm3<<"name"<<"age"<<"hair"<<"*";
   std::cout << lazyOrm3.queryString() << std::endl;
+
+  LazyOrm::MariadbLazy lazyOrm4;
+  lazyOrm4[LazyOrm::INSERT]="student";
+  lazyOrm4<<LazyOrm::pair{"name","ahmad"};
+  lazyOrm4<<LazyOrm::pair{"age",23}<<LazyOrm::pair{"hair","black"};
+  lazyOrm4<<LazyOrm::pair{"cute",false};
+  std::cout << lazyOrm4.queryString() << std::endl;
 
 
   LazyOrm::MariadbLazy lazyOrm200("student", LazyOrm::INSERT);

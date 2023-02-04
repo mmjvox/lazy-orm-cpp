@@ -1,5 +1,4 @@
 #include "AbstractLazy.h"
-#include <iostream>
 
 namespace LazyOrm {
 
@@ -83,6 +82,19 @@ void AbstractLazy::setProperties(const std::vector<std::string> &keys)
 AbstractLazy & AbstractLazy::operator<<(const std::string &key)
 {
     mProperties.insert_or_assign(key,"");
+    return *this;
+}
+
+void AbstractLazy::setProperties(const std::initializer_list<std::pair<std::string, dbTypes>> items)
+{
+    for(const auto &item : items)
+    {
+        mProperties.insert_or_assign(item.first,toString(item.second));
+    }
+}
+
+AbstractLazy &AbstractLazy::operator<<(const std::pair<std::string, dbTypes> &key_value){
+    mProperties.insert_or_assign(key_value.first, key_value.second);
     return *this;
 }
 

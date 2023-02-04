@@ -6,10 +6,13 @@
 #include <map>
 #include <variant>
 #include <string>
+#include <initializer_list>
+#include <iostream>
 
 namespace LazyOrm {
 
 typedef std::variant<int,double,float,bool,std::string> dbTypes;
+typedef std::pair<std::string,LazyOrm::dbTypes> pair;
 
 enum Query
 {
@@ -68,6 +71,8 @@ public:
 
   void setProperties(const std::vector<std::string> &keys);
   AbstractLazy & operator<<(const std::string &key);
+  void setProperties(const std::initializer_list<std::pair<std::string,dbTypes>> items);
+  AbstractLazy & operator<<(const std::pair<std::string,dbTypes> &key_value);
 
 };
 }
