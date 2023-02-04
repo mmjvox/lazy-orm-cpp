@@ -32,5 +32,27 @@ void MariadbLazy::insert_query()
   mQueryString.append(";");
 }
 
+void MariadbLazy::select_query()
+{
+    std::vector<std::string> keys;
+    for(const auto &[key, value] : mProperties)
+    {
+      if(key=="*")
+      {
+        keys.push_back(key);
+      }
+      else
+      {
+        keys.push_back("`"+key+"`");
+      }
+    }
+
+    mQueryString = "SELECT ";
+    mQueryString.append(string_join(",",keys));
+    mQueryString.append(" FROM ");
+    mQueryString.append(mTabeName);
+    mQueryString.append(";");
+}
+
 
 }

@@ -53,17 +53,22 @@ protected:
   std::string string_join(const std::string &delimiter, const std::vector<std::string> &container);
 
   virtual void insert_query() = 0;
+  virtual void select_query() = 0;
 
 public:
   std::string queryString();
 
   void setTabeName(const std::string &name);
-
-//  std::string operator[](const std::string &key) const;
-  dbTypes & operator[](const std::string &key);
-  void setProperty(const std::string &key, const dbTypes value);
   void setQueryType(LazyOrm::Query queryType);
   std::string & operator[](const LazyOrm::Query &queryType);
+
+//  std::string operator[](const std::string &key) const;
+  void setProperty(const std::string &key, const dbTypes value);
+  dbTypes & operator[](const std::string &key);
+
+  void setProperties(const std::vector<std::string> &keys);
+  AbstractLazy & operator<<(const std::string &key);
+
 };
 }
 

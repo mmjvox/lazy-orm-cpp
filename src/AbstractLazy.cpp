@@ -1,4 +1,5 @@
 #include "AbstractLazy.h"
+#include <iostream>
 
 namespace LazyOrm {
 
@@ -17,8 +18,9 @@ void AbstractLazy::setTabeName(const std::string &name)
 
 dbTypes &AbstractLazy::operator[](const std::string &key)
 {
-  return mProperties[key];
+    return mProperties[key];
 }
+
 
 void AbstractLazy::setQueryType(LazyOrm::Query queryType)
 {
@@ -55,6 +57,9 @@ std::string AbstractLazy::queryString()
   case INSERT:
     insert_query();
   break;
+  case SELECT:
+    select_query();
+  break;
   default:
   break;
   }
@@ -67,5 +72,18 @@ void AbstractLazy::setProperty(const std::string &key, const dbTypes value)
   mProperties.insert_or_assign(key, value);
 }
 
+void AbstractLazy::setProperties(const std::vector<std::string> &keys)
+{
+    for(const auto &key : keys)
+    {
+        mProperties.insert_or_assign(key,"");
+    }
+}
+
+AbstractLazy & AbstractLazy::operator<<(const std::string &key)
+{
+    mProperties.insert_or_assign(key,"");
+    return *this;
+}
 
 }

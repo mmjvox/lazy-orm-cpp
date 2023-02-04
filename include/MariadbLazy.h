@@ -9,6 +9,7 @@ class MariadbLazy : public AbstractLazy
 {
 protected:
   void insert_query() override;
+  void select_query() override;
 
 public:
   MariadbLazy();
