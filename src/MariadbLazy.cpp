@@ -54,5 +54,15 @@ void MariadbLazy::select_query()
     mQueryString.append(";");
 }
 
+void MariadbLazy::update_query()
+{
+
+}
+
+void MariadbLazy::delete_query()
+{
+
+}
+
 
 }

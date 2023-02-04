@@ -57,6 +57,8 @@ protected:
 
   virtual void insert_query() = 0;
   virtual void select_query() = 0;
+  virtual void update_query() = 0;
+  virtual void delete_query() = 0;
 
 public:
   std::string queryString();
