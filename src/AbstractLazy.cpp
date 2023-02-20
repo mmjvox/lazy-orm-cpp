@@ -65,6 +65,12 @@ std::string AbstractLazy::queryString()
   case DELETE:
     delete_query();
   break;
+  case INSERT_OR_UPDATE:
+    insert_update_query();
+  break;
+  case BATCH_INSERT:
+    batch_insert_query();
+  break;
   default:
   break;
   }
@@ -93,10 +99,20 @@ AbstractLazy & AbstractLazy::operator<<(const std::string &key)
 
 void AbstractLazy::setProperties(const std::initializer_list<std::pair<std::string, dbTypes>> items)
 {
-    for(const auto &item : items)
+  for(const auto &item : items)
     {
         mProperties.insert_or_assign(item.first,toString(item.second));
     }
+}
+
+void AbstractLazy::setProperties(const std::initializer_list<std::map<std::string, dbTypes> > list)
+{
+  mBatchProperties = list;
+}
+
+void AbstractLazy::setProperties(const std::list<std::map<std::string, dbTypes> > &list)
+{
+  mBatchProperties = list;
 }
 
 AbstractLazy &AbstractLazy::operator<<(const std::pair<std::string, dbTypes> &key_value){

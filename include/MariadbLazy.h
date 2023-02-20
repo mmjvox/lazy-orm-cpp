@@ -12,6 +12,8 @@ protected:
   void select_query() override;
   void update_query() override;
   void delete_query() override;
+  void batch_insert_query() override;
+  void insert_update_query() override;
 
 public:
   MariadbLazy();

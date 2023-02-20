@@ -23,6 +23,7 @@ enum Query
   UPDATE,
   DELETE,
   INSERT_OR_UPDATE,
+  BATCH_INSERT
 };
 
 class AbstractLazy
@@ -52,6 +53,7 @@ protected:
   std::string mQueryString;
   std::string mTabeName;
   std::map<std::string, dbTypes> mProperties;
+  std::list<std::map<std::string, dbTypes>> mBatchProperties;
   std::string toString(const dbTypes &value);
   std::string string_join(const std::string &delimiter, const std::vector<std::string> &container);
 
@@ -59,6 +61,8 @@ protected:
   virtual void select_query() = 0;
   virtual void update_query() = 0;
   virtual void delete_query() = 0;
+  virtual void insert_update_query() = 0;
+  virtual void batch_insert_query() = 0;
 
 public:
   std::string queryString();
@@ -75,6 +79,9 @@ public:
   AbstractLazy & operator<<(const std::string &key);
   void setProperties(const std::initializer_list<std::pair<std::string,dbTypes>> items);
   AbstractLazy & operator<<(const std::pair<std::string,dbTypes> &key_value);
+
+  void setProperties(const std::initializer_list<std::map<std::string, dbTypes>> list);
+  void setProperties(const std::list<std::map<std::string, LazyOrm::dbTypes>> &list);
 
 };
 }

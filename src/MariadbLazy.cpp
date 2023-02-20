@@ -64,5 +64,51 @@ void MariadbLazy::delete_query()
 
 }
 
+void MariadbLazy::batch_insert_query()
+{
+  if(mBatchProperties.size()<1)
+  {
+    return;
+  }
+
+  size_t columnsCount=0;
+  std::vector<std::string> keys, values;
+
+  auto &firstRow = mBatchProperties.front();
+  columnsCount=firstRow.size();
+
+  for(const auto &[key, value] : firstRow)
+  {
+    keys.push_back("`"+key+"`");
+  }
+
+  for(const auto &mapItem : mBatchProperties)
+  {
+    if(columnsCount!=mapItem.size())
+    {
+      return;
+    }
+
+    std::vector<std::string> rowValues;
+    for(const auto &[key, value] : mapItem)
+    {
+      rowValues.push_back("\""+toString(value)+"\"");
+    }
+    values.push_back("("+string_join(",",rowValues)+")");
+  }
+
+  mQueryString = "INSERT INTO ";
+  mQueryString.append(mTabeName);
+  mQueryString.append(" ("+string_join(",",keys)+") ");
+  mQueryString.append("VALUES");
+  mQueryString.append(" "+string_join(",",values)+" ");
+  mQueryString.append(";");
+}
+
+void MariadbLazy::insert_update_query()
+{
+
+}
+
 
 }
