@@ -1,8 +1,7 @@
 #include <iostream>
 #include "MariadbLazy.h"
 
-#include <catch_amalgamated.hpp>
-#include <catch_amalgamated.cpp>
+#include <catch2/catch_all.hpp>
 #include <cstdint>
 
 std::string insert1() {
@@ -39,38 +38,10 @@ std::string insert4() {
   return lazyOrm.queryString();
 }
 
-TEST_CASE( "Factorials are computed", "[factorial]" ) {
-
-    std::cout << "Hello Lazy!" << std::endl;
+TEST_CASE( "Factorials are computed", "[Lazy_INSERT]" ) {
 
     REQUIRE( insert1() == R"(INSERT INTO student (`age`,`cute`,`hair`,`name`) VALUES ("6","true","pink","anya") ;)" );
     REQUIRE( insert2() == R"(INSERT INTO student (`age`,`cute`,`name`) VALUES ("27","false","ahmad") ;)" );
     REQUIRE( insert3() == R"(INSERT INTO student (`age`,`cute`,`hair`,`name`) VALUES ("23","false","black","ahmad") ;)" );
     REQUIRE( insert4() == R"(INSERT INTO student (`first_name`,`gender`,`last_name`,`name_father`) VALUES ("ali","male","yavari","reza") ;)" );
 }
-
-
-//int main()
-//{
-//
-
-
-
-
-
-//  LazyOrm::MariadbLazy lazyOrm2;
-//  lazyOrm2[LazyOrm::SELECT]="student";
-//  lazyOrm2.setProperties({"name","age","hair","*"});
-//  std::cout << lazyOrm2.queryString() << std::endl;
-
-//  LazyOrm::MariadbLazy lazyOrm3;
-//  lazyOrm3[LazyOrm::SELECT]="student";
-//  lazyOrm3<<"name"<<"age"<<"hair"<<"*";
-//  std::cout << lazyOrm3.queryString() << std::endl;
-
-
-
-
-
-//  return 0;
-//}

@@ -19,4 +19,7 @@ add_library(lazy-orm STATIC
 
 target_compile_definitions(lazy-orm PRIVATE lazy-orm_LIBRARY)
 
+option(tests "build tests" OFF)
+if(tests)
 add_subdirectory(tests)
+endif(tests)

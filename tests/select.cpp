@@ -1,8 +1,7 @@
 #include <iostream>
 #include "MariadbLazy.h"
 
-#include <catch_amalgamated.hpp>
-#include <catch_amalgamated.cpp>
+#include <catch2/catch_all.hpp>
 #include <cstdint>
 
 std::string select1() {
@@ -19,9 +18,7 @@ std::string select2() {
   return lazyOrm.queryString();
 }
 
-TEST_CASE( "Factorials are computed", "[factorial]" ) {
-
-    std::cout << "Hello Lazy!" << std::endl;
+TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
 
     REQUIRE( select1() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
     REQUIRE( select2() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
