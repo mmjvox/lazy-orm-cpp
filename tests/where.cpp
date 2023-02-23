@@ -12,10 +12,27 @@
 std::string where1() {
 
     LazyOrm::MariadbFilteringLazy filters;
-    filters.setFilter(LazyOrm::AND, {"AGE","25"});
-    filters.setFilter(LazyOrm::OR, {"SALARY","65000"});
-    filters.setFilter(LazyOrm::AND, {"AGE","<=","30"});
-    filters.setFilter(LazyOrm::AND, {"hair","pink"});
+    filters.setFilter({"AGE",12});
+    filters.setFilter(LazyOrm::LIMIT , {10,10});
+    filters.setFilter(LazyOrm::OR, {"AGE","25"});
+    filters.setFilter(LazyOrm::OR, {"AGE","<=",30});
+    filters.setFilter(LazyOrm::AND,  {"SALARY",65000});
+    filters.setFilter(LazyOrm::OR,  {"hair","pink"});
+    filters.setFilter(LazyOrm::AND, {"height","between", "99,198"});
+    filters.setFilter(LazyOrm::OR , {"grade","in", "[1,5,7,9]"});
+    filters.setFilter(LazyOrm::LIMIT , {10,10});
+    filters.setFilter(LazyOrm::LIMIT , {"10,10"});
+
+
+
+//    LazyOrm::filterTypes fff=std::vector{
+//        LazyOrm::filterPair{LazyOrm::AND, {"aaa",1}},
+//        LazyOrm::filterPair{LazyOrm::OR, {"bbb",2.2}}
+//    };
+
+//    filters.setFilter(LazyOrm::AND, fff);
+
+//    filters.test_init({"aaa",12,{"ac","54"}});
 
 //    {
 //        {"AND",{"AGE","25"}},

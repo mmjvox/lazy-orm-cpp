@@ -1,4 +1,5 @@
 #include "FilteringAbstractLazy.h"
+#include <iostream>
 
 namespace LazyOrm {
 std::string FilteringAbstractLazy::filterStr(Filters f)
@@ -8,6 +9,8 @@ std::string FilteringAbstractLazy::filterStr(Filters f)
         return "AND";
     case OR:
         return "OR";
+    case LIMIT:
+        return "LIMIT";
     }
 }
 
@@ -16,30 +19,92 @@ FilteringAbstractLazy::FilteringAbstractLazy()
 
 }
 
-void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<std::string> f)
+std::string FilteringAbstractLazy::toStringVal(const filterTypes &value){
+  return std::visit(filterTypeToVal{}, value);
+}
+
+void FilteringAbstractLazy::setFilter(std::initializer_list<filterTypes> f)
+{
+    mConditions.push_back({Filters::AND, f});
+}
+
+void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<filterTypes> f)
 {
     mConditions.push_back({filter, f});
 }
 
+void FilteringAbstractLazy::setFilter(const Filters &filter, filterTypes &f)
+{
+    mConditions.push_back({filter, {f}});
+}
+
 std::string FilteringAbstractLazy::testString()
 {
-    std::string sss;
-    for(const auto &item : mConditions)
+    std::string retStr;
+    size_t conditionsSize = mConditions.size();
+    for(int i=0;  i<conditionsSize; i++)
     {
-        sss.append(filterStr(item.first));
-        sss.append(" ");
-        if(item.second.size()==2)
+        auto &item = mConditions.at(i);
+        if(item.first==Filters::AND || item.first==Filters::OR)
         {
-            sss.append(item.second.at(0)+"="+item.second.at(1));
+            if(i>0)
+            {
+                retStr.append(filterStr(item.first));
+                retStr.append(" ");
+            }
+
+    //        std::vector<filterPair> nested ;//= std::visit(filterTypeToNested{}, item);
+    //        if(!nested.empty())
+    //        {
+    //            sss.append("nested \n");
+    //        }
+    //        else
+            if(item.second.size()==2)
+            {
+                retStr.append("`");
+                retStr.append(toStringVal(item.second.at(0)));
+                retStr.append("` = '");
+                retStr.append(toStringVal(item.second.at(1)));
+                retStr.append("' ");
+            }
+            else if(item.second.size()==3)
+            {
+                retStr.append("`");
+                retStr.append(toStringVal(item.second.at(0)));
+                retStr.append("` ");
+                retStr.append(toStringVal(item.second.at(1)));
+                retStr.append(" '");
+                retStr.append(toStringVal(item.second.at(2)));
+                retStr.append("' ");
+            }
         }
-        else if(item.second.size()==3)
+        else if(item.first==Filters::LIMIT)
         {
-            sss.append(item.second.at(0)+item.second.at(1)+item.second.at(2));
+            retStr.append("LIMIT ");
+            if(item.second.size()==2)
+            {
+                retStr.append(toStringVal(item.second.at(0)));
+                retStr.append(",");
+                retStr.append(toStringVal(item.second.at(1)));
+            }
+            else if(item.second.size()==1)
+            {
+                retStr.append(toStringVal(item.second.at(0)));
+            }
         }
-        sss.append("\n ");
+
+        retStr.append("\n ");
     }
-    return sss;
+    return retStr;
 }
+
+//void FilteringAbstractLazy::test_init(std::initializer_list<filterTypes> f)
+//{
+//    for(const auto &item : f)
+//    {
+//        std::cout <<"*--> "<< std::visit(dbTypeToString{}, item) << std::endl;
+//    }
+//}
 
 //filterTypes &FilteringAbstractLazy::operator[](const Filters &filter)
 //{
