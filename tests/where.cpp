@@ -22,6 +22,7 @@ std::string where1() {
     filters.setFilter(LazyOrm::OR , {"grade","in", "[1,5,7,9]"});
     filters.setFilter(LazyOrm::LIMIT , {10,10});
     filters.setFilter(LazyOrm::LIMIT , {"10,10"});
+    filters.setFilter(LazyOrm::ORDERBY , "aa");
 
 
 

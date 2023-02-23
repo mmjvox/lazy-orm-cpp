@@ -14,30 +14,34 @@ enum Filters
 {
   AND      = 0,
   OR    = 2,
-  LIMIT
+  ORDERBY,
+  LIMIT,
+  HAVING,
+  GROUPBY
 };
 
-typedef std::pair<Filters,std::vector<LazyOrm::dbTypes>> filterPair;
-typedef std::variant<dbTypes, std::vector<filterPair>> filterTypes;
+typedef std::pair<Filters,std::vector<LazyOrm::dbTypes>> WherePair;
+typedef std::variant<dbTypes, std::vector<WherePair>> WhereTypes;
+typedef std::variant<dbTypes, std::vector<dbTypes>> FilterTypes;
 
 class FilteringAbstractLazy
 {
 private:
-    struct filterTypeToNested
+    struct WhereTypeToNested
     {
       // nested
-      std::vector<filterPair> operator()(const std::vector<filterPair> &value){return value;}
+      std::vector<WherePair> operator()(const std::vector<WherePair> &value){return value;}
       // string
-      std::vector<filterPair> operator()(const dbTypes &value){return {};}
+      std::vector<WherePair> operator()(const dbTypes &value){return {};}
     };
-    struct filterTypeToVal
+    struct WhereTypeToVal
     {
       // nested
-      std::string operator()(const std::vector<filterPair> &value){return {};}
+      std::string operator()(const std::vector<WherePair> &value){return {};}
       // string
-      std::string operator()(const dbTypes &value){return std::visit(filterTypeToString{}, value);}
+      std::string operator()(const dbTypes &value){return std::visit(WhereTypeToString{}, value);}
     };
-    struct filterTypeToString
+    struct WhereTypeToString
     {
       // string
       std::string operator()(const std::string &value){return value;}
@@ -51,16 +55,23 @@ private:
 
 protected:
     std::string filterStr(Filters f);
-    std::vector<std::pair<Filters,std::vector<filterTypes>>> mConditions;
-    std::string toStringVal(const filterTypes &value);
+    std::vector<std::pair<Filters,std::vector<WhereTypes>>> mWhereConditions;
+    std::vector<FilterTypes> mOrderConditions;
+    std::vector<FilterTypes> mLimitConditions;
+//    std::vector<FilterTypes> mFetchConditions;
+    std::vector<FilterTypes> mGroupConditions;
+    std::vector<FilterTypes> mHavingConditions;
+    //
+    std::string toStringVal(const WhereTypes &value);
 
     virtual std::string where_conditions() = 0;
 
 public:
     FilteringAbstractLazy();
-    void setFilter(std::initializer_list<filterTypes> f);
-    void setFilter(const Filters &filter, std::initializer_list<filterTypes> f);
-    void setFilter(const Filters &filter, LazyOrm::filterTypes &f);
+    void setFilter(std::initializer_list<WhereTypes> f);
+    void setFilter(const Filters &filter, std::initializer_list<WhereTypes> f);
+    void setFilter(const Filters &filter, LazyOrm::WhereTypes &f);
+    void setFilter(const Filters &filter, LazyOrm::FilterTypes f);
 //    void test_init(std::initializer_list<std::vector<filterTypes>> f);
 //    filterTypes & operator[](const Filters &filter);
 

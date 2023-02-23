@@ -2,16 +2,25 @@
 #include <iostream>
 
 namespace LazyOrm {
+
+
 std::string FilteringAbstractLazy::filterStr(Filters f)
 {
     switch (f) {
-    case AND:
-        return "AND";
     case OR:
         return "OR";
+    case AND:
+        return "AND";
     case LIMIT:
         return "LIMIT";
+    case HAVING:
+        return "HAVING";
+    case ORDERBY:
+        return "ORDER BY";
+    case GROUPBY:
+        return "GROUP BY";
     }
+    return {};
 }
 
 FilteringAbstractLazy::FilteringAbstractLazy()
@@ -19,32 +28,66 @@ FilteringAbstractLazy::FilteringAbstractLazy()
 
 }
 
-std::string FilteringAbstractLazy::toStringVal(const filterTypes &value){
-  return std::visit(filterTypeToVal{}, value);
+std::string FilteringAbstractLazy::toStringVal(const WhereTypes &value){
+  return std::visit(WhereTypeToVal{}, value);
 }
 
-void FilteringAbstractLazy::setFilter(std::initializer_list<filterTypes> f)
+void FilteringAbstractLazy::setFilter(std::initializer_list<WhereTypes> f)
 {
-    mConditions.push_back({Filters::AND, f});
+    mWhereConditions.push_back({Filters::AND, f});
 }
 
-void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<filterTypes> f)
+void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<WhereTypes> f)
 {
-    mConditions.push_back({filter, f});
+    switch (filter) {
+    case OR:
+    case AND:
+        mWhereConditions.push_back({filter, f});
+        break;
+    case ORDERBY:
+        break;
+    case LIMIT:
+        break;
+    case HAVING:
+        break;
+    case GROUPBY:
+        break;
+    }
 }
 
-void FilteringAbstractLazy::setFilter(const Filters &filter, filterTypes &f)
+void FilteringAbstractLazy::setFilter(const Filters &filter, FilterTypes f)
 {
-    mConditions.push_back({filter, {f}});
+    switch (filter) {
+    case LIMIT:
+        mLimitConditions.push_back(f);
+        break;
+    case ORDERBY:
+        mOrderConditions.push_back(f);
+        break;
+    case HAVING:
+        mHavingConditions.push_back(f);
+        break;
+    case GROUPBY:
+        mGroupConditions.push_back(f);
+        break;
+    default:
+        break;
+    }
 }
+
+void FilteringAbstractLazy::setFilter(const Filters &filter, WhereTypes &f)
+{
+    mWhereConditions.push_back({filter, {f}});
+}
+
 
 std::string FilteringAbstractLazy::testString()
 {
     std::string retStr;
-    size_t conditionsSize = mConditions.size();
+    size_t conditionsSize = mWhereConditions.size();
     for(int i=0;  i<conditionsSize; i++)
     {
-        auto &item = mConditions.at(i);
+        auto &item = mWhereConditions.at(i);
         if(item.first==Filters::AND || item.first==Filters::OR)
         {
             if(i>0)
