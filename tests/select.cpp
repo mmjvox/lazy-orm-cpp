@@ -14,11 +14,19 @@ std::string select2() {
   LazyOrm::MariadbLazy lazyOrm;
   lazyOrm[LazyOrm::SELECT]="student";
   lazyOrm<<"name"<<"age"<<"hair"<<"*";
-  std::cout << lazyOrm.queryString() << std::endl;
+  return lazyOrm.queryString();
+}
+
+std::string select3() {
+  LazyOrm::MariadbLazy lazyOrm;
+  lazyOrm[LazyOrm::SELECT]="student";
+  lazyOrm<<"name"<<"age"<<"hair";
   return lazyOrm.queryString();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
+
+    std::cout << select3() << std::endl;
 
     REQUIRE( select1() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
     REQUIRE( select2() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );

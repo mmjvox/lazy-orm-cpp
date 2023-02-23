@@ -9,6 +9,7 @@
 #include <initializer_list>
 #include <iostream>
 
+
 namespace LazyOrm {
 
 typedef std::variant<int,double,float,bool,std::string> dbTypes;

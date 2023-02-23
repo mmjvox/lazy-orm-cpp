@@ -13,8 +13,13 @@ add_library(lazy-orm STATIC
 
     include/AbstractLazy.h
     src/AbstractLazy.cpp
+    include/FilteringAbstractLazy.h
+    src/FilteringAbstractLazy.cpp
+
     include/MariadbLazy.h
     src/MariadbLazy.cpp
+    include/MariadbFilteringLazy.h
+    src/MariadbFilteringLazy.cpp
 )
 
 target_compile_definitions(lazy-orm PRIVATE lazy-orm_LIBRARY)

@@ -56,7 +56,6 @@ void MariadbLazy::select_query()
 
 void MariadbLazy::update_query()
 {
-
 }
 
 void MariadbLazy::delete_query()
