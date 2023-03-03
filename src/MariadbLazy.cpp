@@ -21,7 +21,7 @@ void MariadbLazy::insert_query()
   for(const auto &[key, value] : mProperties)
   {
     keys.push_back("`"+key+"`");
-    values.push_back("\""+toString(value)+"\"");
+    values.push_back("\""+value.toString()+"\"");
   }
 
   mQueryString = "INSERT INTO ";
@@ -91,7 +91,7 @@ void MariadbLazy::batch_insert_query()
     std::vector<std::string> rowValues;
     for(const auto &[key, value] : mapItem)
     {
-      rowValues.push_back("\""+toString(value)+"\"");
+      rowValues.push_back("\""+value.toString()+"\"");
     }
     values.push_back("("+string_join(",",rowValues)+")");
   }

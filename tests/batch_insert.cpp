@@ -18,7 +18,7 @@ std::string batch_insert1() {
 
 std::string batch_insert2() {
 
-  std::list<std::map<std::string, LazyOrm::dbTypes>> batchProperties;
+  std::list<std::map<std::string, LazyOrm::DbVariant>> batchProperties;
   batchProperties.push_back({{"name","anya"},{"family","forger"},{"age",6},{"hair","pink"},{"cute",true}});
   batchProperties.push_back({{"name","damian"},{"family","Desmond"},{"age",8},{"hair","black"},{"cute",false}});
   batchProperties.push_back({{"name","loid"},{"family","forger"},{"age",30},{"hair","blond"},{"cute",false}});

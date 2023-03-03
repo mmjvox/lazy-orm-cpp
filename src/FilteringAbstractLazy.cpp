@@ -27,43 +27,7 @@ FilteringAbstractLazy::FilteringAbstractLazy()
 {
 }
 
-std::string FilteringAbstractLazy::toStringVal(const FilterTypes &value){
-    return std::visit(FilterTypeToString{}, value);
-}
-
-bool FilteringAbstractLazy::empty(const FilterTypes &value)
-{
-    return std::visit([=](auto&& arg) -> bool {
-
-        using T = std::decay_t<decltype(arg)>;
-
-        if constexpr (std::is_same_v<T, std::vector<WherePair>>) {
-            if(!arg.empty())
-            {
-                return false;
-            }
-        }
-
-        if constexpr (std::is_same_v<T, std::vector<dbTypes>>) {
-            if(!arg.empty())
-            {
-                return false;
-            }
-        }
-
-        if constexpr (std::is_same_v<T, dbTypes>) {
-            if(!toStringVal(arg).empty())
-            {
-                return false;
-            }
-        }
-
-        return true;
-
-    }, value);
-}
-
-void FilteringAbstractLazy::setFilter(std::initializer_list<FilterTypes> f)
+void FilteringAbstractLazy::setFilter(std::initializer_list<FilterVariant> f)
 {
     WherePair wp;
     wp.first = Filters::AND;
@@ -73,7 +37,7 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<FilterTypes> f)
 
 //template <typename T>
 //void FilteringAbstractLazy::setFilter(const Filters &filter, T&& arg)
-void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterTypes> filtersList)
+void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filtersList)
 {
 
 
@@ -98,7 +62,7 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_li
     }
 }
 
-void FilteringAbstractLazy::setFilter(const Filters &filter, FilterTypes f)
+void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant f)
 {
     switch (filter) {
     case OR:

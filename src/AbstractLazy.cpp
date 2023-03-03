@@ -15,7 +15,7 @@ void AbstractLazy::setTabeName(const std::string &name)
 //}
 
 
-dbTypes &AbstractLazy::operator[](const std::string &key)
+DbVariant &AbstractLazy::operator[](const std::string &key)
 {
     return mProperties[key];
 }
@@ -30,10 +30,6 @@ std::string & AbstractLazy::operator[](const Query &queryType)
 {
   mQueryType = queryType;
   return mTabeName;
-}
-
-std::string AbstractLazy::toString(const dbTypes &value){
-  return std::visit(dbTypeToString{}, value);
 }
 
 std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<std::string> &container)
@@ -78,7 +74,7 @@ std::string AbstractLazy::queryString()
   return mQueryString;
 }
 
-void AbstractLazy::setProperty(const std::string &key, const dbTypes value)
+void AbstractLazy::setProperty(const std::string &key, const DbVariant value)
 {
   mProperties.insert_or_assign(key, value);
 }
@@ -97,25 +93,25 @@ AbstractLazy & AbstractLazy::operator<<(const std::string &key)
     return *this;
 }
 
-void AbstractLazy::setProperties(const std::initializer_list<std::pair<std::string, dbTypes>> items)
+void AbstractLazy::setProperties(const std::initializer_list<std::pair<std::string, DbVariant>> items)
 {
   for(const auto &item : items)
     {
-        mProperties.insert_or_assign(item.first,toString(item.second));
+        mProperties.insert_or_assign(item.first, item.second.toString());
     }
 }
 
-void AbstractLazy::setProperties(const std::initializer_list<std::map<std::string, dbTypes> > list)
+void AbstractLazy::setProperties(const std::initializer_list<std::map<std::string, DbVariant> > list)
 {
   mBatchProperties = list;
 }
 
-void AbstractLazy::setProperties(const std::list<std::map<std::string, dbTypes> > &list)
+void AbstractLazy::setProperties(const std::list<std::map<std::string, DbVariant> > &list)
 {
   mBatchProperties = list;
 }
 
-AbstractLazy &AbstractLazy::operator<<(const std::pair<std::string, dbTypes> &key_value){
+AbstractLazy &AbstractLazy::operator<<(const std::pair<std::string, DbVariant> &key_value){
     mProperties.insert_or_assign(key_value.first, key_value.second);
     return *this;
 }

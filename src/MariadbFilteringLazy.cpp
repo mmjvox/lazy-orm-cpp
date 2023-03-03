@@ -6,14 +6,14 @@ MariadbFilteringLazy::MariadbFilteringLazy()
 
 }
 
-void MariadbFilteringLazy::setLimitConditions(const std::initializer_list<FilterTypes> &filtersList)
+void MariadbFilteringLazy::setLimitConditions(const std::initializer_list<FilterVariant> &filtersList)
 {
-    std::vector<dbTypes> filters;
+    std::vector<DbVariant> filters;
     for(const auto& filter : filtersList)
     {
-        dbTypes dt = std::visit([=](auto&& arg) -> dbTypes {
+        DbVariant dt = std::visit([=](auto&& arg) -> DbVariant {
                 using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, dbTypes>) {
+                if constexpr (std::is_same_v<T, DbVariant>) {
                     return arg;
                 }
                 else {return {};}
@@ -31,14 +31,14 @@ void MariadbFilteringLazy::setLimitConditions(const std::initializer_list<Filter
     }
 }
 
-void MariadbFilteringLazy::setOrderConditions(const std::initializer_list<FilterTypes> &filtersList)
+void MariadbFilteringLazy::setOrderConditions(const std::initializer_list<FilterVariant> &filtersList)
 {
-    std::vector<dbTypes> filters;
+    std::vector<DbVariant> filters;
     for(const auto& filter : filtersList)
     {
-        dbTypes dt = std::visit([=](auto&& arg) -> dbTypes {
+        DbVariant dt = std::visit([=](auto&& arg) -> DbVariant {
                 using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, dbTypes>) {
+                if constexpr (std::is_same_v<T, DbVariant>) {
                     return arg;
                 }
                 else {return {};}
@@ -49,14 +49,14 @@ void MariadbFilteringLazy::setOrderConditions(const std::initializer_list<Filter
     mOrderConditions=filters;
 }
 
-void MariadbFilteringLazy::setGroupConditions(const std::initializer_list<FilterTypes> &filtersList)
+void MariadbFilteringLazy::setGroupConditions(const std::initializer_list<FilterVariant> &filtersList)
 {
-    std::vector<dbTypes> filters;
+    std::vector<DbVariant> filters;
     for(const auto& filter : filtersList)
     {
-        dbTypes dt = std::visit([=](auto&& arg) -> dbTypes {
+        DbVariant dt = std::visit([=](auto&& arg) -> DbVariant {
                 using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, dbTypes>) {
+                if constexpr (std::is_same_v<T, DbVariant>) {
                     return arg;
                 }
                 else {return {};}
@@ -67,14 +67,14 @@ void MariadbFilteringLazy::setGroupConditions(const std::initializer_list<Filter
     mGroupConditions=filters;
 }
 
-void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::initializer_list<FilterTypes> &filtersList)
+void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::initializer_list<FilterVariant> &filtersList)
 {
-    std::vector<dbTypes> filters;
+    std::vector<DbVariant> filters;
     for(const auto& item : filtersList)
     {
-        dbTypes dt = std::visit([=](auto&& arg) -> dbTypes {
+        DbVariant dt = std::visit([=](auto&& arg) -> DbVariant {
                 using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, dbTypes>) {
+                if constexpr (std::is_same_v<T, DbVariant>) {
                     return arg;
                 }
                 else {return {};}
@@ -102,7 +102,7 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
     size_t conditionsSize = mWhereConditions.size();
     for(int i=0;  i<conditionsSize; i++)
     {
-        auto whereItems = filterTypesToVector<WherePair>(mWhereConditions.at(i));// std::visit(FilterTypeToWhere{}, mWhereConditions.at(i));
+        auto whereItems = mWhereConditions.at(i).filterTypesToVector<WherePair>();
         for(const auto& item :whereItems)
         {
             if(item.first==Filters::AND || item.first==Filters::OR)
@@ -124,19 +124,19 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
                 if(item.second.size()==2)
                 {
                     retStr.append("`");
-                    retStr.append(toStringVal(item.second.at(0)));
+                    retStr.append(item.second.at(0).toString());
                     retStr.append("` = '");
-                    retStr.append(toStringVal(item.second.at(1)));
+                    retStr.append(item.second.at(1).toString());
                     retStr.append("' ");
                 }
                 else if(item.second.size()==3)
                 {
                     retStr.append("`");
-                    retStr.append(toStringVal(item.second.at(0)));
+                    retStr.append(item.second.at(0).toString());
                     retStr.append("` ");
-                    retStr.append(toStringVal(item.second.at(1)));
+                    retStr.append(item.second.at(1).toString());
                     retStr.append(" '");
-                    retStr.append(toStringVal(item.second.at(2)));
+                    retStr.append(item.second.at(2).toString());
                     retStr.append("' ");
                 }
             }
@@ -147,66 +147,66 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
 
 void MariadbFilteringLazy::appendOrderby(std::string &retStr)
 {
-    if(empty(mOrderConditions))
+    if(mOrderConditions.empty())
     {
         return;
     }
 
     retStr.append("ORDER BY ");
-    if (std::holds_alternative<std::vector<dbTypes>>(mOrderConditions))
+    if (std::holds_alternative<std::vector<DbVariant>>(mOrderConditions))
     {
-        std::vector<dbTypes> dt = filterTypesToVector<dbTypes>(mOrderConditions);
-        retStr.append(toStringVal(dt.at(0)));
+        std::vector<DbVariant> dt = mOrderConditions.filterTypesToVector<DbVariant>();
+        retStr.append(dt.at(0).toString());
         retStr.append(",");
-        retStr.append(toStringVal(dt.at(1)));
+        retStr.append(dt.at(1).toString());
     }
-    else if(std::holds_alternative<dbTypes>(mOrderConditions))
+    else if(std::holds_alternative<DbVariant>(mOrderConditions))
     {
-        retStr.append(toStringVal(mOrderConditions));
+        retStr.append(mOrderConditions.toString());
     }
     retStr.append("\n ");
 }
 
 void MariadbFilteringLazy::appendLimit(std::string &retStr)
 {
-    if(empty(mLimitConditions))
+    if(mLimitConditions.empty())
     {
         return;
     }
 
     retStr.append("LIMIT ");
-    if (std::holds_alternative<std::vector<dbTypes>>(mLimitConditions))
+    if (std::holds_alternative<std::vector<DbVariant>>(mLimitConditions))
     {
-        std::vector<dbTypes> dt = filterTypesToVector<dbTypes>(mLimitConditions);
-        retStr.append(toStringVal(dt.at(0)));
+        std::vector<DbVariant> dt = mLimitConditions.filterTypesToVector<DbVariant>();
+        retStr.append(dt.at(0).toString());
         retStr.append(",");
-        retStr.append(toStringVal(dt.at(1)));
+        retStr.append(dt.at(1).toString());
     }
-    else if(std::holds_alternative<dbTypes>(mLimitConditions))
+    else if(std::holds_alternative<DbVariant>(mLimitConditions))
     {
-        retStr.append(toStringVal(mLimitConditions));
+        retStr.append(mLimitConditions.toString());
     }
     retStr.append("\n ");
 }
 
 void MariadbFilteringLazy::appendGroup(std::string &retStr)
 {
-    if(empty(mGroupConditions))
+    if(mGroupConditions.empty())
     {
         return;
     }
 
     retStr.append("GROUP BY ");
-    if (std::holds_alternative<std::vector<dbTypes>>(mGroupConditions))
+    if (std::holds_alternative<std::vector<DbVariant>>(mGroupConditions))
     {
-        std::vector<dbTypes> dt = filterTypesToVector<dbTypes>(mGroupConditions);
-        retStr.append(toStringVal(dt.at(0)));
+        std::vector<DbVariant> dt = mGroupConditions.filterTypesToVector<DbVariant>();
+        retStr.append(dt.at(0).toString());
         retStr.append(",");
-        retStr.append(toStringVal(dt.at(1)));
+        retStr.append(dt.at(1).toString());
     }
-    else if(std::holds_alternative<dbTypes>(mGroupConditions))
+    else if(std::holds_alternative<DbVariant>(mGroupConditions))
     {
-        retStr.append(toStringVal(mGroupConditions));
+        retStr.append(mGroupConditions.toString());
     }
     retStr.append("\n ");
 }

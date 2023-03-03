@@ -11,6 +11,11 @@ include_directories(
 
 add_library(lazy-orm STATIC
 
+    include/DbVariant.h
+    src/DbVariant.cpp
+    include/FilterVariant.h
+    src/FilterVariant.cpp
+
     include/AbstractLazy.h
     src/AbstractLazy.cpp
     include/FilteringAbstractLazy.h
