@@ -63,16 +63,26 @@ protected:
 
 protected:
     template <typename FT>
-    std::vector<FT> filterTypesToVector(FilterTypes &filter);
-    virtual void setWhereConditions(const Filters &filter, const std::initializer_list<LazyOrm::FilterTypes> &filtersList);
-    virtual void setLimitConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList);
-    virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList);
-    virtual void setGroupConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList);
+    std::vector<FT> filterTypesToVector(FilterTypes &filter)
+    {
+        return std::visit([=](auto&& arg) -> std::vector<FT> {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::vector<FT>>) {
+                return arg;
+            }
+            return {};
+        }, filter);
+    }
+    virtual void setWhereConditions(const Filters &filter, const std::initializer_list<LazyOrm::FilterTypes> &filtersList) = 0;
+    virtual void setLimitConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList) = 0;
+    virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList) = 0;
+    virtual void setGroupConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList) = 0;
     //
-    virtual void appendWhere(std::string &retStr);
-    virtual void appendOrderby(std::string &retStr);
-    virtual void appendLimit(std::string &retStr);
-    virtual void appendGroup(std::string &retStr);
+    virtual void appendWhere(std::string &retStr) = 0;
+    virtual void appendOrderby(std::string &retStr) = 0;
+    virtual void appendLimit(std::string &retStr) = 0;
+    virtual void appendGroup(std::string &retStr) = 0;
+    //
     std::string toStringVal(const FilterTypes &value);
 
     virtual std::string where_conditions() = 0;
