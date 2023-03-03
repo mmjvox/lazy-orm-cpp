@@ -13,16 +13,20 @@ std::string where1() {
 
     LazyOrm::MariadbFilteringLazy filters;
     filters.setFilter({"AGE",12});
-    filters.setFilter(LazyOrm::LIMIT , {10,10});
     filters.setFilter(LazyOrm::OR, {"AGE","25"});
     filters.setFilter(LazyOrm::OR, {"AGE","<=",30});
     filters.setFilter(LazyOrm::AND,  {"SALARY",65000});
     filters.setFilter(LazyOrm::OR,  {"hair","pink"});
     filters.setFilter(LazyOrm::AND, {"height","between", "99,198"});
     filters.setFilter(LazyOrm::OR , {"grade","in", "[1,5,7,9]"});
-    filters.setFilter(LazyOrm::LIMIT , {11,23});
+    //
+    filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
+    //
+    filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
+    //
     filters.setFilter(LazyOrm::LIMIT , {"10,10"});
-    filters.setFilter(LazyOrm::ORDERBY , "aa");
+    filters.setFilter(LazyOrm::LIMIT , {10,10});
+    filters.setFilter(LazyOrm::LIMIT , {11,23});
 
 
 

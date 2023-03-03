@@ -42,32 +42,43 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<FilterTypes> f)
 
 //template <typename T>
 //void FilteringAbstractLazy::setFilter(const Filters &filter, T&& arg)
-void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterTypes> filters)
+void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterTypes> filtersList)
 {
-//    for (const auto& filter : filters) {
-//            if (std::holds_alternative<std::vector<WherePair>>(filter)) {
-//                std::cout << "Found a std::vector<WherePair> filter\n";
-//            } else if (std::holds_alternative<std::vector<dbTypes>>(filter)) {
-//                std::cout << "Found a std::vector<dbTypes> filter\n";
-//            } else {
-//                std::cout << "Found a dbTypes filter\n";
-//            }
-//        }
+
+
 
 
     switch (filter) {
     case OR:
     case AND:
-//        static_cast<std::vector<WhereTypes>>(arg)
-//        mWhereConditions.push_back({filter, f});
+        {
+            std::vector<dbTypes> filters;
+            for(const auto& item : filtersList)
+            {
+                dbTypes dt = std::visit([=](auto&& arg) -> dbTypes {
+                        using T = std::decay_t<decltype(arg)>;
+                        if constexpr (std::is_same_v<T, dbTypes>) {
+                            return arg;
+                        }
+                        else {return {};}
+                    }, item);
+
+                filters.push_back(dt);
+            }
+            WherePair wp;
+            wp.first=filter;
+            wp.second=filters;
+            std::vector<WherePair> vwp;
+            vwp.push_back(wp);
+            mWhereConditions.push_back(vwp);
+        }
+        break;
+    case HAVING:
         break;
     case ORDERBY:
-        break;
-    case LIMIT:
-        if(filters.size()==2)
         {
-            std::vector<dbTypes> limitF;
-            for(const auto& filter : filters)
+            std::vector<dbTypes> filters;
+            for(const auto& filter : filtersList)
             {
                 dbTypes dt = std::visit([=](auto&& arg) -> dbTypes {
                         using T = std::decay_t<decltype(arg)>;
@@ -77,21 +88,53 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_li
                         else {return {};}
                     }, filter);
 
-                limitF.push_back(dt);
+                filters.push_back(dt);
             }
-            mLimitConditions.push_back(limitF);
+            mOrderConditions=filters;
         }
-        else if(filters.size()==1)
-        {
-            if(std::holds_alternative<LazyOrm::dbTypes>(*filters.begin()))
-            {
-                mLimitConditions.push_back(*filters.begin());
-            }
-        }
-        break;
-    case HAVING:
         break;
     case GROUPBY:
+        {
+            std::vector<dbTypes> filters;
+            for(const auto& filter : filtersList)
+            {
+                dbTypes dt = std::visit([=](auto&& arg) -> dbTypes {
+                        using T = std::decay_t<decltype(arg)>;
+                        if constexpr (std::is_same_v<T, dbTypes>) {
+                            return arg;
+                        }
+                        else {return {};}
+                    }, filter);
+
+                filters.push_back(dt);
+            }
+            mGroupConditions=filters;
+        }
+        break;
+    case LIMIT:
+        {
+            std::vector<dbTypes> filters;
+            for(const auto& filter : filtersList)
+            {
+                dbTypes dt = std::visit([=](auto&& arg) -> dbTypes {
+                        using T = std::decay_t<decltype(arg)>;
+                        if constexpr (std::is_same_v<T, dbTypes>) {
+                            return arg;
+                        }
+                        else {return {};}
+                    }, filter);
+
+                filters.push_back(dt);
+            }
+            if(filters.size()==2)
+            {
+                mLimitConditions=filters;
+            }
+            else if(filters.size()==1)
+            {
+                mLimitConditions=filters[0];
+            }
+        }
         break;
     }
 }
@@ -99,17 +142,21 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_li
 void FilteringAbstractLazy::setFilter(const Filters &filter, FilterTypes f)
 {
     switch (filter) {
+    case OR:
+    case AND:
+        mWhereConditions.push_back(f);
+        break;
     case LIMIT:
-        mLimitConditions.push_back(f);
+        mLimitConditions=f;
         break;
     case ORDERBY:
-        mOrderConditions.push_back(f);
+        mOrderConditions=f;
         break;
     case HAVING:
         mHavingConditions.push_back(f);
         break;
     case GROUPBY:
-        mGroupConditions.push_back(f);
+        mGroupConditions=f;
         break;
     default:
         break;
@@ -169,31 +216,69 @@ std::string FilteringAbstractLazy::testString()
         retStr.append("\n ");
     }
 
-    // LIMIT
-    conditionsSize = mLimitConditions.size();
-    for(int i=0;  i<conditionsSize; i++)
+    // GROUP BY
+    retStr.append("GROUP BY ");
+    if (std::holds_alternative<std::vector<dbTypes>>(mGroupConditions))
     {
-        auto &item = mLimitConditions.at(i);
-        retStr.append("LIMIT ");
-        if (std::holds_alternative<std::vector<dbTypes>>(item))
-        {
-            std::vector<dbTypes> dt = std::visit([=](auto&& arg) -> std::vector<dbTypes> {
-                    using T = std::decay_t<decltype(arg)>;
-                    if constexpr (std::is_same_v<T, std::vector<dbTypes>>) {
-                        return arg;
-                    }
-                    else {return {};}
-                }, item);
-            retStr.append(toStringVal(dt.at(0)));
-            retStr.append(",");
-            retStr.append(toStringVal(dt.at(1)));
-        }
-        else if(std::holds_alternative<dbTypes>(item))
-        {
-            retStr.append(toStringVal(item));
-        }
-        retStr.append("\n ");
+        std::vector<dbTypes> dt = std::visit([=](auto&& arg) -> std::vector<dbTypes> {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, std::vector<dbTypes>>) {
+                    return arg;
+                }
+                else {return {};}
+            }, mGroupConditions);
+        retStr.append(toStringVal(dt.at(0)));
+        retStr.append(",");
+        retStr.append(toStringVal(dt.at(1)));
     }
+    else if(std::holds_alternative<dbTypes>(mGroupConditions))
+    {
+        retStr.append(toStringVal(mGroupConditions));
+    }
+    retStr.append("\n ");
+
+    // LIMIT
+    retStr.append("ORDER BY ");
+    if (std::holds_alternative<std::vector<dbTypes>>(mOrderConditions))
+    {
+        std::vector<dbTypes> dt = std::visit([=](auto&& arg) -> std::vector<dbTypes> {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, std::vector<dbTypes>>) {
+                    return arg;
+                }
+                else {return {};}
+            }, mOrderConditions);
+        retStr.append(toStringVal(dt.at(0)));
+        retStr.append(",");
+        retStr.append(toStringVal(dt.at(1)));
+    }
+    else if(std::holds_alternative<dbTypes>(mOrderConditions))
+    {
+        retStr.append(toStringVal(mOrderConditions));
+    }
+    retStr.append("\n ");
+
+    // LIMIT
+    retStr.append("LIMIT ");
+    if (std::holds_alternative<std::vector<dbTypes>>(mLimitConditions))
+    {
+        std::vector<dbTypes> dt = std::visit([=](auto&& arg) -> std::vector<dbTypes> {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, std::vector<dbTypes>>) {
+                    return arg;
+                }
+                else {return {};}
+            }, mLimitConditions);
+        retStr.append(toStringVal(dt.at(0)));
+        retStr.append(",");
+        retStr.append(toStringVal(dt.at(1)));
+    }
+    else if(std::holds_alternative<dbTypes>(mLimitConditions))
+    {
+        retStr.append(toStringVal(mLimitConditions));
+    }
+    retStr.append("\n ");
+
     return retStr;
 }
 

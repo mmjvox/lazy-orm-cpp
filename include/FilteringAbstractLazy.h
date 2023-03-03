@@ -54,11 +54,11 @@ private:
 protected:
     std::string filterStr(Filters f);
     std::vector<FilterTypes> mWhereConditions;
-    std::vector<FilterTypes> mOrderConditions;
-    std::vector<FilterTypes> mLimitConditions;
-//    std::vector<FilterTypes> mFetchConditions;
-    std::vector<FilterTypes> mGroupConditions;
+    FilterTypes mLimitConditions;
+    FilterTypes mOrderConditions;
+    FilterTypes mGroupConditions;
     std::vector<FilterTypes> mHavingConditions;
+//    std::vector<FilterTypes> mFetchConditions;
     //
     std::string toStringVal(const FilterTypes &value);
 
@@ -69,7 +69,7 @@ public:
     void setFilter(std::initializer_list<LazyOrm::FilterTypes> f);
 //    template <typename T>
 //    void setFilter(const Filters &filter, T&& arg);
-    void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterTypes> filters);
+    void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterTypes> filtersList);
 //    void setFilter(const Filters &filter, LazyOrm::WhereTypes &f);
     void setFilter(const Filters &filter, LazyOrm::FilterTypes f);
 //    void test_init(std::initializer_list<std::vector<filterTypes>> f);
