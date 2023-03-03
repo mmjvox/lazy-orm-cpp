@@ -60,6 +60,19 @@ protected:
     std::vector<FilterTypes> mHavingConditions;
 //    std::vector<FilterTypes> mFetchConditions;
     //
+
+protected:
+    template <typename FT>
+    std::vector<FT> filterTypesToVector(FilterTypes &filter);
+    virtual void setWhereConditions(const Filters &filter, const std::initializer_list<LazyOrm::FilterTypes> &filtersList);
+    virtual void setLimitConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList);
+    virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList);
+    virtual void setGroupConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList);
+    //
+    virtual void appendWhere(std::string &retStr);
+    virtual void appendOrderby(std::string &retStr);
+    virtual void appendLimit(std::string &retStr);
+    virtual void appendGroup(std::string &retStr);
     std::string toStringVal(const FilterTypes &value);
 
     virtual std::string where_conditions() = 0;
