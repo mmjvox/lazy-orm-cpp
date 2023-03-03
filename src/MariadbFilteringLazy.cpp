@@ -94,6 +94,11 @@ void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::
 
 void MariadbFilteringLazy::appendWhere(std::string &retStr)
 {
+    if(mWhereConditions.empty())
+    {
+        return;
+    }
+
     size_t conditionsSize = mWhereConditions.size();
     for(int i=0;  i<conditionsSize; i++)
     {
@@ -142,6 +147,11 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
 
 void MariadbFilteringLazy::appendOrderby(std::string &retStr)
 {
+    if(empty(mOrderConditions))
+    {
+        return;
+    }
+
     retStr.append("ORDER BY ");
     if (std::holds_alternative<std::vector<dbTypes>>(mOrderConditions))
     {
@@ -159,6 +169,11 @@ void MariadbFilteringLazy::appendOrderby(std::string &retStr)
 
 void MariadbFilteringLazy::appendLimit(std::string &retStr)
 {
+    if(empty(mLimitConditions))
+    {
+        return;
+    }
+
     retStr.append("LIMIT ");
     if (std::holds_alternative<std::vector<dbTypes>>(mLimitConditions))
     {
@@ -176,6 +191,11 @@ void MariadbFilteringLazy::appendLimit(std::string &retStr)
 
 void MariadbFilteringLazy::appendGroup(std::string &retStr)
 {
+    if(empty(mGroupConditions))
+    {
+        return;
+    }
+
     retStr.append("GROUP BY ");
     if (std::holds_alternative<std::vector<dbTypes>>(mGroupConditions))
     {

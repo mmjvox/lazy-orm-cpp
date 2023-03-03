@@ -12,7 +12,7 @@
 
 namespace LazyOrm {
 
-typedef std::variant<int,double,float,bool,std::string> dbTypes;
+typedef std::variant<std::string,int,double,float,bool> dbTypes;
 typedef std::pair<std::string,LazyOrm::dbTypes> pair;
 
 enum Query

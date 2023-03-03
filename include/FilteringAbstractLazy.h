@@ -8,7 +8,7 @@
 
 namespace LazyOrm {
 
-typedef std::variant<int,double,float,bool,std::string> dbTypes;
+typedef std::variant<std::string,int,double,float,bool> dbTypes;
 
 enum Filters
 {
@@ -73,6 +73,7 @@ protected:
             return {};
         }, filter);
     }
+    //
     virtual void setWhereConditions(const Filters &filter, const std::initializer_list<LazyOrm::FilterTypes> &filtersList) = 0;
     virtual void setLimitConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList) = 0;
     virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterTypes> &filtersList) = 0;
@@ -84,6 +85,7 @@ protected:
     virtual void appendGroup(std::string &retStr) = 0;
     //
     std::string toStringVal(const FilterTypes &value);
+    bool empty(const FilterTypes &value);
 
     virtual std::string where_conditions() = 0;
 

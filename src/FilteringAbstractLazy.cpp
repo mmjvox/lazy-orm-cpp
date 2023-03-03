@@ -25,11 +25,42 @@ std::string FilteringAbstractLazy::filterStr(Filters f)
 
 FilteringAbstractLazy::FilteringAbstractLazy()
 {
-
 }
 
 std::string FilteringAbstractLazy::toStringVal(const FilterTypes &value){
-  return std::visit(FilterTypeToString{}, value);
+    return std::visit(FilterTypeToString{}, value);
+}
+
+bool FilteringAbstractLazy::empty(const FilterTypes &value)
+{
+    return std::visit([=](auto&& arg) -> bool {
+
+        using T = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<T, std::vector<WherePair>>) {
+            if(!arg.empty())
+            {
+                return false;
+            }
+        }
+
+        if constexpr (std::is_same_v<T, std::vector<dbTypes>>) {
+            if(!arg.empty())
+            {
+                return false;
+            }
+        }
+
+        if constexpr (std::is_same_v<T, dbTypes>) {
+            if(!toStringVal(arg).empty())
+            {
+                return false;
+            }
+        }
+
+        return true;
+
+    }, value);
 }
 
 void FilteringAbstractLazy::setFilter(std::initializer_list<FilterTypes> f)
