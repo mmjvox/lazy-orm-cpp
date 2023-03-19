@@ -56,14 +56,24 @@ void MariadbLazy::select_query()
 
 void MariadbLazy::update_query()
 {
-  mQueryString = "UPDATE ";
-  mQueryString.append(mTabeName);
-  mQueryString.append(";");
+    std::vector<std::string> updates;
+    for(const auto &[key, value] : mProperties)
+    {
+      updates.push_back("`"+key+"`='"+value.toString()+"'");
+    }
+
+    mQueryString = "UPDATE ";
+    mQueryString.append(mTabeName);
+    mQueryString.append(" SET ");
+    mQueryString.append(string_join(",",updates));
+    mQueryString.append(";");
 }
 
 void MariadbLazy::delete_query()
 {
-
+    mQueryString = "DELETE FROM ";
+    mQueryString.append(mTabeName);
+    mQueryString.append(" ;");
 }
 
 void MariadbLazy::batch_insert_query()

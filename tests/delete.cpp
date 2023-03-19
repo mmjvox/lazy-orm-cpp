@@ -4,9 +4,9 @@
 #include <catch2/catch_all.hpp>
 #include <cstdint>
 
-std::string update1() {
+std::string delete1() {
   LazyOrm::MariadbLazy lazyOrm;
-  lazyOrm[LazyOrm::UPDATE]="student";
+  lazyOrm[LazyOrm::DELETE]="student";
   lazyOrm["name"]="anya";
   lazyOrm["age"]=6;
   lazyOrm["hair"]="pink";
@@ -16,7 +16,7 @@ std::string update1() {
 
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
 
-    std::cout << update1() << std::endl;
+    std::cout << delete1() << std::endl;
 
 //    REQUIRE( select1() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
 //    REQUIRE( select2() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
