@@ -56,6 +56,9 @@ void MariadbLazy::select_query()
 
 void MariadbLazy::update_query()
 {
+  mQueryString = "UPDATE ";
+  mQueryString.append(mTabeName);
+  mQueryString.append(";");
 }
 
 void MariadbLazy::delete_query()
