@@ -29,10 +29,8 @@ FilteringAbstractLazy::FilteringAbstractLazy()
 
 void FilteringAbstractLazy::setFilter(std::initializer_list<FilterVariant> f)
 {
-    WherePair wp;
-    wp.first = Filters::AND;
-//    wp.second.push_back(f.begin());
-//    mWhereConditions.push_back({Filters::AND, f});
+//    WherePair wp;
+//    wp.first = Filters::AND;
 }
 
 //template <typename T>

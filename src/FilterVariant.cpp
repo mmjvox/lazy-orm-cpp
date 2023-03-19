@@ -1,5 +1,11 @@
 #include "FilterVariant.h"
 
+// WherePair
+std::string LazyOrm::WherePair::FilterVariantToString::operator()(const std::vector<WherePair> &value){return {};}
+
+std::string LazyOrm::WherePair::FilterVariantToString::operator()(const DbVariant &value){return value.toString();}
+
+// FilterVariant
 std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const std::vector<WherePair> &value){return {};}
 
 std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const std::vector<DbVariant> &value){return {};}
@@ -7,7 +13,7 @@ std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const std:
 std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const DbVariant &value){return value.toString();}
 
 std::string LazyOrm::FilterVariant::toString(){
-    return std::visit(FilterVariantToString{}, *this);
+    return std::visit(FilterVariant::FilterVariantToString{}, *this);
 }
 
 bool LazyOrm::FilterVariant::empty()

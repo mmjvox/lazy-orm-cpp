@@ -83,8 +83,8 @@ void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::
         filters.push_back(dt);
     }
     WherePair wp;
-    wp.first=filter;
-    wp.second=filters;
+//    wp.filter=filter;
+//    wp.second=filters;
     std::vector<WherePair> vwp;
     vwp.push_back(wp);
     mWhereConditions.push_back(vwp);
@@ -105,13 +105,13 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
         auto whereItems = mWhereConditions.at(i).filterTypesToVector<WherePair>();
         for(const auto& item :whereItems)
         {
-            if(item.first==Filters::AND || item.first==Filters::OR)
+            if(item.filter==Filters::AND || item.filter==Filters::OR)
             {
                 if(i==0)
                 {
                     retStr.append("WHERE ");
                 } else {
-                    retStr.append(filterStr(item.first));
+                    retStr.append(filterStr(item.filter));
                     retStr.append(" ");
                 }
 
@@ -121,24 +121,24 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
     //                sss.append("nested \n");
     //            }
     //            else
-                if(item.second.size()==2)
-                {
-                    retStr.append("`");
-                    retStr.append(item.second.at(0).toString());
-                    retStr.append("` = '");
-                    retStr.append(item.second.at(1).toString());
-                    retStr.append("' ");
-                }
-                else if(item.second.size()==3)
-                {
-                    retStr.append("`");
-                    retStr.append(item.second.at(0).toString());
-                    retStr.append("` ");
-                    retStr.append(item.second.at(1).toString());
-                    retStr.append(" '");
-                    retStr.append(item.second.at(2).toString());
-                    retStr.append("' ");
-                }
+//                if(item.second.size()==2)
+//                {
+//                    retStr.append("`");
+//                    retStr.append(item.second.at(0).toString());
+//                    retStr.append("` = '");
+//                    retStr.append(item.second.at(1).toString());
+//                    retStr.append("' ");
+//                }
+//                else if(item.second.size()==3)
+//                {
+//                    retStr.append("`");
+//                    retStr.append(item.second.at(0).toString());
+//                    retStr.append("` ");
+//                    retStr.append(item.second.at(1).toString());
+//                    retStr.append(" '");
+//                    retStr.append(item.second.at(2).toString());
+//                    retStr.append("' ");
+//                }
             }
         }
         retStr.append("\n ");

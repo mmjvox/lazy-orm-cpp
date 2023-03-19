@@ -21,14 +21,43 @@ enum Filters
   GROUPBY
 };
 
-typedef std::pair<Filters,std::vector<LazyOrm::DbVariant>> WherePair;
+//typedef std::pair<Filters,std::vector<LazyOrm::DbVariant>> WherePair;
 //typedef std::variant<DbVariant, std::vector<WherePair>> WhereTypes;
+
+class WherePair : public std::vector<std::variant<DbVariant, std::vector<WherePair>>> {
+
+public:
+    using std::vector<std::variant<DbVariant, std::vector<WherePair>>>::vector;
+    Filters filter;
+
+
+    WherePair(){}
+    WherePair( Filters filter,
+            std::vector<std::variant<DbVariant, std::vector<WherePair>>> whereFilters)
+        : std::vector<std::variant<DbVariant, std::vector<WherePair>>>(whereFilters), filter{filter}
+    {
+    }
+
+    // TODO: replace this with correct depth
+    WherePair * depth(int index){return this;}
+
+
+    struct FilterVariantToString
+    {
+      std::string operator()(const std::vector<WherePair> &value);
+      std::string operator()(const DbVariant &value);
+    };
+
+    // TODO: replace this with correct depth
+    std::string stringValue(size_t index){
+        return std::visit(FilterVariantToString{}, this->at(index));
+    }
+};
 
 class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>, std::vector<WherePair>>
 {
 public:
     using std::variant<DbVariant, std::vector<DbVariant>, std::vector<WherePair>>::variant;
-
 
     struct FilterVariantToString
     {

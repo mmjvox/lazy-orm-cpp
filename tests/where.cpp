@@ -29,6 +29,19 @@ std::string where1() {
     filters.setFilter(LazyOrm::LIMIT , {11,23});
 
 
+    LazyOrm::WherePair pair1{LazyOrm::OR,{"aaa","like","1%"}};
+    LazyOrm::WherePair pair2{LazyOrm::OR,{"bbb","like","2%"}};
+    LazyOrm::WherePair pair3{LazyOrm::OR,{"ccc","like","3%"}};
+
+//    LazyOrm::FilterVariant v1=LazyOrm::NestedWherePair{LazyOrm::AND, {pair1, pair2, pair3}};
+
+    LazyOrm::WherePair pair4{LazyOrm::OR,{"ddd","like","%4"}};
+    LazyOrm::WherePair pair5{LazyOrm::OR,{"eee","like","%5"}};
+    LazyOrm::WherePair pair6{LazyOrm::OR,{"fff","like","%6"}};
+
+//    LazyOrm::FilterVariant v2=LazyOrm::NestedWherePair{LazyOrm::AND, {pair4, pair5, pair6}};
+
+//    LazyOrm::FilterVariant v3=LazyOrm::NestedWherePair{LazyOrm::OR, {v1,v2}};
 
 //    LazyOrm::filterTypes fff=std::vector{
 //        LazyOrm::filterPair{LazyOrm::AND, {"aaa",1}},
