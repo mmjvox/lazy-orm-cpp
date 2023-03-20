@@ -69,25 +69,22 @@ void MariadbFilteringLazy::setGroupConditions(const std::initializer_list<Filter
 
 void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::initializer_list<FilterVariant> &filtersList)
 {
-    std::vector<DbVariant> filters;
+    std::vector<DbVariant> conditions;
     for(const auto& item : filtersList)
     {
-        DbVariant dt = std::visit([=](auto&& arg) -> DbVariant {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, DbVariant>) {
-                    return arg;
-                }
-                else {return {};}
-            }, item);
+        std::visit([=, &conditions](auto&& arg){
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, WhereFilter>) {
+                mWhereConditions = arg;
+            }
+            else
+            if constexpr (std::is_same_v<T, DbVariant>) {
+                conditions.push_back(arg);
+            }
+        }, item);
 
-        filters.push_back(dt);
     }
-//    WhereFilter wp;
-//    wp.filter=filter;
-//    wp.second=filters;
-//    std::vector<WhereFilter> vwp;
-//    vwp.push_back(wp);
-//    mWhereConditions.push_back(vwp);
+    mWhereConditions = WhereFilter(filter, conditions);
 }
 
 
@@ -182,7 +179,7 @@ void MariadbFilteringLazy::appendOrderby(std::string &retStr)
     {
         retStr.append(mOrderConditions.toString());
     }
-    retStr.append("\n ");
+    retStr.append(" ");
 }
 
 void MariadbFilteringLazy::appendLimit(std::string &retStr)
@@ -204,7 +201,7 @@ void MariadbFilteringLazy::appendLimit(std::string &retStr)
     {
         retStr.append(mLimitConditions.toString());
     }
-    retStr.append("\n ");
+    retStr.append(" ");
 }
 
 void MariadbFilteringLazy::appendGroup(std::string &retStr)
@@ -226,7 +223,7 @@ void MariadbFilteringLazy::appendGroup(std::string &retStr)
     {
         retStr.append(mGroupConditions.toString());
     }
-    retStr.append("\n ");
+    retStr.append(" ");
 }
 
 std::string MariadbFilteringLazy::where_conditions()

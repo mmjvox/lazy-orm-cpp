@@ -32,23 +32,12 @@ public:
     Filters filter;
 
 
-    WhereFilter(){}
-    WhereFilter( Filters filter, std::vector<WhereType<WhereFilter>> whereFilters)
-        : std::vector<WhereType<WhereFilter>>(whereFilters), filter{filter}
-    {
-    }
+    WhereFilter();
+    WhereFilter( Filters filter, std::vector<WhereType<WhereFilter>> whereFilters);
 
-    WhereFilter( Filters filter, std::vector<DbVariant> whereFilters)
-        : filter{filter}
-    {
-        this->push_back(whereFilters);
-    }
+    WhereFilter( Filters filter, std::vector<DbVariant> whereFilters);
 
-    WhereFilter(std::vector<DbVariant> whereFilters)
-    {
-        filter = AND;
-        this->push_back(whereFilters);
-    }
+    WhereFilter(std::vector<DbVariant> whereFilters);
 
     // TODO: replace this with correct depth
     WhereFilter * depth(){return this;}
@@ -56,24 +45,24 @@ public:
 
     struct FilterVariantToString
     {
-      std::string operator()(const std::vector<WhereFilter> &value);
+      std::string operator()(const WhereFilter &value);
       std::string operator()(const std::vector<DbVariant> &value);
     };
 
     // TODO: replace this with correct depth
-    std::string stringValue(size_t index){
-        return std::visit(FilterVariantToString{}, this->at(index));
-    }
+//    std::string stringValue(size_t index){
+//        return std::visit(FilterVariantToString{}, this->at(index));
+//    }
 };
 
-class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>, std::vector<WhereFilter>>
+class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>, WhereFilter>
 {
 public:
-    using std::variant<DbVariant, std::vector<DbVariant>, std::vector<WhereFilter>>::variant;
+    using std::variant<DbVariant, std::vector<DbVariant>, WhereFilter>::variant;
 
     struct FilterVariantToString
     {
-      std::string operator()(const std::vector<WhereFilter> &value);
+      std::string operator()(const WhereFilter &value);
       std::string operator()(const std::vector<DbVariant> &value);
       std::string operator()(const DbVariant &value);
     };

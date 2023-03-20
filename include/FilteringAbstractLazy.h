@@ -54,6 +54,7 @@ public:
     void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filtersList);
 //    void setFilter(const Filters &filter, LazyOrm::WhereTypes &f);
     void setFilter(const Filters &filter, LazyOrm::FilterVariant f);
+    void setFilter(const Filters &filter, LazyOrm::WhereFilter f);
 //    void test_init(std::initializer_list<std::vector<filterTypes>> f);
 //    filterTypes & operator[](const Filters &filter);
 

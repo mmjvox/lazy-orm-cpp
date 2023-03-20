@@ -37,10 +37,6 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<FilterVariant> f)
 //void FilteringAbstractLazy::setFilter(const Filters &filter, T&& arg)
 void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filtersList)
 {
-
-
-
-
     switch (filter) {
     case OR:
     case AND:
@@ -65,7 +61,7 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant f)
     switch (filter) {
     case OR:
     case AND:
-//        mWhereConditions.push_back(f);
+        setWhereConditions(filter, {f});
         break;
     case LIMIT:
         mLimitConditions=f;
@@ -78,6 +74,18 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant f)
         break;
     case GROUPBY:
         mGroupConditions=f;
+        break;
+    default:
+        break;
+    }
+}
+
+void FilteringAbstractLazy::setFilter(const Filters &filter, WhereFilter f)
+{
+    switch (filter) {
+    case OR:
+    case AND:
+        mWhereConditions=f;
         break;
     default:
         break;
