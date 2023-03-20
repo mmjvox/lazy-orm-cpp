@@ -102,7 +102,7 @@ void MariadbFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem,
     std::visit([=,&retStr](auto&& arg){
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-//            retStr.append("WhereFilter: std::vector<DbVariant>:  \n ");
+
             if(whereFilter==Filters::AND || whereFilter==Filters::OR)
             {
                 if(arg.size()==1)
@@ -130,17 +130,16 @@ void MariadbFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem,
             }
         }
         else if constexpr (std::is_same_v<T, std::vector<WhereFilter>>) {
-//            retStr.append("WhereFilter: std::vector<WhereFilter> \n ");
-            retStr.append(" (");
 
+            retStr.append(" (");
             bool firstItem=true;
             for(const auto& vectorItem : arg)
             {
                 for(const auto& item : vectorItem)
                 {
                     nestedWhereToString(item, retStr, vectorItem.filter, firstItem);
+                    firstItem=false;
                 }
-                firstItem=false;
             }
             retStr.append(") ");
         }
@@ -159,56 +158,9 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
     bool firstItem=true;
     for(const auto& whereItem : mWhereConditions)
     {
-//        retStr.append(filterStr(mWhereConditions.filter));
-//        retStr.append(" ");
         nestedWhereToString(whereItem, retStr, mWhereConditions.filter, firstItem);
         firstItem=false;
     }
-
-//    size_t conditionsSize = mWhereConditions.size();
-//    for(int i=0;  i<conditionsSize; i++)
-//    {
-//        auto whereItems = mWhereConditions.at(i).filterTypesToVector<WhereFilter>();
-//        for(const auto& item :whereItems)
-//        {
-//            if(item.filter==Filters::AND || item.filter==Filters::OR)
-//            {
-//                if(i==0)
-//                {
-//                    retStr.append("WHERE ");
-//                } else {
-//                    retStr.append(filterStr(item.filter));
-//                    retStr.append(" ");
-//                }
-
-//    //            std::vector<filterPair> nested ;//= std::visit(filterTypeToNested{}, item);
-//    //            if(!nested.empty())
-//    //            {
-//    //                sss.append("nested \n");
-//    //            }
-//    //            else
-////                if(item.second.size()==2)
-////                {
-////                    retStr.append("`");
-////                    retStr.append(item.second.at(0).toString());
-////                    retStr.append("` = '");
-////                    retStr.append(item.second.at(1).toString());
-////                    retStr.append("' ");
-////                }
-////                else if(item.second.size()==3)
-////                {
-////                    retStr.append("`");
-////                    retStr.append(item.second.at(0).toString());
-////                    retStr.append("` ");
-////                    retStr.append(item.second.at(1).toString());
-////                    retStr.append(" '");
-////                    retStr.append(item.second.at(2).toString());
-////                    retStr.append("' ");
-////                }
-//            }
-//        }
-//        retStr.append("\n ");
-//    }
 }
 
 void MariadbFilteringLazy::appendOrderby(std::string &retStr)
