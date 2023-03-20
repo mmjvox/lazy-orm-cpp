@@ -72,7 +72,7 @@ std::string where1() {
 ////        }
 //    };
 
-return filters.testString();
+return filters.test_string();
 }
 
 

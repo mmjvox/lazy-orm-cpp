@@ -89,25 +89,6 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant f)
 //    mWhereConditions.push_back({filter, {f}});
 //}
 
-
-std::string FilteringAbstractLazy::testString()
-{
-    std::string retStr;
-    // AND OR
-    appendWhere(retStr);
-
-    // GROUP BY
-    appendGroup(retStr);
-
-    // ORDER BY
-    appendOrderby(retStr);
-
-    // LIMIT
-    appendLimit(retStr);
-
-    return retStr;
-}
-
 //void FilteringAbstractLazy::test_init(std::initializer_list<filterTypes> f)
 //{
 //    for(const auto &item : f)

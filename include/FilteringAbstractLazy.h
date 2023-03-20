@@ -63,7 +63,10 @@ public:
         mWhereConditions=whereFilter;
     }
 
-    std::string testString();
+    std::string test_string()
+    {
+        return where_conditions();
+    }
 };
 }
 #endif // FILTERINGABSTRACTLAZY_H
