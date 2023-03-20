@@ -8,16 +8,14 @@
 
 std::string aaaaaa() {
 
-  LazyOrm::WherePair p1 = { LazyOrm::AND, {
-       3 ,
-       4 ,
+  LazyOrm::WhereFilter p1 = { LazyOrm::AND, {
+       std::vector<LazyOrm::DbVariant>{3,4},
       {
-        std::vector<LazyOrm::WherePair>{
+        std::vector<LazyOrm::WhereFilter>{
           { LazyOrm::OR, {
-              { 5 },
-              { 6 },
+              std::vector<LazyOrm::DbVariant>{5,"6"},
               {
-                std::vector<LazyOrm::WherePair>{
+                std::vector<LazyOrm::WhereFilter>{
                   { LazyOrm::AND, {
                       { "foo" },
                       { "bar" }
@@ -34,7 +32,11 @@ std::string aaaaaa() {
     }
   };
 
-  LazyOrm::WherePair p2 = {LazyOrm::AND, {"AGE","<=",30}};
+  LazyOrm::WhereFilter p2 = {LazyOrm::AND, {"AGE","<=",30}};
+
+  LazyOrm::WhereFilter p3 = {{"AGE","<=",30}};
+
+  LazyOrm::WhereFilter p4 = {{"a wwwww ccc"}};
 
 //  // Accessing the nested elements:
 //  auto& nested1 = std::get<std::vector<WherePair>>(std::get<std::vector<WherePair>>(p1.nested[2]));
@@ -42,12 +44,15 @@ std::string aaaaaa() {
 //  auto limit = std::get<int>(nested2[0].nested[1]);
 //  std::cout << "Limit: " << limit << std::endl;
 
-  return {};
+  LazyOrm::MariadbFilteringLazy filters;
+  filters.setWhereFilter(p1);
+
+  return filters.testString();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
 
-    std::cout <<"where2 " << aaaaaa() << std::endl;
+    std::cout <<"where2 \n " << aaaaaa() << std::endl;
 
 //    REQUIRE( select1() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
 //    REQUIRE( select2() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );

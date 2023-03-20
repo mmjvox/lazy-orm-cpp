@@ -65,7 +65,7 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant f)
     switch (filter) {
     case OR:
     case AND:
-        mWhereConditions.push_back(f);
+//        mWhereConditions.push_back(f);
         break;
     case LIMIT:
         mLimitConditions=f;

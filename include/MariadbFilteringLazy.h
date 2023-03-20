@@ -18,6 +18,8 @@ protected:
     void appendLimit(std::string &retStr) override;
     void appendGroup(std::string &retStr) override;
     //
+    void nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) override;
+    //
     std::string where_conditions() override;
 
 public:

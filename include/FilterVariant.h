@@ -22,30 +22,42 @@ enum Filters
 };
 
 //typedef std::pair<Filters,std::vector<LazyOrm::DbVariant>> WherePair;
-//typedef std::variant<DbVariant, std::vector<WherePair>> WhereTypes;
+template <typename WF>
+using WhereType = std::variant<std::vector<DbVariant>, std::vector<WF>>;
 
-class WherePair : public std::vector<std::variant<DbVariant, std::vector<WherePair>>> {
+class WhereFilter : public std::vector<WhereType<WhereFilter>> {
 
 public:
-    using std::vector<std::variant<DbVariant, std::vector<WherePair>>>::vector;
+    using std::vector<WhereType<WhereFilter>>::vector;
     Filters filter;
 
 
-    WherePair(){}
-    WherePair( Filters filter,
-            std::vector<std::variant<DbVariant, std::vector<WherePair>>> whereFilters)
-        : std::vector<std::variant<DbVariant, std::vector<WherePair>>>(whereFilters), filter{filter}
+    WhereFilter(){}
+    WhereFilter( Filters filter, std::vector<WhereType<WhereFilter>> whereFilters)
+        : std::vector<WhereType<WhereFilter>>(whereFilters), filter{filter}
     {
     }
 
+    WhereFilter( Filters filter, std::vector<DbVariant> whereFilters)
+        : filter{filter}
+    {
+        this->push_back(whereFilters);
+    }
+
+    WhereFilter(std::vector<DbVariant> whereFilters)
+    {
+        filter = AND;
+        this->push_back(whereFilters);
+    }
+
     // TODO: replace this with correct depth
-    WherePair * depth(int index){return this;}
+    WhereFilter * depth(){return this;}
 
 
     struct FilterVariantToString
     {
-      std::string operator()(const std::vector<WherePair> &value);
-      std::string operator()(const DbVariant &value);
+      std::string operator()(const std::vector<WhereFilter> &value);
+      std::string operator()(const std::vector<DbVariant> &value);
     };
 
     // TODO: replace this with correct depth
@@ -54,14 +66,14 @@ public:
     }
 };
 
-class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>, std::vector<WherePair>>
+class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>, std::vector<WhereFilter>>
 {
 public:
-    using std::variant<DbVariant, std::vector<DbVariant>, std::vector<WherePair>>::variant;
+    using std::variant<DbVariant, std::vector<DbVariant>, std::vector<WhereFilter>>::variant;
 
     struct FilterVariantToString
     {
-      std::string operator()(const std::vector<WherePair> &value);
+      std::string operator()(const std::vector<WhereFilter> &value);
       std::string operator()(const std::vector<DbVariant> &value);
       std::string operator()(const DbVariant &value);
     };
