@@ -27,6 +27,8 @@ public:
 
     std::string toString() const;
 
+    std::string toLowerString() const;
+
     bool empty();
 };
 

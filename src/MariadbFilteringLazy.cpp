@@ -76,6 +76,7 @@ void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, WhereFilter>) {
                 mWhereConditions = arg;
+                // TODO: return and stop
             }
             else
             if constexpr (std::is_same_v<T, DbVariant>) {
@@ -85,6 +86,11 @@ void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::
 
     }
     mWhereConditions = WhereFilter(filter, conditions);
+}
+
+void MariadbFilteringLazy::setHavingConditions(const std::initializer_list<FilterVariant> &filtersList)
+{
+    //TODO:
 }
 
 

@@ -6,80 +6,92 @@
 #include <cstdint>
 
 
-
-
-
 std::string where1() {
+    LazyOrm::MariadbFilteringLazy filters;
+    filters.setFilter({"grade","in", "[1,5,7,9]"});
+    filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
+    filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
+    filters.setFilter(LazyOrm::LIMIT , {11,23});
+    return filters.test_string();
+}
+
+std::string where2() {
+    LazyOrm::MariadbFilteringLazy filters;
+    filters.setFilter(LazyOrm::AND , {"grade","in", "[1,5,7,9]"});
+    filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
+    filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
+    filters.setFilter(LazyOrm::LIMIT , {11,23});
+    return filters.test_string();
+}
+
+std::string where3() {
+    LazyOrm::MariadbFilteringLazy filters;
+    filters.setFilter({"grade","in", "[1,5,7,9]"});
+    filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
+    filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
+    filters.setFilter(LazyOrm::LIMIT , {"10,10"});
+    return filters.test_string();
+}
+
+std::string where4() {
+
+    LazyOrm::WhereFilter p1 = { LazyOrm::AND, {
+         std::vector<LazyOrm::DbVariant>{"AGE",12},
+         std::vector<LazyOrm::DbVariant>{"SALARY",65000},
+         std::vector<LazyOrm::DbVariant>{"hair","pink"},
+         std::vector<LazyOrm::DbVariant>{"height","between", "99,198"},
+         std::vector<LazyOrm::DbVariant>{"grade","in", "[1,5,7,9]"},
+      }
+    };
 
     LazyOrm::MariadbFilteringLazy filters;
-    filters.setFilter({"AGE",12});
-    filters.setFilter(LazyOrm::OR, {"AGE","25"});
-    filters.setFilter(LazyOrm::OR, {"AGE","<=",30});
-    filters.setFilter(LazyOrm::AND,  {"SALARY",65000});
-    filters.setFilter(LazyOrm::OR,  {"hair","pink"});
-    filters.setFilter(LazyOrm::AND, {"height","between", "99,198"});
-    filters.setFilter(LazyOrm::OR , {"grade","in", "[1,5,7,9]"});
-    //
+    filters.setWhereFilter(p1);
     filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
-    //
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
-    //
-    filters.setFilter(LazyOrm::LIMIT , {"10,10"});
-    filters.setFilter(LazyOrm::LIMIT , {10,10});
-    filters.setFilter(LazyOrm::LIMIT , {11,23});
-
-
-//    LazyOrm::WhereFilter pair1{LazyOrm::OR,{"aaa","like","1%"}};
-//    LazyOrm::WhereFilter pair2{LazyOrm::OR,{"bbb","like","2%"}};
-//    LazyOrm::WhereFilter pair3{LazyOrm::OR,{"ccc","like","3%"}};
-
-//    LazyOrm::FilterVariant v1=LazyOrm::NestedWherePair{LazyOrm::AND, {pair1, pair2, pair3}};
-
-//    LazyOrm::WhereFilter pair4{LazyOrm::OR,{"ddd","like","%4"}};
-//    LazyOrm::WhereFilter pair5{LazyOrm::OR,{"eee","like","%5"}};
-//    LazyOrm::WhereFilter pair6{LazyOrm::OR,{"fff","like","%6"}};
-
-//    LazyOrm::FilterVariant v2=LazyOrm::NestedWherePair{LazyOrm::AND, {pair4, pair5, pair6}};
-
-//    LazyOrm::FilterVariant v3=LazyOrm::NestedWherePair{LazyOrm::OR, {v1,v2}};
-
-//    LazyOrm::filterTypes fff=std::vector{
-//        LazyOrm::filterPair{LazyOrm::AND, {"aaa",1}},
-//        LazyOrm::filterPair{LazyOrm::OR, {"bbb",2.2}}
-//    };
-
-//    filters.setFilter(LazyOrm::AND, fff);
-
-//    filters.test_init({"aaa",12,{"ac","54"}});
-
-//    {
-//        {"AND",{"AGE","25"}},
-
-//        {"OR",{"SALARY","65000"}},
-
-//        {"AND",{"hair","pink"}},
-
-////        {"AND",
-////                {
-////                    {"OR",{"aaa","1"}},
-
-////                {"AND",{"bbb","2"}},
-
-////                {"OR",{"ccc","between",{"1","9"}}},
-
-////                {"OR",{"ddd","in",{"1","2","3"}}}
-////                }
-////        }
-//    };
+    filters.setFilter(LazyOrm::LIMIT , {"14",26});
 
 return filters.test_string();
 }
 
 
-TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
+std::string where5() {
 
-    std::cout << where1() << std::endl;
+    LazyOrm::WhereFilter p1 = { LazyOrm::AND, {
+        std::vector<LazyOrm::WhereFilter>{
+          { LazyOrm::OR, {
+              std::vector<LazyOrm::DbVariant>{"name","like","sa%"},
+              std::vector<LazyOrm::DbVariant>{"name","like","%ra"},
+            }
+          }
+        },
+        std::vector<LazyOrm::WhereFilter>{
+          { LazyOrm::OR, {
+              std::vector<LazyOrm::DbVariant>{"age","between","6,13"},
+              std::vector<LazyOrm::DbVariant>{"grade","in","[17,18,19,20]"},
+            }
+          }
+        }
+      }
+    };
 
-//    REQUIRE( select1() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
-//    REQUIRE( select2() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
+    LazyOrm::MariadbFilteringLazy filters;
+    filters.setWhereFilter(p1);
+    filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
+    filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
+    filters.setFilter(LazyOrm::LIMIT , {"14",26});
+
+return filters.test_string();
+}
+
+
+
+TEST_CASE( "Factorials are computed", "[Lazy_WHERE]" ) {
+
+//    std::cout << where4() << std::endl;
+
+    REQUIRE( Catch::trim(where1()) == R"(WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,23)" );
+    REQUIRE( Catch::trim(where2()) == R"(WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,23)" );
+    REQUIRE( Catch::trim(where3()) == R"(WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 10,10)" );
+    REQUIRE( Catch::trim(where4()) == R"(WHERE `AGE` = '12' AND `SALARY` = '65000' AND `hair` = 'pink' AND `height` between '99,198' AND `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 14,26)" );
+    REQUIRE( Catch::trim(where5()) == R"(WHERE  (`name` like 'sa%' OR `name` like '%ra' ) AND  (`age` between '6,13' OR `grade` in '[17,18,19,20]' ) GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 14,26)" );
 }

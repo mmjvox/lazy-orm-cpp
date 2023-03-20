@@ -15,6 +15,16 @@ std::string LazyOrm::DbVariant::toString() const
     return std::visit(DbVariantToString{}, *this);
 }
 
+std::string LazyOrm::DbVariant::toLowerString() const
+{
+    std::string lower = toString();
+    for(auto& ch : lower)
+    {
+        ch=std::tolower(ch);
+    }
+    return lower;
+}
+
 bool LazyOrm::DbVariant::empty()
 {
     return std::visit([=](auto&& arg) -> bool {

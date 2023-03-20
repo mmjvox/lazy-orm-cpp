@@ -9,6 +9,7 @@ class MariadbFilteringLazy : public FilteringAbstractLazy
 protected:
 
     void setWhereConditions(const Filters &filter, const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;
+    void setHavingConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;
     void setLimitConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;
     void setOrderConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;
     void setGroupConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;

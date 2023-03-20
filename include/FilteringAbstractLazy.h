@@ -33,6 +33,7 @@ protected:
 protected:
     //
     virtual void setWhereConditions(const Filters &filter, const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
+    virtual void setHavingConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setLimitConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setGroupConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
@@ -48,13 +49,13 @@ protected:
 
 public:
     FilteringAbstractLazy();
-    void setFilter(std::initializer_list<LazyOrm::FilterVariant> f);
+    void setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
 //    template <typename T>
 //    void setFilter(const Filters &filter, T&& arg);
-    void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filtersList);
+    void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
 //    void setFilter(const Filters &filter, LazyOrm::WhereTypes &f);
-    void setFilter(const Filters &filter, LazyOrm::FilterVariant f);
-    void setFilter(const Filters &filter, LazyOrm::WhereFilter f);
+    void setFilter(const Filters &filter, LazyOrm::FilterVariant filterVariant);
+    void setFilter(const Filters &filter, LazyOrm::WhereFilter whereFilter);
 //    void test_init(std::initializer_list<std::vector<filterTypes>> f);
 //    filterTypes & operator[](const Filters &filter);
 
