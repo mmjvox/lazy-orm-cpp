@@ -12,6 +12,13 @@ std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const std:
 
 std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const DbVariant &value){return value.toString();}
 
+LazyOrm::FilterVariant::FilterVariant(){}
+
+LazyOrm::FilterVariant::FilterVariant(std::vector<DbVariant> v)
+    :variant(v)
+{
+}
+
 std::string LazyOrm::FilterVariant::toString(){
     return std::visit(FilterVariant::FilterVariantToString{}, *this);
 }
@@ -51,8 +58,9 @@ bool LazyOrm::FilterVariant::empty()
 LazyOrm::WhereFilter::WhereFilter(){}
 
 LazyOrm::WhereFilter::WhereFilter(Filters filter, std::vector<WhereType<WhereFilter> > whereFilters)
-    : std::vector<WhereType<WhereFilter>>(whereFilters), filter{filter}
+    : vector(whereFilters), filter{filter}
 {
+
 }
 
 LazyOrm::WhereFilter::WhereFilter(Filters filter, std::vector<DbVariant> whereFilters)
@@ -63,6 +71,6 @@ LazyOrm::WhereFilter::WhereFilter(Filters filter, std::vector<DbVariant> whereFi
 
 LazyOrm::WhereFilter::WhereFilter(std::vector<DbVariant> whereFilters)
 {
-    filter = AND;
+    filter = Filters::AND;
     this->push_back(whereFilters);
 }

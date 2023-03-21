@@ -13,6 +13,8 @@ namespace LazyOrm {
 class FilteringAbstractLazy
 {
 private:
+    Filters mOperatingFilter=Filters::None;
+
     struct FilterTypeToWhere
     {
       std::vector<WhereFilter> operator()(const std::vector<WhereFilter> &value){return value;}
@@ -22,7 +24,7 @@ private:
 
 protected:
     std::string filterStr(Filters f);
-    WhereFilter mWhereConditions;
+    FilterVariant mWhereConditions;
     FilterVariant mLimitConditions;
     FilterVariant mOrderConditions;
     FilterVariant mGroupConditions;
@@ -50,14 +52,11 @@ protected:
 public:
     FilteringAbstractLazy();
     void setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
-//    template <typename T>
-//    void setFilter(const Filters &filter, T&& arg);
     void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
-//    void setFilter(const Filters &filter, LazyOrm::WhereTypes &f);
     void setFilter(const Filters &filter, LazyOrm::FilterVariant filterVariant);
     void setFilter(const Filters &filter, LazyOrm::WhereFilter whereFilter);
-//    void test_init(std::initializer_list<std::vector<filterTypes>> f);
-//    filterTypes & operator[](const Filters &filter);
+    FilteringAbstractLazy & operator[](const Filters &filter);
+    void operator=(const LazyOrm::FilterVariant &variant);
 
 
 

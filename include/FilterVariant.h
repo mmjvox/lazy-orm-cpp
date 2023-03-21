@@ -13,8 +13,10 @@ namespace LazyOrm {
 
 enum Filters
 {
-  AND   = 0,
-  OR    = 2,
+  None = -10,
+  WHERE = 0,
+  AND = 1,
+  OR,
   ORDERBY,
   LIMIT,
   HAVING,
@@ -34,9 +36,7 @@ public:
 
     WhereFilter();
     WhereFilter( Filters filter, std::vector<WhereType<WhereFilter>> whereFilters);
-
     WhereFilter( Filters filter, std::vector<DbVariant> whereFilters);
-
     WhereFilter(std::vector<DbVariant> whereFilters);
 
     // TODO: replace this with correct depth
@@ -59,6 +59,9 @@ class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>, Whe
 {
 public:
     using std::variant<DbVariant, std::vector<DbVariant>, WhereFilter>::variant;
+
+    FilterVariant();
+    FilterVariant(std::vector<DbVariant> v);
 
     struct FilterVariantToString
     {

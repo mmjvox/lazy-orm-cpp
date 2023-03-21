@@ -7,17 +7,17 @@ namespace LazyOrm {
 std::string FilteringAbstractLazy::filterStr(Filters f)
 {
     switch (f) {
-    case OR:
+    case Filters::OR:
         return "OR";
-    case AND:
+    case Filters::AND:
         return "AND";
-    case LIMIT:
+    case Filters::LIMIT:
         return "LIMIT";
-    case HAVING:
+    case Filters::HAVING:
         return "HAVING";
-    case ORDERBY:
+    case Filters::ORDERBY:
         return "ORDER BY";
-    case GROUPBY:
+    case Filters::GROUPBY:
         return "GROUP BY";
     }
     return {};
@@ -56,12 +56,12 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
     if(filter=="and")
     {
         conditions.erase(conditions.begin());
-        setWhereConditions(AND, filterVariantList);
+        setWhereConditions(Filters::AND, filterVariantList);
     }
     else if(filter=="or")
     {
         conditions.erase(conditions.begin());
-        setWhereConditions(OR, filterVariantList);
+        setWhereConditions(Filters::OR, filterVariantList);
     }
     else if(filter=="having")
     {
@@ -83,7 +83,7 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
         conditions.erase(conditions.begin());
         setLimitConditions(filterVariantList);
     } else {
-        setWhereConditions(AND, filterVariantList);
+        setWhereConditions(Filters::AND, filterVariantList);
     }
 }
 
@@ -92,20 +92,20 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
 void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList)
 {
     switch (filter) {
-    case OR:
-    case AND:
+    case Filters::OR:
+    case Filters::AND:
         setWhereConditions(filter, filterVariantList);
         break;
-    case HAVING:
+    case Filters::HAVING:
         setHavingConditions(filterVariantList);
         break;
-    case ORDERBY:
+    case Filters::ORDERBY:
         setOrderConditions(filterVariantList);
         break;
-    case GROUPBY:
+    case Filters::GROUPBY:
         setGroupConditions(filterVariantList);
         break;
-    case LIMIT:
+    case Filters::LIMIT:
         setLimitConditions(filterVariantList);
         break;
     }
@@ -114,20 +114,20 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_li
 void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant filterVariant)
 {
     switch (filter) {
-    case OR:
-    case AND:
+    case Filters::OR:
+    case Filters::AND:
         setWhereConditions(filter, {filterVariant});
         break;
-    case LIMIT:
+    case Filters::LIMIT:
         mLimitConditions=filterVariant;
         break;
-    case ORDERBY:
+    case Filters::ORDERBY:
         mOrderConditions=filterVariant;
         break;
-    case HAVING:
+    case Filters::HAVING:
         mHavingConditions.push_back(filterVariant);
         break;
-    case GROUPBY:
+    case Filters::GROUPBY:
         mGroupConditions=filterVariant;
         break;
     default:
@@ -138,8 +138,8 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant filte
 void FilteringAbstractLazy::setFilter(const Filters &filter, WhereFilter whereFilter)
 {
     switch (filter) {
-    case OR:
-    case AND:
+    case Filters::OR:
+    case Filters::AND:
         mWhereConditions=whereFilter;
         break;
     default:
@@ -160,8 +160,39 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, WhereFilter whereFi
 //    }
 //}
 
-//filterTypes &FilteringAbstractLazy::operator[](const Filters &filter)
-//{
-//    return NULL;
-//}
+
+FilteringAbstractLazy & FilteringAbstractLazy::operator[](const Filters &filter)
+{
+    mOperatingFilter = filter;
+    return *this;
+}
+
+void FilteringAbstractLazy::operator=(const FilterVariant &variant) {
+    switch (mOperatingFilter) {
+    case Filters::OR:
+    case Filters::AND:
+    case Filters::WHERE:
+    {
+        std::visit([=](auto&& arg){
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, WhereFilter>) {
+                mWhereConditions = arg;
+            }
+        }, variant);
+    }
+        break;
+    case Filters::LIMIT:
+        mLimitConditions = variant;
+        break;
+    case Filters::ORDERBY:
+        mOrderConditions = variant;
+        break;
+    case Filters::GROUPBY:
+        mGroupConditions = variant;
+        break;
+    default:
+        break;
+    }
+}
+
 }
