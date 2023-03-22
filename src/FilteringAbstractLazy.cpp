@@ -161,37 +161,40 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, WhereFilter whereFi
 //}
 
 
-//void FilteringAbstractLazy::operator[](const Filters &filter)
-//{
-//    mOperatingFilter = filter;
-//}
+FilteringAbstractLazy& FilteringAbstractLazy::operator[](const Filters &filter)
+{
+    mOperatingFilter = filter;
+    return *this;
+}
 
-//void FilteringAbstractLazy::operator=(const FilterVariant &variant) {
-//    switch (mOperatingFilter) {
-//    case Filters::OR:
-//    case Filters::AND:
-//    case Filters::WHERE:
-//    {
-//        std::visit([=](auto&& arg){
-//            using T = std::decay_t<decltype(arg)>;
-//            if constexpr (std::is_same_v<T, WhereFilter>) {
-//                mWhereConditions = arg;
-//            }
-//        }, variant);
-//    }
-//        break;
-//    case Filters::LIMIT:
-//        mLimitConditions = variant;
-//        break;
-//    case Filters::ORDERBY:
-//        mOrderConditions = variant;
-//        break;
-//    case Filters::GROUPBY:
-//        mGroupConditions = variant;
-//        break;
-//    default:
-//        break;
-//    }
-//}
+void FilteringAbstractLazy::operator=(const FilterVariant &variant) {
+    switch (mOperatingFilter) {
+    case Filters::OR:
+    case Filters::AND:
+    case Filters::WHERE:
+      //TODO: clear this:
+      // i think i must change FilterVariant constuctor
+    {
+        std::visit([=](auto&& arg){
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
+                mWhereConditions = arg;
+            }
+        }, variant);
+    }
+        break;
+    case Filters::LIMIT:
+        mLimitConditions = variant;
+        break;
+    case Filters::ORDERBY:
+        mOrderConditions = variant;
+        break;
+    case Filters::GROUPBY:
+        mGroupConditions = variant;
+        break;
+    default:
+        break;
+    }
+}
 
 }

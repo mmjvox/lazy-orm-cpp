@@ -158,17 +158,24 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
 
     retStr.append("WHERE ");
 
-    std::visit([=,&retStr](auto&& arg){
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, WhereFilter>) {
-            bool firstItem=true;
-            for(const auto& whereItem : arg)
-            {
-                nestedWhereToString(whereItem, retStr, arg.filter, firstItem);
-                firstItem=false;
-            }
-        }
-    }, mWhereConditions);
+    bool firstItem=true;
+    for(const auto& whereItem : mWhereConditions)
+    {
+        nestedWhereToString(whereItem, retStr, mWhereConditions.filter, firstItem);
+        firstItem=false;
+    }
+
+//    std::visit([=,&retStr](auto&& arg){
+//        using T = std::decay_t<decltype(arg)>;
+//        if constexpr (std::is_same_v<T, WhereFilter>) {
+//            bool firstItem=true;
+//            for(const auto& whereItem : arg)
+//            {
+//                nestedWhereToString(whereItem, retStr, arg.filter, firstItem);
+//                firstItem=false;
+//            }
+//        }
+//    }, mWhereConditions);
 }
 
 void MariadbFilteringLazy::appendOrderby(std::string &retStr)

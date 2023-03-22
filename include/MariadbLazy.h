@@ -2,11 +2,10 @@
 #define MARIADBLAZY_H
 
 #include "AbstractLazy.h"
-#include "MariadbFilteringLazy.h"
 
 namespace LazyOrm
 {
-class MariadbLazy : public AbstractLazy, MariadbFilteringLazy
+class MariadbLazy : public AbstractLazy
 {
 protected:
   void insert_query() override;

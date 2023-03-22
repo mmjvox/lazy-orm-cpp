@@ -2,6 +2,7 @@
 #define ABSTRACTLAZY_H
 
 #include "DbVariant.h"
+#include "MariadbFilteringLazy.h"
 
 #include <list>
 #include <vector>
@@ -26,7 +27,7 @@ enum Query
   BATCH_INSERT
 };
 
-class AbstractLazy
+class AbstractLazy : public MariadbFilteringLazy
 {
 private:
   Query mQueryType=UNDEFINED;

@@ -1,7 +1,7 @@
 #include "FilterVariant.h"
 
 // WherePair
-std::string LazyOrm::WhereFilter::FilterVariantToString::operator()(const WhereFilter &value){return {};}
+std::string LazyOrm::WhereFilter::FilterVariantToString::operator()(const WhereFilter &value){return "dadsasd";}
 
 std::string LazyOrm::WhereFilter::FilterVariantToString::operator()(const std::vector<DbVariant> &value){return "dddddd";}
 
