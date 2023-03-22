@@ -50,7 +50,7 @@ std::string aaaaaa() {
   return filters.test_string();
 }
 
-TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
+TEST_CASE( "Factorials are computed", "[Lazy_WHERE2]" ) {
 
     std::cout <<"where2 \n " << aaaaaa() << std::endl;
 

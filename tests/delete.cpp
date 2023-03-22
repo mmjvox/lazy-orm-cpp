@@ -14,7 +14,7 @@ std::string delete1() {
 }
 
 
-TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
+TEST_CASE( "Factorials are computed", "[Lazy_DELETE]" ) {
 
     std::cout << delete1() << std::endl;
 

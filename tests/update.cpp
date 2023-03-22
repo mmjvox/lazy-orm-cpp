@@ -14,7 +14,7 @@ std::string update1() {
 }
 
 
-TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
+TEST_CASE( "Factorials are computed", "[Lazy_UPDATE]" ) {
 
     std::cout << update1() << std::endl;
 

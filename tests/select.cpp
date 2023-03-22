@@ -28,6 +28,6 @@ TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
 
     std::cout << select3() << std::endl;
 
-    REQUIRE( select1() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
-    REQUIRE( select2() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
+    REQUIRE( Catch::trim(select1()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
+    REQUIRE( Catch::trim(select2()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
 }

@@ -172,16 +172,7 @@ void FilteringAbstractLazy::operator=(const FilterVariant &variant) {
     case Filters::OR:
     case Filters::AND:
     case Filters::WHERE:
-      //TODO: clear this:
-      // i think i must change FilterVariant constuctor
-    {
-        std::visit([=](auto&& arg){
-            using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-                mWhereConditions = arg;
-            }
-        }, variant);
-    }
+        mWhereConditions = variant.filterTypesToVector<DbVariant>();
         break;
     case Filters::LIMIT:
         mLimitConditions = variant;

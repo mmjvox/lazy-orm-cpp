@@ -75,7 +75,7 @@ public:
     bool empty();
 
     template <typename FT>
-    std::vector<FT> filterTypesToVector()
+    std::vector<FT> filterTypesToVector() const
     {
         return std::visit([=](auto&& arg) -> std::vector<FT> {
             using T = std::decay_t<decltype(arg)>;

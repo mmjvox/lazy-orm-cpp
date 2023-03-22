@@ -40,8 +40,8 @@ std::string insert4() {
 
 TEST_CASE( "Factorials are computed", "[Lazy_INSERT]" ) {
 
-    REQUIRE( insert1() == R"(INSERT INTO student (`age`,`cute`,`hair`,`name`) VALUES ("6","true","pink","anya") ;)" );
-    REQUIRE( insert2() == R"(INSERT INTO student (`age`,`cute`,`name`) VALUES ("27","false","ahmad") ;)" );
-    REQUIRE( insert3() == R"(INSERT INTO student (`age`,`cute`,`hair`,`name`) VALUES ("23","false","black","ahmad") ;)" );
-    REQUIRE( insert4() == R"(INSERT INTO student (`first_name`,`gender`,`last_name`,`name_father`) VALUES ("ali","male","yavari","reza") ;)" );
+    REQUIRE( Catch::trim(insert1()) == R"(INSERT INTO student (`age`,`cute`,`hair`,`name`) VALUES ("6","true","pink","anya") ;)" );
+    REQUIRE( Catch::trim(insert2()) == R"(INSERT INTO student (`age`,`cute`,`name`) VALUES ("27","false","ahmad") ;)" );
+    REQUIRE( Catch::trim(insert3()) == R"(INSERT INTO student (`age`,`cute`,`hair`,`name`) VALUES ("23","false","black","ahmad") ;)" );
+    REQUIRE( Catch::trim(insert4()) == R"(INSERT INTO student (`first_name`,`gender`,`last_name`,`name_father`) VALUES ("ali","male","yavari","reza") ;)" );
 }
