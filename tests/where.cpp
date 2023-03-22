@@ -26,10 +26,10 @@ std::string where2() {
 
 std::string where3() {
     LazyOrm::MariadbFilteringLazy filters;
-    filters[LazyOrm::WHERE] = LazyOrm::WhereFilter{{"grade","in", "[1,5,7,9]"}};
-    filters[LazyOrm::GROUPBY] = {{"group1","group2"}};
-    filters[LazyOrm::ORDERBY] = {{"num1","num2"}};
-    filters[LazyOrm::LIMIT] = "10,10";
+//    filters[LazyOrm::WHERE] = LazyOrm::WhereFilter{{"grade","in", "[1,5,7,9]"}};
+//    filters[LazyOrm::GROUPBY] = {{"group1","group2"}};
+//    filters[LazyOrm::ORDERBY] = {{"num1","num2"}};
+//    filters[LazyOrm::LIMIT] = "10,10";
     return filters.test_string();
 }
 

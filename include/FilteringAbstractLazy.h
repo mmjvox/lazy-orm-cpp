@@ -55,8 +55,8 @@ public:
     void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, LazyOrm::FilterVariant filterVariant);
     void setFilter(const Filters &filter, LazyOrm::WhereFilter whereFilter);
-    FilteringAbstractLazy & operator[](const Filters &filter);
-    void operator=(const LazyOrm::FilterVariant &variant);
+//    void operator[](const Filters &filter){}
+//    void operator=(const LazyOrm::FilterVariant &variant);
 
 
 
