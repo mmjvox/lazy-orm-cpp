@@ -14,6 +14,11 @@ MariadbLazy::MariadbLazy(const std::string &table, const Query &queryType)
   setQueryType(queryType);
 }
 
+void MariadbLazy::setFilter(const MariadbFilteringLazy filter)
+{
+  mFilter=filter;
+}
+
 void MariadbLazy::insert_query()
 {
   std::vector<std::string> keys, values;
@@ -51,7 +56,7 @@ void MariadbLazy::select_query()
     mQueryString.append(string_join(",",keys));
     mQueryString.append(" FROM ");
     mQueryString.append(mTabeName);
-    mQueryString.append(where_conditions());
+    mQueryString.append(mFilter.where_conditions());
     mQueryString.append(";");
 }
 
@@ -67,7 +72,7 @@ void MariadbLazy::update_query()
     mQueryString.append(mTabeName);
     mQueryString.append(" SET ");
     mQueryString.append(string_join(",",updates));
-    mQueryString.append(where_conditions());
+    mQueryString.append(mFilter.where_conditions());
     mQueryString.append(";");
 }
 
@@ -75,7 +80,7 @@ void MariadbLazy::delete_query()
 {
     mQueryString = "DELETE FROM ";
     mQueryString.append(mTabeName);
-    mQueryString.append(where_conditions());
+    mQueryString.append(mFilter.where_conditions());
     mQueryString.append(" ;");
 }
 

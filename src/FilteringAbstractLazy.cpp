@@ -27,6 +27,21 @@ FilteringAbstractLazy::FilteringAbstractLazy()
 {
 }
 
+void FilteringAbstractLazy::setFilter(const FilterVariant &variant)
+{
+  switch (mOperatingFilter) {
+  case Filters::OR:
+  case Filters::AND:
+  case Filters::WHERE:
+      mWhereConditions = variant.filterTypesToVector<DbVariant>();
+      break;
+  default:
+      setFilter(mOperatingFilter, variant);
+      break;
+  }
+  mOperatingFilter = Filters::None;
+}
+
 void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList)
 {
     std::vector<DbVariant> conditions;
@@ -167,25 +182,9 @@ FilteringAbstractLazy& FilteringAbstractLazy::operator[](const Filters &filter)
     return *this;
 }
 
-void FilteringAbstractLazy::operator=(const FilterVariant &variant) {
-    switch (mOperatingFilter) {
-    case Filters::OR:
-    case Filters::AND:
-    case Filters::WHERE:
-        mWhereConditions = variant.filterTypesToVector<DbVariant>();
-        break;
-    case Filters::LIMIT:
-        mLimitConditions = variant;
-        break;
-    case Filters::ORDERBY:
-        mOrderConditions = variant;
-        break;
-    case Filters::GROUPBY:
-        mGroupConditions = variant;
-        break;
-    default:
-        break;
-    }
+void FilteringAbstractLazy::operator=(const FilterVariant &variant)
+{
+  setFilter(variant);
 }
 
 }

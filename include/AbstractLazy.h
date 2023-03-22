@@ -2,7 +2,7 @@
 #define ABSTRACTLAZY_H
 
 #include "DbVariant.h"
-#include "MariadbFilteringLazy.h"
+#include "FilteringAbstractLazy.h"
 
 #include <list>
 #include <vector>
@@ -27,7 +27,7 @@ enum Query
   BATCH_INSERT
 };
 
-class AbstractLazy : public MariadbFilteringLazy
+class AbstractLazy
 {
 private:
   Query mQueryType=UNDEFINED;
@@ -65,6 +65,8 @@ public:
   void setProperties(const std::initializer_list<std::map<std::string, DbVariant>> list);
   void setProperties(const std::list<std::map<std::string, LazyOrm::DbVariant>> &list);
 
+  FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
+  void operator=(const LazyOrm::FilterVariant &variant);
 };
 }
 

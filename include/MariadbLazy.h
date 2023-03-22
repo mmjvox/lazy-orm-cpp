@@ -1,12 +1,16 @@
 #ifndef MARIADBLAZY_H
 #define MARIADBLAZY_H
 
+#include "MariadbFilteringLazy.h"
 #include "AbstractLazy.h"
 
 namespace LazyOrm
 {
 class MariadbLazy : public AbstractLazy
 {
+private:
+  MariadbFilteringLazy mFilter;
+
 protected:
   void insert_query() override;
   void select_query() override;
@@ -20,6 +24,9 @@ protected:
 public:
   MariadbLazy();
   MariadbLazy(const std::string &table, const Query &queryType);
+
+  void setFilter(const MariadbFilteringLazy filter);
+
 };
 }
 #endif // MARIADBLAZY_H

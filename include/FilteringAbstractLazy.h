@@ -51,11 +51,12 @@ protected:
 
 public:
     FilteringAbstractLazy();
+    void setFilter(const LazyOrm::FilterVariant &variant);
     void setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, LazyOrm::FilterVariant filterVariant);
     void setFilter(const Filters &filter, LazyOrm::WhereFilter whereFilter);
-    FilteringAbstractLazy& operator[](const Filters &filter);
+    FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
     void operator=(const LazyOrm::FilterVariant &variant);
 
 
