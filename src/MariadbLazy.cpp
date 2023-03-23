@@ -80,6 +80,7 @@ void MariadbLazy::delete_query()
 {
     mQueryString = "DELETE FROM ";
     mQueryString.append(mTabeName);
+    mQueryString.append(" ");
     mQueryString.append(mFilter.where_conditions());
     mQueryString.append(" ;");
 }

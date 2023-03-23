@@ -118,12 +118,12 @@ AbstractLazy &AbstractLazy::operator<<(const std::pair<std::string, DbVariant> &
 
 FilteringAbstractLazy& AbstractLazy::operator[](const LazyOrm::Filters &filter)
 {
-//  return mFilter[filter];
+  return getCurrentFilters()[filter];
 }
 
-void AbstractLazy::operator=(const LazyOrm::FilterVariant &variant)
-{
-//  mFilter.setFilter(variant);
-}
+//void AbstractLazy::operator=(const LazyOrm::FilterVariant &variant)
+//{
+////  mFilter.setFilter(variant);
+//}
 
 }

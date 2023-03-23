@@ -46,6 +46,8 @@ protected:
   virtual void insert_update_query() = 0;
   virtual void batch_insert_query() = 0;
 
+  virtual FilteringAbstractLazy& getCurrentFilters() = 0;
+
 public:
   std::string queryString();
 
@@ -66,7 +68,7 @@ public:
   void setProperties(const std::list<std::map<std::string, LazyOrm::DbVariant>> &list);
 
   FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
-  void operator=(const LazyOrm::FilterVariant &variant);
+//  void operator=(const LazyOrm::FilterVariant &variant);
 };
 }
 

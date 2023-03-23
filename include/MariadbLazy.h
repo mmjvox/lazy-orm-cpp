@@ -19,6 +19,10 @@ protected:
   void batch_insert_query() override;
   void insert_update_query() override;
 
+  FilteringAbstractLazy& getCurrentFilters() override
+  {
+    return mFilter;
+  }
 
 
 public:

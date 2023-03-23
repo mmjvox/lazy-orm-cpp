@@ -16,7 +16,7 @@ std::string delete1() {
   filters[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
   filters[LazyOrm::GROUPBY] = {{"group1","group2"}};
   filters[LazyOrm::ORDERBY] = {{"num1","num2"}};
-  filters[LazyOrm::LIMIT] = "10,10";
+  filters[LazyOrm::LIMIT] = "11,11";
 
   lazyOrm.setFilter(filters);
 
@@ -31,19 +31,30 @@ std::string delete2() {
   lazyOrm["hair"]="pink";
 
   //
-//  lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
-//  lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
+  lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
+  lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
   lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
-  lazyOrm[LazyOrm::LIMIT] = "10,10";
+  lazyOrm[LazyOrm::LIMIT] = "12,12";
 
   return lazyOrm.queryString();
 }
 
+std::string delete3() {
+  LazyOrm::MariadbLazy lazyOrm;
+  lazyOrm[LazyOrm::DELETE]="student";
+  lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
+  lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
+  lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
+  lazyOrm[LazyOrm::LIMIT] = "13,13";
+
+  return lazyOrm.queryString();
+}
 
 TEST_CASE( "Factorials are computed", "[Lazy_DELETE]" ) {
 
-    std::cout << delete2() << std::endl;
+//    std::cout << delete2() << std::endl;
 
-    REQUIRE( Catch::trim(delete1()) == R"(DELETE FROM studentWHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 10,10  ;)" );
-//    REQUIRE( Catch::trim(delete2()) == R"(DELETE FROM studentWHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 10,10  ;)" );
+    REQUIRE( Catch::trim(delete1()) == R"(DELETE FROM student WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,11  ;)" );
+    REQUIRE( Catch::trim(delete2()) == R"(DELETE FROM student WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 12,12  ;)" );
+    REQUIRE( Catch::trim(delete3()) == R"(DELETE FROM student WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 13,13  ;)" );
 }
