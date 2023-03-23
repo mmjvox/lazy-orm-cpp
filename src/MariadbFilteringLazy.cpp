@@ -88,9 +88,9 @@ void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::
     mWhereConditions = WhereFilter(filter, conditions);
 }
 
-void MariadbFilteringLazy::setHavingConditions(const std::initializer_list<FilterVariant> &filtersList)
+void MariadbFilteringLazy::setHavingConditions(const std::vector<FilterVariant> &filtersList)
 {
-    //TODO:
+    mHavingConditions=filtersList;
 }
 
 
@@ -244,6 +244,48 @@ void MariadbFilteringLazy::appendGroup(std::string &retStr)
     retStr.append(" ");
 }
 
+void MariadbFilteringLazy::appendHaving(std::string &retStr)
+{
+  if(mHavingConditions.empty())
+  {
+      return;
+  }
+
+  retStr.append("HAVING ");
+
+  for(const auto &havingItem : mHavingConditions)
+  {
+    std::visit([=,&retStr](auto&& arg){
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
+            if(arg.size()==1)
+            {
+                retStr.append(arg.at(0).toString());
+            }
+            else if(arg.size()==2)
+            {
+                retStr.append("`");
+                retStr.append(arg.at(0).toString());
+                retStr.append("` = '");
+                retStr.append(arg.at(1).toString());
+                retStr.append("' ");
+            }
+            else if(arg.size()==3)
+            {
+                retStr.append("`");
+                retStr.append(arg.at(0).toString());
+                retStr.append("` ");
+                retStr.append(arg.at(1).toString());
+                retStr.append(" '");
+                retStr.append(arg.at(2).toString());
+                retStr.append("' ");
+            }
+        }
+    }, havingItem);
+  }
+}
+
+
 std::string MariadbFilteringLazy::where_conditions()
 {
     std::string retStr;
@@ -252,6 +294,9 @@ std::string MariadbFilteringLazy::where_conditions()
 
     // GROUP BY
     appendGroup(retStr);
+
+    // HAVING
+    appendHaving(retStr);
 
     // ORDER BY
     appendOrderby(retStr);

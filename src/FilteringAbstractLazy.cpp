@@ -27,19 +27,30 @@ FilteringAbstractLazy::FilteringAbstractLazy()
 {
 }
 
-void FilteringAbstractLazy::setFilter(const FilterVariant &variant)
+void FilteringAbstractLazy::setFilterForReserved(const FilterVariant &variant)
 {
-  switch (mOperatingFilter) {
+  switch (mReservedFilter) {
   case Filters::OR:
   case Filters::AND:
   case Filters::WHERE:
       mWhereConditions = variant.filterTypesToVector<DbVariant>();
       break;
   default:
-      setFilter(mOperatingFilter, variant);
+      setFilter(mReservedFilter, variant);
       break;
   }
-  mOperatingFilter = Filters::None;
+  mReservedFilter = Filters::None;
+}
+
+void FilteringAbstractLazy::setFilterForReserved(const std::vector<FilterVariant> &variantList)
+{
+  switch (mReservedFilter) {
+  case Filters::HAVING:
+      setHavingConditions(variantList);
+      break;
+  default:
+  break;
+  }
 }
 
 void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList)
@@ -139,9 +150,6 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant filte
     case Filters::ORDERBY:
         mOrderConditions=filterVariant;
         break;
-    case Filters::HAVING:
-        mHavingConditions.push_back(filterVariant);
-        break;
     case Filters::GROUPBY:
         mGroupConditions=filterVariant;
         break;
@@ -178,13 +186,13 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, WhereFilter whereFi
 
 FilteringAbstractLazy& FilteringAbstractLazy::operator[](const Filters &filter)
 {
-    mOperatingFilter = filter;
+    mReservedFilter = filter;
     return *this;
 }
 
 void FilteringAbstractLazy::operator=(const FilterVariant &variant)
 {
-  setFilter(variant);
+  setFilterForReserved(variant);
 }
 
 }

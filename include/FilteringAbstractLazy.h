@@ -13,7 +13,7 @@ namespace LazyOrm {
 class FilteringAbstractLazy
 {
 private:
-    Filters mOperatingFilter=Filters::None;
+    Filters mReservedFilter=Filters::None;
 
     struct FilterTypeToWhere
     {
@@ -35,7 +35,7 @@ protected:
 protected:
     //
     virtual void setWhereConditions(const Filters &filter, const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
-    virtual void setHavingConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
+    virtual void setHavingConditions(const std::vector<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setLimitConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setGroupConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
@@ -44,6 +44,7 @@ protected:
     virtual void appendOrderby(std::string &retStr) = 0;
     virtual void appendLimit(std::string &retStr) = 0;
     virtual void appendGroup(std::string &retStr) = 0;
+    virtual void appendHaving(std::string &retStr) = 0;
     //
     virtual void nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) = 0;
 
@@ -51,14 +52,14 @@ protected:
 
 public:
     FilteringAbstractLazy();
-    void setFilter(const LazyOrm::FilterVariant &variant);
+    void setFilterForReserved(const LazyOrm::FilterVariant &variant);
+    void setFilterForReserved(const std::vector<LazyOrm::FilterVariant> &variantList);
     void setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, LazyOrm::FilterVariant filterVariant);
     void setFilter(const Filters &filter, LazyOrm::WhereFilter whereFilter);
     FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
     void operator=(const LazyOrm::FilterVariant &variant);
-
 
 
     void setWhereFilter(WhereFilter whereFilter){
