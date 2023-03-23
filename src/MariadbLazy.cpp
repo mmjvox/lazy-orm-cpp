@@ -72,6 +72,7 @@ void MariadbLazy::update_query()
     mQueryString.append(mTabeName);
     mQueryString.append(" SET ");
     mQueryString.append(string_join(",",updates));
+    mQueryString.append(" ");
     mQueryString.append(mFilter.where_conditions());
     mQueryString.append(";");
 }

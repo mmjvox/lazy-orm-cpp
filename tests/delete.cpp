@@ -29,7 +29,6 @@ std::string delete2() {
   lazyOrm["name"]="anya";
   lazyOrm["age"]=6;
   lazyOrm["hair"]="pink";
-
   //
   lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
   lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
