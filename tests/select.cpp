@@ -1,5 +1,6 @@
 #include <iostream>
 #include "MariadbLazy.h"
+#include "SqliteLazy.h"
 
 #include <catch2/catch_all.hpp>
 #include <cstdint>
@@ -40,9 +41,36 @@ std::string select4() {
   return lazyOrm.queryString();
 }
 
+std::string select5() {
+  LazyOrm::SqliteLazy lazyOrm;
+  lazyOrm[LazyOrm::SELECT]="student";
+  lazyOrm<<"name"<<"age"<<"hair";
+  //
+  lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
+  lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
+  lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
+  lazyOrm[LazyOrm::LIMIT] = {{"5",",","6"}};
+  //
+  return lazyOrm.queryString();
+}
+
+std::string select6() {
+  LazyOrm::SqliteLazy lazyOrm;
+  lazyOrm[LazyOrm::SELECT]="student";
+  lazyOrm<<"name"<<"age"<<"hair";
+  //
+  lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
+  lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
+  lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
+  lazyOrm[LazyOrm::LIMIT] = {{"5","6"}};
+  //
+  return lazyOrm.queryString();
+}
+
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
 
-    std::cout << select4() << std::endl;
+    std::cout << select5() << std::endl;
+    std::cout << select6() << std::endl;
 
     REQUIRE( Catch::trim(select1()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
     REQUIRE( Catch::trim(select2()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );

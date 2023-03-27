@@ -25,6 +25,11 @@ add_library(lazy-orm STATIC
     src/MariadbLazy.cpp
     include/MariadbFilteringLazy.h
     src/MariadbFilteringLazy.cpp
+
+    include/SqliteLazy.h
+    src/SqliteLazy.cpp
+    include/SqliteFilteringLazy.h
+    src/SqliteFilteringLazy.cpp
 )
 
 target_compile_definitions(lazy-orm PRIVATE lazy-orm_LIBRARY)
