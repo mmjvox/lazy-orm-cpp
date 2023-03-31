@@ -30,6 +30,11 @@ add_library(lazy-orm STATIC
     src/SqliteLazy.cpp
     include/SqliteFilteringLazy.h
     src/SqliteFilteringLazy.cpp
+
+    include/PostgreLazy.h
+    src/PostgreLazy.cpp
+    include/PostgreFilteringLazy.h
+    src/PostgreFilteringLazy.cpp
 )
 
 target_compile_definitions(lazy-orm PRIVATE lazy-orm_LIBRARY)
