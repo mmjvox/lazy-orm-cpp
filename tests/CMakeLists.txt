@@ -26,5 +26,7 @@ foreach(each_file ${CppFiles})
     string(REPLACE ".cpp" "" EACH_NAME ${each_file})
     add_executable(${EACH_NAME} ${each_file})
     target_link_libraries(${EACH_NAME} PRIVATE lazy-orm Catch2::Catch2WithMain)
+    target_link_libraries(${EACH_NAME} PRIVATE -lsqlite3)
     catch_discover_tests(${EACH_NAME})
 endforeach()
+
