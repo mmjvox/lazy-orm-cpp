@@ -47,7 +47,7 @@ std::string aaaaaa() {
   LazyOrm::MariadbFilteringLazy filters;
   filters.setWhereFilter(p1);
 
-  return filters.test_string();
+  return filters.where_conditions();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_WHERE2]" ) {

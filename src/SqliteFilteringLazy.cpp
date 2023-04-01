@@ -72,18 +72,24 @@ void SqliteFilteringLazy::setWhereConditions(const Filters &filter, const std::i
     std::vector<DbVariant> conditions;
     for(const auto& item : filtersList)
     {
-        std::visit([=, &conditions](auto&& arg){
+        bool singleVal =
+        std::visit([=, &conditions](auto&& arg) -> bool {
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, WhereFilter>) {
                 mWhereConditions = arg;
-                // TODO: return and stop
+                return true;
             }
             else
             if constexpr (std::is_same_v<T, DbVariant>) {
                 conditions.push_back(arg);
             }
+            return false;
         }, item);
 
+        if(singleVal)
+        {
+          break;
+        }
     }
     mWhereConditions = WhereFilter(filter, conditions);
 }
@@ -164,18 +170,6 @@ void SqliteFilteringLazy::appendWhere(std::string &retStr)
         nestedWhereToString(whereItem, retStr, mWhereConditions.filter, firstItem);
         firstItem=false;
     }
-
-//    std::visit([=,&retStr](auto&& arg){
-//        using T = std::decay_t<decltype(arg)>;
-//        if constexpr (std::is_same_v<T, WhereFilter>) {
-//            bool firstItem=true;
-//            for(const auto& whereItem : arg)
-//            {
-//                nestedWhereToString(whereItem, retStr, arg.filter, firstItem);
-//                firstItem=false;
-//            }
-//        }
-//    }, mWhereConditions);
 }
 
 void SqliteFilteringLazy::appendOrderby(std::string &retStr)

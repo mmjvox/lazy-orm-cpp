@@ -39,20 +39,11 @@ public:
     WhereFilter( Filters filter, std::vector<DbVariant> whereFilters);
     WhereFilter(std::vector<DbVariant> whereFilters);
 
-    // TODO: replace this with correct depth
-    WhereFilter * depth(){return this;}
-
-
     struct FilterVariantToString
     {
       std::string operator()(const WhereFilter &value);
       std::string operator()(const std::vector<DbVariant> &value);
     };
-
-    // TODO: replace this with correct depth
-//    std::string stringValue(size_t index){
-//        return std::visit(FilterVariantToString{}, this->at(index));
-//    }
 };
 
 class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>, WhereFilter>

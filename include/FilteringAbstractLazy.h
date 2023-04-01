@@ -60,16 +60,7 @@ public:
     void setFilter(const Filters &filter, LazyOrm::WhereFilter whereFilter);
     FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
     void operator=(const LazyOrm::FilterVariant &variant);
-
-
-    void setWhereFilter(WhereFilter whereFilter){
-        mWhereConditions=whereFilter;
-    }
-
-    std::string test_string()
-    {
-        return where_conditions();
-    }
+    void setWhereFilter(WhereFilter whereFilter);
 };
 }
 #endif // FILTERINGABSTRACTLAZY_H

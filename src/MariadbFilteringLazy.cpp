@@ -72,18 +72,24 @@ void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::
     std::vector<DbVariant> conditions;
     for(const auto& item : filtersList)
     {
-        std::visit([=, &conditions](auto&& arg){
+        bool singleVal =
+        std::visit([=, &conditions](auto&& arg) -> bool {
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, WhereFilter>) {
                 mWhereConditions = arg;
-                // TODO: return and stop
+                return true;
             }
             else
             if constexpr (std::is_same_v<T, DbVariant>) {
                 conditions.push_back(arg);
             }
+            return false;
         }, item);
 
+        if(singleVal)
+        {
+          break;
+        }
     }
     mWhereConditions = WhereFilter(filter, conditions);
 }

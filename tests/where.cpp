@@ -12,7 +12,7 @@ std::string where1() {
     filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {11,23});
-    return filters.test_string();
+    return filters.where_conditions();
 }
 
 std::string where2() {
@@ -21,7 +21,7 @@ std::string where2() {
     filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {11,23});
-    return filters.test_string();
+    return filters.where_conditions();
 }
 
 std::string where3() {
@@ -30,7 +30,7 @@ std::string where3() {
     filters[LazyOrm::GROUPBY] = {{"group1","group2"}};
     filters[LazyOrm::ORDERBY] = {{"num1","num2"}};
     filters[LazyOrm::LIMIT] = "10,10";
-    return filters.test_string();
+    return filters.where_conditions();
 }
 
 std::string where4() {
@@ -50,7 +50,7 @@ std::string where4() {
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {"14",26});
 
-return filters.test_string();
+return filters.where_conditions();
 }
 
 
@@ -80,7 +80,7 @@ std::string where5() {
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {"14",26});
 
-return filters.test_string();
+return filters.where_conditions();
 }
 
 std::string where6() {
@@ -104,19 +104,19 @@ std::string where6() {
     };
 
     LazyOrm::MariadbFilteringLazy filters;
-    filters.setWhereFilter(p1);
+    filters.setFilter({p1});
     filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {"14",26});
 
-return filters.test_string();
+return filters.where_conditions();
 }
 
 
 
 TEST_CASE( "Factorials are computed", "[Lazy_WHERE]" ) {
 
-    std::cout << where3() << std::endl;
+    std::cout << where6() << std::endl;
 
     REQUIRE( Catch::trim(where1()) == R"(WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,23)" );
     REQUIRE( Catch::trim(where2()) == R"(WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,23)" );

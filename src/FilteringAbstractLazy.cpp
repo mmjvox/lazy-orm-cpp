@@ -58,18 +58,24 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
     std::vector<DbVariant> conditions;
     for(const auto& item : filterVariantList)
     {
-        std::visit([=, &conditions](auto&& arg){
+        bool singleVal =
+        std::visit([=, &conditions](auto&& arg) -> bool {
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, WhereFilter>) {
                 mWhereConditions = arg;
-                // TODO: return and stop
+                return true;
             }
             else
             if constexpr (std::is_same_v<T, DbVariant>) {
                 conditions.push_back(arg);
             }
+            return false;
         }, item);
 
+        if(singleVal)
+        {
+          break;
+        }
     }
 
     if(conditions.size()<1)
@@ -77,7 +83,6 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
         return;
     }
 
-    // TODO:
     const auto filter = conditions.at(0).toLowerString();
     if(filter=="and")
     {
@@ -193,6 +198,10 @@ FilteringAbstractLazy& FilteringAbstractLazy::operator[](const Filters &filter)
 void FilteringAbstractLazy::operator=(const FilterVariant &variant)
 {
   setFilterForReserved(variant);
+}
+
+void FilteringAbstractLazy::setWhereFilter(WhereFilter whereFilter){
+  mWhereConditions=whereFilter;
 }
 
 }
