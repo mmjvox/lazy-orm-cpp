@@ -35,6 +35,7 @@ std::string PostgreLazy::insert_query() const
   queryString.append(" ("+string_join(",",keys)+") ");
   queryString.append("VALUES");
   queryString.append(" ("+string_join(",",values)+") ");
+  // TODO:  RETURNING id; i dont now id name
   queryString.append(";");
   return queryString;
 }
