@@ -57,7 +57,7 @@ std::string AbstractLazy::queryString() const
     return update_query();
   case DELETE:
     return delete_query();
-  case INSERT_OR_UPDATE:
+  case INSERT_UPDATE:
     return insert_update_query();
   case BATCH_INSERT:
     return batch_insert_query();

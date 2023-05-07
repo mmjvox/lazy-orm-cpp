@@ -139,7 +139,40 @@ std::string MariadbLazy::batch_insert_query() const
 
 std::string MariadbLazy::insert_update_query() const
 {
-  return {};
+  std::vector<std::string> keys, values;
+
+  for(const auto &[key, value] : mProperties)
+  {
+    if(key.substr(0,8)=="[update]")
+    {
+      continue;
+    }
+    keys.push_back("`"+key+"`");
+    values.push_back("\""+value.toString()+"\"");
+  }
+
+  std::vector<std::string> updates;
+  for(const auto &[key, value] : mProperties)
+  {
+    if(key.substr(0,8)=="[update]")
+    {
+      updates.push_back("`"+key.substr(8)+"`='"+value.toString()+"'");
+    }
+  }
+
+  std::string queryString;
+  queryString = "INSERT INTO ";
+  queryString.append(mTabeName);
+  queryString.append(" ("+string_join(",",keys)+") ");
+  queryString.append("VALUES");
+  queryString.append(" ("+string_join(",",values)+") ");
+  if(!updates.empty())
+  {
+    queryString.append("ON DUPLICATE KEY UPDATE ");
+    queryString.append(string_join(",",updates));
+  }
+  queryString.append(";");
+  return queryString;
 }
 
 std::string MariadbLazy::insert_ignore_query() const
