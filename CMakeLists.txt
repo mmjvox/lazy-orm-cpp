@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(lazy-orm LANGUAGES CXX)
+project(LazyOrm LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,7 +25,7 @@ set(LazyORM_HEADERS
     include/PostgreFilteringLazy.h
 )
 
-add_library(lazy-orm STATIC
+add_library(LazyOrm STATIC
     ${LazyORM_HEADERS}
 
     src/DbVariant.cpp
@@ -44,7 +44,7 @@ add_library(lazy-orm STATIC
     src/PostgreFilteringLazy.cpp
 )
 
-target_compile_definitions(lazy-orm PRIVATE lazy-orm_LIBRARY)
+target_compile_definitions(LazyOrm PRIVATE LazyOrm_LIBRARY)
 
 option(tests "build tests" OFF)
 if(tests)
@@ -59,16 +59,16 @@ configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/LazyOrmConfig.cmake"
     INSTALL_DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}/cmake/lazy-orm
+    ${CMAKE_INSTALL_LIBDIR}/cmake/LazyOrm
 )
 
 install(FILES ${LazyORM_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lazy-orm)
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LazyOrm)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LazyOrmConfig.cmake
 #              ${CMAKE_CURRENT_BINARY_DIR}/FooConfigVersion.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LazyOrm)
-install(TARGETS lazy-orm
-    #PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lazy-orm
+install(TARGETS LazyOrm
+    #PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LazyOrm
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )

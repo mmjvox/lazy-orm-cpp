@@ -1,4 +1,4 @@
 @PACKAGE_INIT@
 
 set(LazyOrm_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(LazyOrm_LIBRARIES "${CMAKE_INSTALL_LIBDIR}/liblazy-orm.a")
+set(LazyOrm_LIBRARIES "${CMAKE_INSTALL_LIBDIR}/libLazyOrm.a")

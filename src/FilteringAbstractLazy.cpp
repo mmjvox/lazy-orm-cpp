@@ -19,6 +19,8 @@ std::string FilteringAbstractLazy::filterStr(Filters f) const
         return "ORDER BY";
     case Filters::GROUPBY:
         return "GROUP BY";
+    default:
+        return {};
     }
     return {};
 }
@@ -138,6 +140,8 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_li
         break;
     case Filters::LIMIT:
         setLimitConditions(filterVariantList);
+        break;
+    default:
         break;
     }
 }
