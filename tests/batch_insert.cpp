@@ -31,6 +31,6 @@ std::string batch_insert2() {
 
 TEST_CASE( "Factorials are computed", "[Lazy_BATCH_INSERT]" ) {
 
-    REQUIRE( Catch::trim(batch_insert1()) == R"(INSERT INTO student (`age`,`cute`,`family`,`hair`,`name`) VALUES ("6","true","forger","pink","anya"),("8","false","Desmond","black","damian"),("30","false","forger","blond","loid") ;)" );
-    REQUIRE( Catch::trim(batch_insert2()) == R"(INSERT INTO student (`age`,`cute`,`family`,`hair`,`name`) VALUES ("6","true","forger","pink","anya"),("8","false","Desmond","black","damian"),("30","false","forger","blond","loid") ;)" );
+    REQUIRE( Catch::trim(batch_insert1()) == R"(INSERT INTO student (`age`,`cute`,`family`,`hair`,`name`) VALUES ('6','true','forger','pink','anya'),('8','false','Desmond','black','damian'),('30','false','forger','blond','loid') ;)" );
+    REQUIRE( Catch::trim(batch_insert2()) == R"(INSERT INTO student (`age`,`cute`,`family`,`hair`,`name`) VALUES ('6','true','forger','pink','anya'),('8','false','Desmond','black','damian'),('30','false','forger','blond','loid') ;)" );
 }
