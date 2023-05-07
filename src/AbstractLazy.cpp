@@ -46,15 +46,24 @@ std::string AbstractLazy::string_join(const std::string &delimiter, const std::v
   return output;
 }
 
+std::string AbstractLazy::setQuote(std::string value) const
+{
+  if(value.substr(0,5)=="[no']")
+  {
+      return value.substr(5);
+  }
+  return "'"+value+"'";
+}
+
 std::string AbstractLazy::queryString() const
 {
   switch (mQueryType) {
   case INSERT:
-    return insert_query();
+      return insert_query();
   case SELECT:
-    return select_query();
+      return select_query();
   case UPDATE:
-    return update_query();
+      return update_query();
   case DELETE:
     return delete_query();
   case INSERT_UPDATE:

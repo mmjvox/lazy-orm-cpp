@@ -49,14 +49,7 @@ protected:
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
 
-  std::string setQuote(std::string value) const
-  {
-      if(value.substr(0,5)=="[no']")
-      {
-          return value.substr(0);
-      }
-      return "'"+value+"'";
-  }
+  std::string setQuote(std::string value) const;
 
 public:
   std::string queryString() const;
