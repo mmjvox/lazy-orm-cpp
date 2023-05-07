@@ -19,7 +19,7 @@ void SqliteLazy::setFilter(const SqliteFilteringLazy filter)
   mFilter=filter;
 }
 
-void SqliteLazy::insert_query() const
+std::string SqliteLazy::insert_query() const
 {
   std::vector<std::string> keys, values;
 
@@ -36,9 +36,10 @@ void SqliteLazy::insert_query() const
   queryString.append("VALUES");
   queryString.append(" ("+string_join(",",values)+") ");
   queryString.append(";");
+  return queryString;
 }
 
-void SqliteLazy::select_query() const
+std::string SqliteLazy::select_query() const
 {
     std::vector<std::string> keys;
     for(const auto &[key, value] : mProperties)
@@ -60,9 +61,10 @@ void SqliteLazy::select_query() const
     queryString.append(mTabeName);
     queryString.append(mFilter.where_conditions());
     queryString.append(";");
+    return queryString;
 }
 
-void SqliteLazy::update_query() const
+std::string SqliteLazy::update_query() const
 {
     std::vector<std::string> updates;
     for(const auto &[key, value] : mProperties)
@@ -78,9 +80,10 @@ void SqliteLazy::update_query() const
     queryString.append(" ");
     queryString.append(mFilter.where_conditions());
     queryString.append(";");
+    return queryString;
 }
 
-void SqliteLazy::delete_query() const
+std::string SqliteLazy::delete_query() const
 {
     std::string queryString;
     queryString = "DELETE FROM ";
@@ -88,13 +91,14 @@ void SqliteLazy::delete_query() const
     queryString.append(" ");
     queryString.append(mFilter.where_conditions());
     queryString.append(" ;");
+    return queryString;
 }
 
-void SqliteLazy::batch_insert_query() const
+std::string SqliteLazy::batch_insert_query() const
 {
   if(mBatchProperties.size()<1)
   {
-    return;
+      return {};
   }
 
   size_t columnsCount=0;
@@ -112,7 +116,7 @@ void SqliteLazy::batch_insert_query() const
   {
     if(columnsCount!=mapItem.size())
     {
-      return;
+        return {};
     }
 
     std::vector<std::string> rowValues;
@@ -130,16 +134,17 @@ void SqliteLazy::batch_insert_query() const
   queryString.append("VALUES");
   queryString.append(" "+string_join(",",values)+" ");
   queryString.append(";");
+  return queryString;
 }
 
-void SqliteLazy::insert_update_query() const
+std::string SqliteLazy::insert_update_query() const
 {
-
+  return {};
 }
 
-void SqliteLazy::insert_ignore_query() const
+std::string SqliteLazy::insert_ignore_query() const
 {
-
+  return {};
 }
 
 

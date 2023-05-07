@@ -19,7 +19,7 @@ void MariadbLazy::setFilter(const MariadbFilteringLazy filter)
   mFilter=filter;
 }
 
-void MariadbLazy::insert_query() const
+std::string MariadbLazy::insert_query() const
 {
   std::vector<std::string> keys, values;
 
@@ -36,9 +36,10 @@ void MariadbLazy::insert_query() const
   queryString.append("VALUES");
   queryString.append(" ("+string_join(",",values)+") ");
   queryString.append(";");
+  return queryString;
 }
 
-void MariadbLazy::select_query() const
+std::string MariadbLazy::select_query() const
 {
     std::vector<std::string> keys;
     for(const auto &[key, value] : mProperties)
@@ -60,9 +61,10 @@ void MariadbLazy::select_query() const
     queryString.append(mTabeName);
     queryString.append(mFilter.where_conditions());
     queryString.append(";");
+    return queryString;
 }
 
-void MariadbLazy::update_query() const
+std::string MariadbLazy::update_query() const
 {
     std::vector<std::string> updates;
     for(const auto &[key, value] : mProperties)
@@ -78,9 +80,10 @@ void MariadbLazy::update_query() const
     queryString.append(" ");
     queryString.append(mFilter.where_conditions());
     queryString.append(";");
+    return queryString;
 }
 
-void MariadbLazy::delete_query() const
+std::string MariadbLazy::delete_query() const
 {
     std::string queryString;
     queryString = "DELETE FROM ";
@@ -88,13 +91,14 @@ void MariadbLazy::delete_query() const
     queryString.append(" ");
     queryString.append(mFilter.where_conditions());
     queryString.append(" ;");
+    return queryString;
 }
 
-void MariadbLazy::batch_insert_query() const
+std::string MariadbLazy::batch_insert_query() const
 {
   if(mBatchProperties.size()<1)
   {
-    return;
+      return {};
   }
 
   size_t columnsCount=0;
@@ -112,7 +116,7 @@ void MariadbLazy::batch_insert_query() const
   {
     if(columnsCount!=mapItem.size())
     {
-      return;
+        return {};
     }
 
     std::vector<std::string> rowValues;
@@ -130,14 +134,15 @@ void MariadbLazy::batch_insert_query() const
   queryString.append("VALUES");
   queryString.append(" "+string_join(",",values)+" ");
   queryString.append(";");
+  return queryString;
 }
 
-void MariadbLazy::insert_update_query() const
+std::string MariadbLazy::insert_update_query() const
 {
-
+  return {};
 }
 
-void MariadbLazy::insert_ignore_query() const
+std::string MariadbLazy::insert_ignore_query() const
 {
   std::vector<std::string> keys, values;
 
@@ -154,6 +159,7 @@ void MariadbLazy::insert_ignore_query() const
   queryString.append("VALUES");
   queryString.append(" ("+string_join(",",values)+") ");
   queryString.append(";");
+  return queryString;
 }
 
 

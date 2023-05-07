@@ -19,7 +19,7 @@ void PostgreLazy::setFilter(const PostgreFilteringLazy filter)
   mFilter=filter;
 }
 
-void PostgreLazy::insert_query() const
+std::string PostgreLazy::insert_query() const
 {
   std::vector<std::string> keys, values;
 
@@ -36,9 +36,10 @@ void PostgreLazy::insert_query() const
   queryString.append("VALUES");
   queryString.append(" ("+string_join(",",values)+") ");
   queryString.append(";");
+  return queryString;
 }
 
-void PostgreLazy::select_query() const
+std::string PostgreLazy::select_query() const
 {
     std::vector<std::string> keys;
     for(const auto &[key, value] : mProperties)
@@ -60,9 +61,10 @@ void PostgreLazy::select_query() const
     queryString.append(mTabeName);
     queryString.append(mFilter.where_conditions());
     queryString.append(";");
+    return queryString;
 }
 
-void PostgreLazy::update_query() const
+std::string PostgreLazy::update_query() const
 {
     std::vector<std::string> updates;
     for(const auto &[key, value] : mProperties)
@@ -78,9 +80,10 @@ void PostgreLazy::update_query() const
     queryString.append(" ");
     queryString.append(mFilter.where_conditions());
     queryString.append(";");
+    return queryString;
 }
 
-void PostgreLazy::delete_query() const
+std::string PostgreLazy::delete_query() const
 {
     std::string queryString;
     queryString = "DELETE FROM ";
@@ -88,13 +91,14 @@ void PostgreLazy::delete_query() const
     queryString.append(" ");
     queryString.append(mFilter.where_conditions());
     queryString.append(" ;");
+    return queryString;
 }
 
-void PostgreLazy::batch_insert_query() const
+std::string PostgreLazy::batch_insert_query() const
 {
   if(mBatchProperties.size()<1)
   {
-    return;
+      return {};
   }
 
   size_t columnsCount=0;
@@ -112,7 +116,7 @@ void PostgreLazy::batch_insert_query() const
   {
     if(columnsCount!=mapItem.size())
     {
-      return;
+        return {};
     }
 
     std::vector<std::string> rowValues;
@@ -130,16 +134,17 @@ void PostgreLazy::batch_insert_query() const
   queryString.append("VALUES");
   queryString.append(" "+string_join(",",values)+" ");
   queryString.append(";");
+  return queryString;
 }
 
-void PostgreLazy::insert_update_query() const
+std::string PostgreLazy::insert_update_query() const
 {
-
+  return {};
 }
 
-void PostgreLazy::insert_ignore_query() const
+std::string PostgreLazy::insert_ignore_query() const
 {
-
+  return {};
 }
 
 

@@ -39,13 +39,13 @@ protected:
   std::list<std::map<std::string, DbVariant>> mBatchProperties;
   std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
 
-  virtual void insert_query() const = 0;
-  virtual void select_query() const = 0;
-  virtual void update_query() const = 0;
-  virtual void delete_query() const = 0;
-  virtual void insert_update_query() const = 0;
-  virtual void batch_insert_query() const = 0;
-  virtual void insert_ignore_query() const = 0;
+  virtual std::string insert_query() const = 0;
+  virtual std::string select_query() const = 0;
+  virtual std::string update_query() const = 0;
+  virtual std::string delete_query() const = 0;
+  virtual std::string insert_update_query() const = 0;
+  virtual std::string batch_insert_query() const = 0;
+  virtual std::string insert_ignore_query() const = 0;
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
 

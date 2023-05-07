@@ -50,31 +50,24 @@ std::string AbstractLazy::queryString() const
 {
   switch (mQueryType) {
   case INSERT:
-    insert_query();
-  break;
+    return insert_query();
   case SELECT:
-    select_query();
-  break;
+    return select_query();
   case UPDATE:
-    update_query();
-  break;
+    return update_query();
   case DELETE:
-    delete_query();
-  break;
+    return delete_query();
   case INSERT_OR_UPDATE:
-    insert_update_query();
-  break;
+    return insert_update_query();
   case BATCH_INSERT:
-    batch_insert_query();
-  break;
+    return batch_insert_query();
   case INSERT_IGNORE:
-    insert_ignore_query();
-    break;
+    return insert_ignore_query();
   default:
   break;
   }
 
-  return mQueryString;
+  return {};
 }
 
 void AbstractLazy::setProperty(const std::string &key, const DbVariant value)
