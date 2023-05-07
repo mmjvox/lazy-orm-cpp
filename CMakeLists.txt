@@ -9,31 +9,38 @@ include_directories(
     include/
 )
 
-add_library(lazy-orm STATIC
-
+set(LazyORM_HEADERS
     include/DbVariant.h
-    src/DbVariant.cpp
     include/FilterVariant.h
-    src/FilterVariant.cpp
-
     include/AbstractLazy.h
-    src/AbstractLazy.cpp
     include/FilteringAbstractLazy.h
-    src/FilteringAbstractLazy.cpp
 
     include/MariadbLazy.h
-    src/MariadbLazy.cpp
     include/MariadbFilteringLazy.h
-    src/MariadbFilteringLazy.cpp
 
     include/SqliteLazy.h
-    src/SqliteLazy.cpp
     include/SqliteFilteringLazy.h
-    src/SqliteFilteringLazy.cpp
 
     include/PostgreLazy.h
-    src/PostgreLazy.cpp
     include/PostgreFilteringLazy.h
+)
+
+add_library(lazy-orm STATIC
+    ${LazyORM_HEADERS}
+
+    src/DbVariant.cpp
+    src/FilterVariant.cpp
+
+    src/AbstractLazy.cpp
+    src/FilteringAbstractLazy.cpp
+
+    src/MariadbLazy.cpp
+    src/MariadbFilteringLazy.cpp
+
+    src/SqliteLazy.cpp
+    src/SqliteFilteringLazy.cpp
+
+    src/PostgreLazy.cpp
     src/PostgreFilteringLazy.cpp
 )
 
@@ -43,3 +50,14 @@ option(tests "build tests" OFF)
 if(tests)
 add_subdirectory(tests)
 endif(tests)
+
+
+#set_target_properties(lazy-orm PROPERTIES PUBLIC_HEADER include)
+include(GNUInstallDirs)
+install(FILES ${LazyORM_HEADERS}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lazy-orm)
+install(TARGETS lazy-orm
+    #PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lazy-orm
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
