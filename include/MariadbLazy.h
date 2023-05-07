@@ -18,6 +18,7 @@ protected:
   void delete_query() override;
   void batch_insert_query() override;
   void insert_update_query() override;
+  void insert_ignore_query() override;
 
   FilteringAbstractLazy& getCurrentFilters() override
   {

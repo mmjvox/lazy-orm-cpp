@@ -132,5 +132,10 @@ void PostgreLazy::insert_update_query()
 
 }
 
+void PostgreLazy::insert_ignore_query()
+{
+
+}
+
 
 }

@@ -132,5 +132,23 @@ void MariadbLazy::insert_update_query()
 
 }
 
+void MariadbLazy::insert_ignore_query()
+{
+  std::vector<std::string> keys, values;
+
+  for(const auto &[key, value] : mProperties)
+  {
+    keys.push_back("`"+key+"`");
+    values.push_back("\""+value.toString()+"\"");
+  }
+
+  mQueryString = "INSERT IGNORE INTO ";
+  mQueryString.append(mTabeName);
+  mQueryString.append(" ("+string_join(",",keys)+") ");
+  mQueryString.append("VALUES");
+  mQueryString.append(" ("+string_join(",",values)+") ");
+  mQueryString.append(";");
+}
+
 
 }

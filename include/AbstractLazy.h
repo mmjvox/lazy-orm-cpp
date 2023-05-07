@@ -24,7 +24,8 @@ enum Query
   UPDATE,
   DELETE,
   INSERT_OR_UPDATE,
-  BATCH_INSERT
+  BATCH_INSERT,
+  INSERT_IGNORE
 };
 
 class AbstractLazy
@@ -45,6 +46,7 @@ protected:
   virtual void delete_query() = 0;
   virtual void insert_update_query() = 0;
   virtual void batch_insert_query() = 0;
+  virtual void insert_ignore_query() = 0;
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
 

@@ -132,5 +132,10 @@ void SqliteLazy::insert_update_query()
 
 }
 
+void SqliteLazy::insert_ignore_query()
+{
+
+}
+
 
 }

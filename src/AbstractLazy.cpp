@@ -67,6 +67,9 @@ std::string AbstractLazy::queryString()
   case BATCH_INSERT:
     batch_insert_query();
   break;
+  case INSERT_IGNORE:
+    insert_ignore_query();
+    break;
   default:
   break;
   }
