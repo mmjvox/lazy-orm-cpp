@@ -61,9 +61,9 @@ public:
       std::string operator()(const DbVariant &value);
     };
 
-    std::string toString();
+    std::string toString() const;
 
-    bool empty();
+    bool empty() const;
 
     template <typename FT>
     std::vector<FT> filterTypesToVector() const

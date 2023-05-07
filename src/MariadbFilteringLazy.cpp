@@ -100,7 +100,7 @@ void MariadbFilteringLazy::setHavingConditions(const std::vector<FilterVariant> 
 }
 
 
-void MariadbFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem)
+void MariadbFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
 {
     if(!firstItem)
     {
@@ -155,7 +155,7 @@ void MariadbFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem,
     }, whereItem);
 }
 
-void MariadbFilteringLazy::appendWhere(std::string &retStr)
+void MariadbFilteringLazy::appendWhere(std::string &retStr) const
 {
     if(mWhereConditions.empty())
     {
@@ -184,7 +184,7 @@ void MariadbFilteringLazy::appendWhere(std::string &retStr)
 //    }, mWhereConditions);
 }
 
-void MariadbFilteringLazy::appendOrderby(std::string &retStr)
+void MariadbFilteringLazy::appendOrderby(std::string &retStr) const
 {
     if(mOrderConditions.empty())
     {
@@ -206,7 +206,7 @@ void MariadbFilteringLazy::appendOrderby(std::string &retStr)
     retStr.append(" ");
 }
 
-void MariadbFilteringLazy::appendLimit(std::string &retStr)
+void MariadbFilteringLazy::appendLimit(std::string &retStr) const
 {
     if(mLimitConditions.empty())
     {
@@ -228,7 +228,7 @@ void MariadbFilteringLazy::appendLimit(std::string &retStr)
     retStr.append(" ");
 }
 
-void MariadbFilteringLazy::appendGroup(std::string &retStr)
+void MariadbFilteringLazy::appendGroup(std::string &retStr) const
 {
     if(mGroupConditions.empty())
     {
@@ -250,7 +250,7 @@ void MariadbFilteringLazy::appendGroup(std::string &retStr)
     retStr.append(" ");
 }
 
-void MariadbFilteringLazy::appendHaving(std::string &retStr)
+void MariadbFilteringLazy::appendHaving(std::string &retStr) const
 {
   if(mHavingConditions.empty())
   {
@@ -292,7 +292,7 @@ void MariadbFilteringLazy::appendHaving(std::string &retStr)
 }
 
 
-std::string MariadbFilteringLazy::where_conditions()
+std::string MariadbFilteringLazy::where_conditions() const
 {
     std::string retStr;
     // AND OR

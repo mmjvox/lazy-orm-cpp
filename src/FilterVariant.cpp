@@ -19,11 +19,11 @@ LazyOrm::FilterVariant::FilterVariant(std::vector<DbVariant> v)
 {
 }
 
-std::string LazyOrm::FilterVariant::toString(){
+std::string LazyOrm::FilterVariant::toString() const{
     return std::visit(FilterVariant::FilterVariantToString{}, *this);
 }
 
-bool LazyOrm::FilterVariant::empty()
+bool LazyOrm::FilterVariant::empty() const
 {
     return std::visit([=](auto&& arg) -> bool {
 

@@ -19,7 +19,7 @@ void MariadbLazy::setFilter(const MariadbFilteringLazy filter)
   mFilter=filter;
 }
 
-void MariadbLazy::insert_query()
+void MariadbLazy::insert_query() const
 {
   std::vector<std::string> keys, values;
 
@@ -29,15 +29,16 @@ void MariadbLazy::insert_query()
     values.push_back("\""+value.toString()+"\"");
   }
 
-  mQueryString = "INSERT INTO ";
-  mQueryString.append(mTabeName);
-  mQueryString.append(" ("+string_join(",",keys)+") ");
-  mQueryString.append("VALUES");
-  mQueryString.append(" ("+string_join(",",values)+") ");
-  mQueryString.append(";");
+  std::string queryString;
+  queryString = "INSERT INTO ";
+  queryString.append(mTabeName);
+  queryString.append(" ("+string_join(",",keys)+") ");
+  queryString.append("VALUES");
+  queryString.append(" ("+string_join(",",values)+") ");
+  queryString.append(";");
 }
 
-void MariadbLazy::select_query()
+void MariadbLazy::select_query() const
 {
     std::vector<std::string> keys;
     for(const auto &[key, value] : mProperties)
@@ -52,15 +53,16 @@ void MariadbLazy::select_query()
       }
     }
 
-    mQueryString = "SELECT ";
-    mQueryString.append(string_join(",",keys));
-    mQueryString.append(" FROM ");
-    mQueryString.append(mTabeName);
-    mQueryString.append(mFilter.where_conditions());
-    mQueryString.append(";");
+    std::string queryString;
+    queryString = "SELECT ";
+    queryString.append(string_join(",",keys));
+    queryString.append(" FROM ");
+    queryString.append(mTabeName);
+    queryString.append(mFilter.where_conditions());
+    queryString.append(";");
 }
 
-void MariadbLazy::update_query()
+void MariadbLazy::update_query() const
 {
     std::vector<std::string> updates;
     for(const auto &[key, value] : mProperties)
@@ -68,25 +70,27 @@ void MariadbLazy::update_query()
       updates.push_back("`"+key+"`='"+value.toString()+"'");
     }
 
-    mQueryString = "UPDATE ";
-    mQueryString.append(mTabeName);
-    mQueryString.append(" SET ");
-    mQueryString.append(string_join(",",updates));
-    mQueryString.append(" ");
-    mQueryString.append(mFilter.where_conditions());
-    mQueryString.append(";");
+    std::string queryString;
+    queryString = "UPDATE ";
+    queryString.append(mTabeName);
+    queryString.append(" SET ");
+    queryString.append(string_join(",",updates));
+    queryString.append(" ");
+    queryString.append(mFilter.where_conditions());
+    queryString.append(";");
 }
 
-void MariadbLazy::delete_query()
+void MariadbLazy::delete_query() const
 {
-    mQueryString = "DELETE FROM ";
-    mQueryString.append(mTabeName);
-    mQueryString.append(" ");
-    mQueryString.append(mFilter.where_conditions());
-    mQueryString.append(" ;");
+    std::string queryString;
+    queryString = "DELETE FROM ";
+    queryString.append(mTabeName);
+    queryString.append(" ");
+    queryString.append(mFilter.where_conditions());
+    queryString.append(" ;");
 }
 
-void MariadbLazy::batch_insert_query()
+void MariadbLazy::batch_insert_query() const
 {
   if(mBatchProperties.size()<1)
   {
@@ -119,20 +123,21 @@ void MariadbLazy::batch_insert_query()
     values.push_back("("+string_join(",",rowValues)+")");
   }
 
-  mQueryString = "INSERT INTO ";
-  mQueryString.append(mTabeName);
-  mQueryString.append(" ("+string_join(",",keys)+") ");
-  mQueryString.append("VALUES");
-  mQueryString.append(" "+string_join(",",values)+" ");
-  mQueryString.append(";");
+  std::string queryString;
+  queryString = "INSERT INTO ";
+  queryString.append(mTabeName);
+  queryString.append(" ("+string_join(",",keys)+") ");
+  queryString.append("VALUES");
+  queryString.append(" "+string_join(",",values)+" ");
+  queryString.append(";");
 }
 
-void MariadbLazy::insert_update_query()
+void MariadbLazy::insert_update_query() const
 {
 
 }
 
-void MariadbLazy::insert_ignore_query()
+void MariadbLazy::insert_ignore_query() const
 {
   std::vector<std::string> keys, values;
 
@@ -142,12 +147,13 @@ void MariadbLazy::insert_ignore_query()
     values.push_back("\""+value.toString()+"\"");
   }
 
-  mQueryString = "INSERT IGNORE INTO ";
-  mQueryString.append(mTabeName);
-  mQueryString.append(" ("+string_join(",",keys)+") ");
-  mQueryString.append("VALUES");
-  mQueryString.append(" ("+string_join(",",values)+") ");
-  mQueryString.append(";");
+  std::string queryString;
+  queryString = "INSERT IGNORE INTO ";
+  queryString.append(mTabeName);
+  queryString.append(" ("+string_join(",",keys)+") ");
+  queryString.append("VALUES");
+  queryString.append(" ("+string_join(",",values)+") ");
+  queryString.append(";");
 }
 
 

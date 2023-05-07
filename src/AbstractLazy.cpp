@@ -32,7 +32,7 @@ std::string & AbstractLazy::operator[](const Query &queryType)
   return mTabeName;
 }
 
-std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<std::string> &container)
+std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<std::string> &container) const
 {
   size_t size = container.size();
   size_t endPos = container.size()-1;
@@ -46,7 +46,7 @@ std::string AbstractLazy::string_join(const std::string &delimiter, const std::v
   return output;
 }
 
-std::string AbstractLazy::queryString()
+std::string AbstractLazy::queryString() const
 {
   switch (mQueryType) {
   case INSERT:

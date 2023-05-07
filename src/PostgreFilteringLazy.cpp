@@ -100,7 +100,7 @@ void PostgreFilteringLazy::setHavingConditions(const std::vector<FilterVariant> 
 }
 
 
-void PostgreFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem)
+void PostgreFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
 {
     if(!firstItem)
     {
@@ -155,7 +155,7 @@ void PostgreFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem,
     }, whereItem);
 }
 
-void PostgreFilteringLazy::appendWhere(std::string &retStr)
+void PostgreFilteringLazy::appendWhere(std::string &retStr) const
 {
     if(mWhereConditions.empty())
     {
@@ -172,7 +172,7 @@ void PostgreFilteringLazy::appendWhere(std::string &retStr)
     }
 }
 
-void PostgreFilteringLazy::appendOrderby(std::string &retStr)
+void PostgreFilteringLazy::appendOrderby(std::string &retStr) const
 {
     if(mOrderConditions.empty())
     {
@@ -194,7 +194,7 @@ void PostgreFilteringLazy::appendOrderby(std::string &retStr)
     retStr.append(" ");
 }
 
-void PostgreFilteringLazy::appendLimit(std::string &retStr)
+void PostgreFilteringLazy::appendLimit(std::string &retStr) const
 {
     if(mLimitConditions.empty())
     {
@@ -225,7 +225,7 @@ void PostgreFilteringLazy::appendLimit(std::string &retStr)
     retStr.append(" ");
 }
 
-void PostgreFilteringLazy::appendGroup(std::string &retStr)
+void PostgreFilteringLazy::appendGroup(std::string &retStr) const
 {
     if(mGroupConditions.empty())
     {
@@ -247,7 +247,7 @@ void PostgreFilteringLazy::appendGroup(std::string &retStr)
     retStr.append(" ");
 }
 
-void PostgreFilteringLazy::appendHaving(std::string &retStr)
+void PostgreFilteringLazy::appendHaving(std::string &retStr) const
 {
   if(mHavingConditions.empty())
   {
@@ -289,7 +289,7 @@ void PostgreFilteringLazy::appendHaving(std::string &retStr)
 }
 
 
-std::string PostgreFilteringLazy::where_conditions()
+std::string PostgreFilteringLazy::where_conditions() const
 {
     std::string retStr;
     // AND OR

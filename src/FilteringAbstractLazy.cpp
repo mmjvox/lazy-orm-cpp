@@ -4,7 +4,7 @@
 namespace LazyOrm {
 
 
-std::string FilteringAbstractLazy::filterStr(Filters f)
+std::string FilteringAbstractLazy::filterStr(Filters f) const
 {
     switch (f) {
     case Filters::OR:

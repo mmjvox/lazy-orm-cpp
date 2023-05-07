@@ -23,7 +23,7 @@ private:
     };
 
 protected:
-    std::string filterStr(Filters f);
+    std::string filterStr(Filters f) const;
     WhereFilter   mWhereConditions;
     FilterVariant mLimitConditions;
     FilterVariant mOrderConditions;
@@ -40,15 +40,15 @@ protected:
     virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setGroupConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     //
-    virtual void appendWhere(std::string &retStr) = 0;
-    virtual void appendOrderby(std::string &retStr) = 0;
-    virtual void appendLimit(std::string &retStr) = 0;
-    virtual void appendGroup(std::string &retStr) = 0;
-    virtual void appendHaving(std::string &retStr) = 0;
+    virtual void appendWhere(std::string &retStr) const = 0;
+    virtual void appendOrderby(std::string &retStr) const = 0;
+    virtual void appendLimit(std::string &retStr) const = 0;
+    virtual void appendGroup(std::string &retStr) const = 0;
+    virtual void appendHaving(std::string &retStr) const = 0;
     //
-    virtual void nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) = 0;
+    virtual void nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) const = 0;
 
-    virtual std::string where_conditions() = 0;
+    virtual std::string where_conditions() const = 0;
 
 public:
     FilteringAbstractLazy();

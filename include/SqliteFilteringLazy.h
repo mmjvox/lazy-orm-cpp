@@ -14,18 +14,18 @@ protected:
     void setOrderConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;
     void setGroupConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;
     //
-    void appendWhere(std::string &retStr) override;
-    void appendOrderby(std::string &retStr) override;
-    void appendLimit(std::string &retStr) override;
-    void appendGroup(std::string &retStr) override;
-    void appendHaving(std::string &retStr) override;
+    void appendWhere(std::string &retStr) const override;
+    void appendOrderby(std::string &retStr) const override;
+    void appendLimit(std::string &retStr) const override;
+    void appendGroup(std::string &retStr) const override;
+    void appendHaving(std::string &retStr) const override;
     //
-    void nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) override;
+    void nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) const override;
 
 public:
     SqliteFilteringLazy();
     //
-    std::string where_conditions() override;
+    std::string where_conditions() const override;
 };
 }
 

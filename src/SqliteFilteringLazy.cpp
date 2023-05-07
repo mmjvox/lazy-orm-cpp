@@ -100,7 +100,7 @@ void SqliteFilteringLazy::setHavingConditions(const std::vector<FilterVariant> &
 }
 
 
-void SqliteFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem)
+void SqliteFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
 {
     if(!firstItem)
     {
@@ -155,7 +155,7 @@ void SqliteFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, 
     }, whereItem);
 }
 
-void SqliteFilteringLazy::appendWhere(std::string &retStr)
+void SqliteFilteringLazy::appendWhere(std::string &retStr) const
 {
     if(mWhereConditions.empty())
     {
@@ -172,7 +172,7 @@ void SqliteFilteringLazy::appendWhere(std::string &retStr)
     }
 }
 
-void SqliteFilteringLazy::appendOrderby(std::string &retStr)
+void SqliteFilteringLazy::appendOrderby(std::string &retStr) const
 {
     if(mOrderConditions.empty())
     {
@@ -194,7 +194,7 @@ void SqliteFilteringLazy::appendOrderby(std::string &retStr)
     retStr.append(" ");
 }
 
-void SqliteFilteringLazy::appendLimit(std::string &retStr)
+void SqliteFilteringLazy::appendLimit(std::string &retStr) const
 {
     if(mLimitConditions.empty())
     {
@@ -225,7 +225,7 @@ void SqliteFilteringLazy::appendLimit(std::string &retStr)
     retStr.append(" ");
 }
 
-void SqliteFilteringLazy::appendGroup(std::string &retStr)
+void SqliteFilteringLazy::appendGroup(std::string &retStr) const
 {
     if(mGroupConditions.empty())
     {
@@ -247,7 +247,7 @@ void SqliteFilteringLazy::appendGroup(std::string &retStr)
     retStr.append(" ");
 }
 
-void SqliteFilteringLazy::appendHaving(std::string &retStr)
+void SqliteFilteringLazy::appendHaving(std::string &retStr) const
 {
   if(mHavingConditions.empty())
   {
@@ -289,7 +289,7 @@ void SqliteFilteringLazy::appendHaving(std::string &retStr)
 }
 
 
-std::string SqliteFilteringLazy::where_conditions()
+std::string SqliteFilteringLazy::where_conditions() const
 {
     std::string retStr;
     // AND OR

@@ -34,24 +34,23 @@ private:
   Query mQueryType=UNDEFINED;
 
 protected:
-  std::string mQueryString;
   std::string mTabeName;
   std::map<std::string, DbVariant> mProperties;
   std::list<std::map<std::string, DbVariant>> mBatchProperties;
-  std::string string_join(const std::string &delimiter, const std::vector<std::string> &container);
+  std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
 
-  virtual void insert_query() = 0;
-  virtual void select_query() = 0;
-  virtual void update_query() = 0;
-  virtual void delete_query() = 0;
-  virtual void insert_update_query() = 0;
-  virtual void batch_insert_query() = 0;
-  virtual void insert_ignore_query() = 0;
+  virtual void insert_query() const = 0;
+  virtual void select_query() const = 0;
+  virtual void update_query() const = 0;
+  virtual void delete_query() const = 0;
+  virtual void insert_update_query() const = 0;
+  virtual void batch_insert_query() const = 0;
+  virtual void insert_ignore_query() const = 0;
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
 
 public:
-  std::string queryString();
+  std::string queryString() const;
 
   void setTabeName(const std::string &name);
   void setQueryType(LazyOrm::Query queryType);
