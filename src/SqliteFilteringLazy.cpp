@@ -162,7 +162,7 @@ void SqliteFilteringLazy::appendWhere(std::string &retStr) const
         return;
     }
 
-    retStr.append("WHERE ");
+    retStr.append(" WHERE ");
 
     bool firstItem=true;
     for(const auto& whereItem : mWhereConditions)
