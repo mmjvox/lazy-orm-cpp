@@ -49,7 +49,7 @@ protected:
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
 
-  std::string setQuote(std::string value) const;
+  std::string setQuote(DbVariant value) const;
 
 public:
   std::string queryString() const;
