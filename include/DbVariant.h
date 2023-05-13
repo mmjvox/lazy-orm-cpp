@@ -8,14 +8,14 @@
 
 namespace LazyOrm {
 
-class DbVariant : public std::variant<std::string,unsigned int,int,double,float,bool>
+class DbVariant : public std::variant<std::string,uint64_t,int,double,float,bool>
 {
 private:
     struct DbVariantToString
     {
       std::string operator()(const std::string &value);
       //numbers
-      std::string operator()(const unsigned int &value);
+      std::string operator()(const uint64_t &value);
       std::string operator()(const int &value);
       std::string operator()(const double &value);
       std::string operator()(const float &value);
@@ -24,7 +24,7 @@ private:
     };
 
 public:
-    using std::variant<std::string,unsigned int,int,double,float,bool>::variant;
+    using std::variant<std::string,uint64_t,int,double,float,bool>::variant;
 
     std::string toString() const;
 

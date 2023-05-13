@@ -2,7 +2,7 @@
 
 std::string LazyOrm::DbVariant::DbVariantToString::operator()(const std::string &value){return value;}
 
-std::string LazyOrm::DbVariant::DbVariantToString::operator()(const unsigned int &value){return std::to_string(value);}
+std::string LazyOrm::DbVariant::DbVariantToString::operator()(const uint64_t &value){return std::to_string(value);}
 
 std::string LazyOrm::DbVariant::DbVariantToString::operator()(const int &value){return std::to_string(value);}
 
