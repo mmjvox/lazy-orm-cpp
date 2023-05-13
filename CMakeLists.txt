@@ -23,6 +23,8 @@ set(LazyORM_HEADERS
 
     include/PostgreLazy.h
     include/PostgreFilteringLazy.h
+
+    include/Transaction.h
 )
 
 add_library(LazyOrm STATIC
@@ -42,6 +44,8 @@ add_library(LazyOrm STATIC
 
     src/PostgreLazy.cpp
     src/PostgreFilteringLazy.cpp
+
+    src/Transaction.cpp
 )
 
 target_compile_definitions(LazyOrm PRIVATE LazyOrm_LIBRARY)

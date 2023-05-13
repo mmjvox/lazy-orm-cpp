@@ -1,0 +1,43 @@
+#ifndef TRANSACTION_H
+#define TRANSACTION_H
+
+#include "AbstractLazy.h"
+#include <string>
+#include <vector>
+#include <type_traits>
+
+namespace LazyOrm {
+
+template <class DBMStype>
+class Transaction : public AbstractLazy
+{
+private:
+    std::vector<DBMStype> mQueries;
+
+    std::string forMariadb(bool beginTrans) const;
+    std::string forPostgre(bool beginTrans) const;
+    std::string forSqlite(bool beginTrans) const;
+
+private:
+    std::string insert_query() const override{return{};}
+    std::string select_query() const override{return{};}
+    std::string update_query() const override{return{};}
+    std::string delete_query() const override{return{};}
+    std::string insert_update_query() const override{return{};}
+    std::string batch_insert_query() const override{return{};}
+    std::string insert_ignore_query() const override{return{};}
+    FilteringAbstractLazy& getCurrentFilters() override{
+        throw std::logic_error("Cannot get FilteringAbstractLazy object");
+    }
+
+public:
+    Transaction();
+    Transaction(std::initializer_list<DBMStype> queries);
+    void append(DBMStype query);
+    std::string queryString() const override;
+    std::string queryString(bool beginTrans) const;
+};
+
+}
+
+#endif // TRANSACTION_H

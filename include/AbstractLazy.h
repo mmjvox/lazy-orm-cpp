@@ -52,7 +52,7 @@ protected:
   std::string setQuote(DbVariant value) const;
 
 public:
-  std::string queryString() const;
+  virtual std::string queryString() const;
 
   void setTabeName(const std::string &name);
   void setQueryType(LazyOrm::Query queryType);
