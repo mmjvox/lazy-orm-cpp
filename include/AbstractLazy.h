@@ -26,6 +26,8 @@ enum Query
   INSERT_UPDATE,
   BATCH_INSERT,
   INSERT_IGNORE
+  //TODO: BATCH_UPDATE
+  //TODO: BATCH_INSERT_UPDATE
 };
 
 class AbstractLazy
