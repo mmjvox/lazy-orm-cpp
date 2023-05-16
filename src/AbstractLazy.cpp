@@ -57,6 +57,10 @@ std::string AbstractLazy::setQuote(DbVariant value) const
   {
       return strVal;
   }
+  if(value.toLowerString()=="null")
+  {
+      return "NULL";
+  }
   if(strVal.substr(0,5)=="[no']")
   {
       return strVal.substr(5);
