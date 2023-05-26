@@ -31,6 +31,8 @@ public:
     std::string toLowerString() const;
 
     bool empty();
+
+    std::string setQuote() const;
 };
 
 typedef std::pair<std::string,LazyOrm::DbVariant> pair;

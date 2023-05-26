@@ -122,9 +122,9 @@ void MariadbFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem,
                 {
                     retStr.append("`");
                     retStr.append(arg.at(0).toString());
-                    retStr.append("` = '");
-                    retStr.append(arg.at(1).toString());
-                    retStr.append("' ");
+                    retStr.append("` = ");
+                    retStr.append(arg.at(1).setQuote());
+                    retStr.append(" ");
                 }
                 else if(arg.size()==3)
                 {
@@ -132,9 +132,9 @@ void MariadbFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem,
                     retStr.append(arg.at(0).toString());
                     retStr.append("` ");
                     retStr.append(arg.at(1).toString());
-                    retStr.append(" '");
-                    retStr.append(arg.at(2).toString());
-                    retStr.append("' ");
+                    retStr.append(" ");
+                    retStr.append(arg.at(2).setQuote());
+                    retStr.append(" ");
                 }
             }
         }
@@ -272,9 +272,9 @@ void MariadbFilteringLazy::appendHaving(std::string &retStr) const
             {
                 retStr.append("`");
                 retStr.append(arg.at(0).toString());
-                retStr.append("` = '");
-                retStr.append(arg.at(1).toString());
-                retStr.append("' ");
+                retStr.append("` = ");
+                retStr.append(arg.at(1).setQuote());
+                retStr.append(" ");
             }
             else if(arg.size()==3)
             {
@@ -282,9 +282,9 @@ void MariadbFilteringLazy::appendHaving(std::string &retStr) const
                 retStr.append(arg.at(0).toString());
                 retStr.append("` ");
                 retStr.append(arg.at(1).toString());
-                retStr.append(" '");
-                retStr.append(arg.at(2).toString());
-                retStr.append("' ");
+                retStr.append(" ");
+                retStr.append(arg.at(2).setQuote());
+                retStr.append(" ");
             }
         }
     }, havingItem);

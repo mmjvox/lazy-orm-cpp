@@ -26,7 +26,7 @@ std::string MariadbLazy::insert_query() const
   for(const auto &[key, value] : mProperties)
   {
     keys.push_back("`"+key+"`");
-    values.push_back(setQuote(value));
+    values.push_back(value.setQuote());
   }
 
   std::string queryString;
@@ -69,7 +69,7 @@ std::string MariadbLazy::update_query() const
     std::vector<std::string> updates;
     for(const auto &[key, value] : mProperties)
     {
-      updates.push_back("`"+key+"`="+setQuote(value));
+      updates.push_back("`"+key+"`="+value.setQuote());
     }
 
     std::string queryString;
@@ -122,7 +122,7 @@ std::string MariadbLazy::batch_insert_query() const
     std::vector<std::string> rowValues;
     for(const auto &[key, value] : mapItem)
     {
-        rowValues.push_back(setQuote(value));
+        rowValues.push_back(value.setQuote());
     }
     values.push_back("("+string_join(",",rowValues)+")");
   }
@@ -148,7 +148,7 @@ std::string MariadbLazy::insert_update_query() const
       continue;
     }
     keys.push_back("`"+key+"`");
-    values.push_back(setQuote(value));
+    values.push_back(value.setQuote());
   }
 
   std::vector<std::string> updates;
@@ -156,7 +156,7 @@ std::string MariadbLazy::insert_update_query() const
   {
     if(key.substr(0,8)=="[update]")
     {
-      updates.push_back("`"+key.substr(8)+"`="+setQuote(value));
+      updates.push_back("`"+key.substr(8)+"`="+value.setQuote());
     }
   }
 
@@ -182,7 +182,7 @@ std::string MariadbLazy::insert_ignore_query() const
   for(const auto &[key, value] : mProperties)
   {
     keys.push_back("`"+key+"`");
-    values.push_back(setQuote(value));
+    values.push_back(value.setQuote());
   }
 
   std::string queryString;

@@ -51,8 +51,6 @@ protected:
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
 
-  std::string setQuote(DbVariant value) const;
-
 public:
   virtual std::string queryString() const;
 

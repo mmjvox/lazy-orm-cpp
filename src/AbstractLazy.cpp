@@ -46,28 +46,6 @@ std::string AbstractLazy::string_join(const std::string &delimiter, const std::v
   return output;
 }
 
-std::string AbstractLazy::setQuote(DbVariant value) const
-{
-  std::string strVal = value.toString();
-  if(value.toLowerString()=="true")
-  {
-      return strVal;
-  }
-  if(value.toLowerString()=="false")
-  {
-      return strVal;
-  }
-  if(value.toLowerString()=="null")
-  {
-      return "NULL";
-  }
-  if(strVal.substr(0,5)=="[no']")
-  {
-      return strVal.substr(5);
-  }
-  return "'"+strVal+"'";
-}
-
 std::string AbstractLazy::queryString() const
 {
   switch (mQueryType) {

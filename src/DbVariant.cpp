@@ -44,3 +44,25 @@ bool LazyOrm::DbVariant::empty()
 
     }, *this);
 }
+
+std::string LazyOrm::DbVariant::setQuote() const
+{
+    std::string strVal = toString();
+    if(toLowerString()=="true")
+    {
+        return strVal;
+    }
+    if(toLowerString()=="false")
+    {
+        return strVal;
+    }
+    if(toLowerString()=="null")
+    {
+        return "NULL";
+    }
+    if(strVal.substr(0,5)=="[no']")
+    {
+        return strVal.substr(5);
+    }
+    return "'"+strVal+"'";
+}
