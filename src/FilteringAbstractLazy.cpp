@@ -35,7 +35,7 @@ void FilteringAbstractLazy::setFilterForReserved(const FilterVariant &variant)
   case Filters::OR:
   case Filters::AND:
   case Filters::WHERE:
-      mWhereConditions = variant.filterTypesToVector<DbVariant>();
+      mWhereConditions = variant.toDbVariants();
       break;
   default:
       setFilter(mReservedFilter, variant);

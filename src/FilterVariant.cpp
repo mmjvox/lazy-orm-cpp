@@ -74,3 +74,14 @@ LazyOrm::WhereFilter::WhereFilter(std::vector<DbVariant> whereFilters)
     filter = Filters::AND;
     this->push_back(whereFilters);
 }
+
+std::vector<LazyOrm::DbVariant> LazyOrm::FilterVariant::toDbVariants() const
+{
+    return std::visit([=](auto&& arg) -> std::vector<LazyOrm::DbVariant> {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::vector<LazyOrm::DbVariant>>) {
+            return arg;
+        }
+        return {};
+    }, *this);
+}

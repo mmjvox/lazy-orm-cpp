@@ -65,17 +65,7 @@ public:
 
     bool empty() const;
 
-    template <typename FT>
-    std::vector<FT> filterTypesToVector() const
-    {
-        return std::visit([=](auto&& arg) -> std::vector<FT> {
-            using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, std::vector<FT>>) {
-                return arg;
-            }
-            return {};
-        }, *this);
-    }
+    std::vector<DbVariant> toDbVariants() const;
 };
 }
 

@@ -194,7 +194,7 @@ void MariadbFilteringLazy::appendOrderby(std::string &retStr) const
     retStr.append("ORDER BY ");
     if (std::holds_alternative<std::vector<DbVariant>>(mOrderConditions))
     {
-        std::vector<DbVariant> dt = mOrderConditions.filterTypesToVector<DbVariant>();
+        std::vector<DbVariant> dt = mOrderConditions.toDbVariants();
         retStr.append(dt.at(0).toString());
         retStr.append(",");
         retStr.append(dt.at(1).toString());
@@ -216,7 +216,7 @@ void MariadbFilteringLazy::appendLimit(std::string &retStr) const
     retStr.append("LIMIT ");
     if (std::holds_alternative<std::vector<DbVariant>>(mLimitConditions))
     {
-        std::vector<DbVariant> dt = mLimitConditions.filterTypesToVector<DbVariant>();
+        std::vector<DbVariant> dt = mLimitConditions.toDbVariants();
         retStr.append(dt.at(0).toString());
         retStr.append(",");
         retStr.append(dt.at(1).toString());
@@ -238,7 +238,7 @@ void MariadbFilteringLazy::appendGroup(std::string &retStr) const
     retStr.append("GROUP BY ");
     if (std::holds_alternative<std::vector<DbVariant>>(mGroupConditions))
     {
-        std::vector<DbVariant> dt = mGroupConditions.filterTypesToVector<DbVariant>();
+        std::vector<DbVariant> dt = mGroupConditions.toDbVariants();
         retStr.append(dt.at(0).toString());
         retStr.append(",");
         retStr.append(dt.at(1).toString());
