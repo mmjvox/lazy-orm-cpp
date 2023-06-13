@@ -112,11 +112,40 @@ std::string where6() {
 return filters.where_conditions();
 }
 
+std::string where7() {
 
+    LazyOrm::WhereFilter whereFilter = {
+        LazyOrm::AND, {
+            std::vector<LazyOrm::WhereFilter>{
+                {
+                    LazyOrm::OR, {
+                        std::vector<LazyOrm::DbVariant>{"confirmed",false},
+                        std::vector<LazyOrm::DbVariant>{"defrayed",false},
+                        std::vector<LazyOrm::DbVariant>{"delivered",false},
+                    }
+                }
+            },
+            std::vector<LazyOrm::WhereFilter>{
+                {
+                    LazyOrm::AND, {
+                        std::vector<LazyOrm::DbVariant>{"no'LENGTH(chassis)",">",1},
+                        std::vector<LazyOrm::DbVariant>{"chassis","!=",""},
+                        std::vector<LazyOrm::DbVariant>{"tracker_name","!=","null"},
+                        std::vector<LazyOrm::DbVariant>{"tracker_name","!=",""},
+                    }
+                }
+            }
+        }
+    };
+
+    LazyOrm::MariadbFilteringLazy filters;
+    filters.setFilter({whereFilter});
+return filters.where_conditions();
+}
 
 TEST_CASE( "Factorials are computed", "[Lazy_WHERE]" ) {
 
-    std::cout << where6() << std::endl;
+    std::cout << where7() << std::endl;
 
     REQUIRE( Catch::trim(where1()) == R"(WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,23)" );
     REQUIRE( Catch::trim(where2()) == R"(WHERE `grade` in '[1,5,7,9]' GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,23)" );
