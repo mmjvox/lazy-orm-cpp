@@ -8,31 +8,34 @@
 
 namespace LazyOrm {
 
-class DbVariant : public std::variant<std::string,uint64_t,int,double,float,bool>
+using UnsignedIntegerVariant = std::variant<unsigned short, unsigned int, unsigned long, unsigned long long>;
+using SignedIntegerVariant = std::variant<short, int, long, long long>;
+using SignedFloatingPointVariant = std::variant<float, double, long double>;
+
+class DbVariant : public std::variant<std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>
 {
 private:
-    struct DbVariantToString
-    {
-      std::string operator()(const std::string &value);
-      //numbers
-      std::string operator()(const uint64_t &value);
-      std::string operator()(const int &value);
-      std::string operator()(const double &value);
-      std::string operator()(const float &value);
-      // boolean
-      std::string operator()(const bool &value);
-    };
+    UnsignedIntegerVariant toUnsignedIntegerVariant() const;
+    SignedIntegerVariant toSignedIntegerVariant() const;
+    SignedFloatingPointVariant toSignedFloatingPointVariant() const;
 
 public:
-    using std::variant<std::string,uint64_t,int,double,float,bool>::variant;
+    using std::variant<std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>::variant;
 
     std::string toString() const;
+    unsigned long long toUInt64() const;
+    long long toInt64() const;
+    long double toLongDouble() const;
+    bool toBool() const;
 
     std::string toLowerString() const;
 
     bool empty();
 
     std::string setQuote() const;
+    std::string setBackTick() const;
+    std::string toCleanString() const;
+    bool isUpdate() const;
 };
 
 typedef std::pair<std::string,LazyOrm::DbVariant> pair;

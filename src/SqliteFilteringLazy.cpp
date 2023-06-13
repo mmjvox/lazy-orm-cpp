@@ -116,25 +116,23 @@ void SqliteFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, 
             {
                 if(arg.size()==1)
                 {
-                    retStr.append(arg.at(0).toString());
+                    retStr.append(arg.at(0).toCleanString());
                 }
                 else if(arg.size()==2)
                 {
-                    retStr.append("`");
-                    retStr.append(arg.at(0).toString());
-                    retStr.append("` = '");
+                    retStr.append(arg.at(0).setBackTick());
+                    retStr.append(" = ");
                     retStr.append(arg.at(1).toString());
-                    retStr.append("' ");
+                    retStr.append(" ");
                 }
                 else if(arg.size()==3)
                 {
-                    retStr.append("`");
-                    retStr.append(arg.at(0).toString());
-                    retStr.append("` ");
+                    retStr.append(arg.at(0).setBackTick());
+                    retStr.append(" ");
                     retStr.append(arg.at(1).toString());
-                    retStr.append(" '");
+                    retStr.append(" ");
                     retStr.append(arg.at(2).toString());
-                    retStr.append("' ");
+                    retStr.append(" ");
                 }
             }
         }
@@ -263,25 +261,23 @@ void SqliteFilteringLazy::appendHaving(std::string &retStr) const
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
             if(arg.size()==1)
             {
-                retStr.append(arg.at(0).toString());
+                retStr.append(arg.at(0).toCleanString());
             }
             else if(arg.size()==2)
             {
-                retStr.append("`");
-                retStr.append(arg.at(0).toString());
-                retStr.append("` = '");
+                retStr.append(arg.at(0).setBackTick());
+                retStr.append(" = ");
                 retStr.append(arg.at(1).toString());
-                retStr.append("' ");
+                retStr.append(" ");
             }
             else if(arg.size()==3)
             {
-                retStr.append("`");
-                retStr.append(arg.at(0).toString());
-                retStr.append("` ");
+                retStr.append(arg.at(0).setBackTick());
+                retStr.append(" ");
                 retStr.append(arg.at(1).toString());
-                retStr.append(" '");
-                retStr.append(arg.at(2).toString());
-                retStr.append("' ");
+                retStr.append(" ");
+                retStr.append(arg.at(2).setQuote());
+                retStr.append(" ");
             }
         }
     }, havingItem);

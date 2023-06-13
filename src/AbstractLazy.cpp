@@ -46,6 +46,20 @@ std::string AbstractLazy::string_join(const std::string &delimiter, const std::v
   return output;
 }
 
+std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const
+{
+  size_t size = container.size();
+  size_t endPos = container.size()-1;
+  std::string output;
+  for(size_t i = 0; i < size; ++i) {
+      output.append(container[i].toString());
+      if(i!=endPos){
+          output.append(delimiter);
+      }
+  }
+  return output;
+}
+
 std::string AbstractLazy::queryString() const
 {
   switch (mQueryType) {
@@ -89,7 +103,7 @@ AbstractLazy & AbstractLazy::operator<<(const std::string &key)
     return *this;
 }
 
-void AbstractLazy::setProperties(const std::initializer_list<std::pair<std::string, DbVariant>> items)
+void AbstractLazy::setProperties(const std::initializer_list<std::pair<DbVariant, DbVariant>> items)
 {
   for(const auto &item : items)
     {
@@ -97,17 +111,17 @@ void AbstractLazy::setProperties(const std::initializer_list<std::pair<std::stri
     }
 }
 
-void AbstractLazy::setProperties(const std::initializer_list<std::map<std::string, DbVariant> > list)
+void AbstractLazy::setProperties(const std::initializer_list<std::map<DbVariant, DbVariant> > list)
 {
   mBatchProperties = list;
 }
 
-void AbstractLazy::setProperties(const std::list<std::map<std::string, DbVariant> > &list)
+void AbstractLazy::setProperties(const std::list<std::map<DbVariant, DbVariant> > &list)
 {
   mBatchProperties = list;
 }
 
-AbstractLazy &AbstractLazy::operator<<(const std::pair<std::string, DbVariant> &key_value){
+AbstractLazy &AbstractLazy::operator<<(const std::pair<DbVariant, DbVariant> &key_value){
     mProperties.insert_or_assign(key_value.first, key_value.second);
     return *this;
 }

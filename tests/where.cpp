@@ -128,10 +128,9 @@ std::string where7() {
             std::vector<LazyOrm::WhereFilter>{
                 {
                     LazyOrm::AND, {
-                        std::vector<LazyOrm::DbVariant>{"no'LENGTH(chassis)",">",1},
-                        std::vector<LazyOrm::DbVariant>{"chassis","!=",""},
-                        std::vector<LazyOrm::DbVariant>{"tracker_name","!=","null"},
-                        std::vector<LazyOrm::DbVariant>{"tracker_name","!=",""},
+                        std::vector<LazyOrm::DbVariant>{"[func]LENGTH(chassis)",">","[no']1"},
+                        std::vector<LazyOrm::DbVariant>{"[func]LENGTH(tracker_name)",">","[no']1"},
+                        std::vector<LazyOrm::DbVariant>{"[func]SUBSTRING(tracker_phones, 3, 1) REGEXP '^[0-9]+$'"},
                     }
                 }
             }

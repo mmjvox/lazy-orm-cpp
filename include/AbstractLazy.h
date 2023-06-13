@@ -37,9 +37,10 @@ private:
 
 protected:
   std::string mTabeName;
-  std::map<std::string, DbVariant> mProperties;
-  std::list<std::map<std::string, DbVariant>> mBatchProperties;
+  std::map<DbVariant, DbVariant> mProperties;
+  std::list<std::map<DbVariant, DbVariant>> mBatchProperties;
   std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
+  std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
 
   virtual std::string insert_query() const = 0;
   virtual std::string select_query() const = 0;
@@ -58,17 +59,16 @@ public:
   void setQueryType(LazyOrm::Query queryType);
   std::string & operator[](const LazyOrm::Query &queryType);
 
-//  std::string operator[](const std::string &key) const;
   void setProperty(const std::string &key, const DbVariant value);
   DbVariant & operator[](const std::string &key);
 
   void setProperties(const std::vector<std::string> &keys);
   AbstractLazy & operator<<(const std::string &key);
-  void setProperties(const std::initializer_list<std::pair<std::string,DbVariant>> items);
-  AbstractLazy & operator<<(const std::pair<std::string,DbVariant> &key_value);
+  void setProperties(const std::initializer_list<std::pair<DbVariant,DbVariant>> items);
+  AbstractLazy & operator<<(const std::pair<DbVariant,DbVariant> &key_value);
 
-  void setProperties(const std::initializer_list<std::map<std::string, DbVariant>> list);
-  void setProperties(const std::list<std::map<std::string, LazyOrm::DbVariant>> &list);
+  void setProperties(const std::initializer_list<std::map<DbVariant, DbVariant> > list);
+  void setProperties(const std::list<std::map<DbVariant, LazyOrm::DbVariant>> &list);
 
   FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
 //  void operator=(const LazyOrm::FilterVariant &variant);
