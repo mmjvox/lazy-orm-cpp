@@ -36,11 +36,11 @@ std::string where3() {
 std::string where4() {
 
     LazyOrm::WhereFilter p1 = { LazyOrm::AND, {
-         std::vector<LazyOrm::DbVariant>{"AGE",12},
-         std::vector<LazyOrm::DbVariant>{"SALARY",65000},
-         std::vector<LazyOrm::DbVariant>{"hair","pink"},
-         std::vector<LazyOrm::DbVariant>{"height","between", "99,198"},
-         std::vector<LazyOrm::DbVariant>{"grade","in", "[1,5,7,9]"},
+         {"AGE",12},
+         {"SALARY",65000},
+         {"hair","pink"},
+         {"height","between", "99,198"},
+         {"grade","in", "[1,5,7,9]"},
       }
     };
 
@@ -59,15 +59,15 @@ std::string where5() {
     LazyOrm::WhereFilter p1 = { LazyOrm::AND, {
         std::vector<LazyOrm::WhereFilter>{
           { LazyOrm::OR, {
-              std::vector<LazyOrm::DbVariant>{"name","like","sa%"},
-              std::vector<LazyOrm::DbVariant>{"name","like","%ra"},
+              {"name","like","sa%"},
+              {"name","like","%ra"},
             }
           }
         },
         std::vector<LazyOrm::WhereFilter>{
           { LazyOrm::OR, {
-              std::vector<LazyOrm::DbVariant>{"age","between","6,13"},
-              std::vector<LazyOrm::DbVariant>{"grade","in","[17,18,19,20]"},
+              {"age","between","6,13"},
+              {"grade","in","[17,18,19,20]"},
             }
           }
         }
@@ -88,15 +88,15 @@ std::string where6() {
     LazyOrm::WhereFilter p1 = { LazyOrm::AND, {
         std::vector<LazyOrm::WhereFilter>{
           { LazyOrm::OR, {
-              std::vector<LazyOrm::DbVariant>{"name","like","sa%"},
-              std::vector<LazyOrm::DbVariant>{"name","like","%ra"},
+              {"name","like","sa%"},
+              {"name","like","%ra"},
             }
           }
         },
         std::vector<LazyOrm::WhereFilter>{
           { LazyOrm::OR, {
-              std::vector<LazyOrm::DbVariant>{"age","between","6,13"},
-              std::vector<LazyOrm::DbVariant>{"grade","in","[17,18,19,20]"},
+              {"age","between","6,13"},
+              {"grade","in","[17,18,19,20]"},
             }
           }
         }
@@ -119,18 +119,18 @@ std::string where7() {
             std::vector<LazyOrm::WhereFilter>{
                 {
                     LazyOrm::OR, {
-                        std::vector<LazyOrm::DbVariant>{"confirmed",false},
-                        std::vector<LazyOrm::DbVariant>{"defrayed",false},
-                        std::vector<LazyOrm::DbVariant>{"delivered",false},
+                        {"confirmed",false},
+                        {"defrayed",false},
+                        {"delivered",false},
                     }
                 }
             },
             std::vector<LazyOrm::WhereFilter>{
                 {
                     LazyOrm::AND, {
-                        std::vector<LazyOrm::DbVariant>{"[func]LENGTH(chassis)",">","[no']1"},
-                        std::vector<LazyOrm::DbVariant>{"[func]LENGTH(tracker_name)",">","[no']1"},
-                        std::vector<LazyOrm::DbVariant>{"[func]SUBSTRING(tracker_phones, 3, 1) REGEXP '^[0-9]+$'"},
+                        {"[func]LENGTH(chassis)",">","[no']1"},
+                        {"[func]LENGTH(tracker_name)",">","[no']1"},
+                        {"[func]SUBSTRING(tracker_phones, 3, 1) REGEXP '^[0-9]+$'"},
                     }
                 }
             }
@@ -140,6 +140,91 @@ std::string where7() {
     LazyOrm::MariadbFilteringLazy filters;
     filters.setFilter({whereFilter});
 return filters.where_conditions();
+}
+
+std::string where8() {
+
+LazyOrm::WhereFilter p0 = { LazyOrm::AND, {
+
+                      {
+                        LazyOrm::OR, {"name","like","sa%"}
+                      },
+                      { LazyOrm::OR, {
+                                        {"name","like","sa%"},
+                                        {"name","like","%ra"},
+                                        }
+                      },
+                      {
+                          { LazyOrm::OR, {
+                                            {"name","like","sa%"},
+                                            {"name","like","%ra"},
+                                            }
+                          }
+                      },
+                      {
+                          { LazyOrm::OR, {
+                                            {"age","between","6,13"},
+                                            {"grade","in","[17,18,19,20]"},
+                                            }
+                          },
+                          { LazyOrm::OR, {
+                                            {"age","between","6,13"},
+                                            {"grade","in","[17,18,19,20]"},
+                                            }
+                          }
+                      }
+                  }
+};
+
+    LazyOrm::WhereFilter p1 = { LazyOrm::AND, {
+        { LazyOrm::OR, {
+                {"name","like","sa%"},
+                {"name","like","%ra"},
+            }
+        },
+        { LazyOrm::OR, {
+                {"age","between","6,13"},
+                {"grade","in","[17,18,19,20]"},
+            }
+        }
+      }
+    };
+
+    LazyOrm::WhereFilter p2 = { LazyOrm::AND, {
+                      {"name","like","sa%"},
+                      {"name","like","sa%"}
+                                         }
+    };
+
+LazyOrm::WhereFilter p3 =
+{
+    {
+        LazyOrm::WhereFilter{
+                                 LazyOrm::AND,
+                                 {
+                                     {"name","like","sa%"},
+                                     {"name","like","sa%"}
+                                 }
+        },
+        LazyOrm::WhereFilter{
+                                 LazyOrm::AND,
+                                 {
+                                     {"name","like","sa%"},
+                                     {"name","like","sa%"}
+                                 }
+        },
+        {
+            LazyOrm::AND,
+            {
+                {"name","like","sa%"},
+                {"name","like","sa%"}
+            }
+        }
+    }
+};
+
+
+return {};
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_WHERE]" ) {

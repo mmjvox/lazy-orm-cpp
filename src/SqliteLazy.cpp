@@ -94,7 +94,7 @@ std::string SqliteLazy::delete_query() const
     return queryString;
 }
 
-std::string SqliteLazy::batch_insert_query() const
+std::string SqliteLazy::bulk_insert_query() const
 {
   if(mBatchProperties.size()<1)
   {
@@ -143,6 +143,11 @@ std::string SqliteLazy::insert_update_query() const
 }
 
 std::string SqliteLazy::insert_ignore_query() const
+{
+  return {};
+}
+
+std::string SqliteLazy::bulk_update_query() const
 {
   return {};
 }

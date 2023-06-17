@@ -24,7 +24,7 @@ private:
 
 protected:
     std::string filterStr(Filters f) const;
-    WhereFilter   mWhereConditions;
+    FilterVariant mWhereConditions;
     FilterVariant mLimitConditions;
     FilterVariant mOrderConditions;
     FilterVariant mGroupConditions;
@@ -46,7 +46,7 @@ protected:
     virtual void appendGroup(std::string &retStr) const = 0;
     virtual void appendHaving(std::string &retStr) const = 0;
     //
-    virtual void nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) const = 0;
+    virtual void nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) const = 0;
 
     virtual std::string where_conditions() const = 0;
 
@@ -61,6 +61,9 @@ public:
     FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
     void operator=(const LazyOrm::FilterVariant &variant);
     void setWhereFilter(WhereFilter whereFilter);
+
+
+    std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
 };
 }
 #endif // FILTERINGABSTRACTLAZY_H

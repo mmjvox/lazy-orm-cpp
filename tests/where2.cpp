@@ -8,27 +8,52 @@
 
 std::string aaaaaa() {
 
-  LazyOrm::WhereFilter p1 = { LazyOrm::AND, {
-       std::vector<LazyOrm::DbVariant>{3,4},
-      {
-        std::vector<LazyOrm::WhereFilter>{
-          { LazyOrm::OR, {
-              std::vector<LazyOrm::DbVariant>{5,"6"},
+    LazyOrm::WhereFilter p0 = { LazyOrm::AND, {
+                          std::vector<LazyOrm::DbVariant>{3,4},
+                          {
+                              std::vector<LazyOrm::WhereFilter>{
+                                  { LazyOrm::OR, {
+                                                       std::vector<LazyOrm::DbVariant>{5,"6"},
+                                                       {
+                                                           std::vector<LazyOrm::WhereFilter>{
+                                                               { LazyOrm::AND, {
+                                                                                     { "foo" },
+                                                                                     { "bar" }
+                                                                                 }
+                                                               },
+                                                               { LazyOrm::AND, { "name","like","an%" } }
+                                                           }
+                                                       }
+                                                   }
+                                  },
+                                  { LazyOrm::OR, { "AGE","in","[4,5,6,7,8]" } }
+                              }
+                          }
+                      }
+    };
+
+  LazyOrm::WhereFilter p1 = {
+   LazyOrm::AND,
+    {
+      {3,4},
+
+        {
+          {
+             LazyOrm::OR, {
+              {5,"6"},
               {
-                std::vector<LazyOrm::WhereFilter>{
                   { LazyOrm::AND, {
                       { "foo" },
                       { "bar" }
                     }
                   },
                   { LazyOrm::AND, { "name","like","an%" } }
-                }
               }
             }
           },
           { LazyOrm::OR, { "AGE","in","[4,5,6,7,8]" } }
         }
-      }
+
     }
   };
 
@@ -52,7 +77,7 @@ std::string aaaaaa() {
 
 TEST_CASE( "Factorials are computed", "[Lazy_WHERE2]" ) {
 
-    std::cout <<"where2 \n " << aaaaaa() << std::endl;
+    std::cout <<"where2 " << aaaaaa() << std::endl;
 
 //    REQUIRE( select1() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
 //    REQUIRE( select2() == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );

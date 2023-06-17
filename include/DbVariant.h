@@ -8,6 +8,18 @@
 
 namespace LazyOrm {
 
+enum Filters
+{
+    None = -10,
+    WHERE = 0,
+    AND = 1,
+    OR,
+    ORDERBY,
+    LIMIT,
+    HAVING,
+    GROUPBY
+};
+
 using UnsignedIntegerVariant = std::variant<unsigned short, unsigned int, unsigned long, unsigned long long>;
 using SignedIntegerVariant = std::variant<short, int, long, long long>;
 using SignedFloatingPointVariant = std::variant<float, double, long double>;

@@ -1,26 +1,10 @@
 #include "FilterVariant.h"
 
-// WherePair
-std::string LazyOrm::WhereFilter::FilterVariantToString::operator()(const WhereFilter &value){return "dadsasd";}
-
-std::string LazyOrm::WhereFilter::FilterVariantToString::operator()(const std::vector<DbVariant> &value){return "dddddd";}
-
-// FilterVariant
-std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const WhereFilter &value){return {};}
-
-std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const std::vector<DbVariant> &value){return {};}
-
-std::string LazyOrm::FilterVariant::FilterVariantToString::operator()(const DbVariant &value){return value.toString();}
-
 LazyOrm::FilterVariant::FilterVariant(){}
 
 LazyOrm::FilterVariant::FilterVariant(std::vector<DbVariant> v)
     :variant(v)
 {
-}
-
-std::string LazyOrm::FilterVariant::toString() const{
-    return std::visit(FilterVariant::FilterVariantToString{}, *this);
 }
 
 bool LazyOrm::FilterVariant::empty() const
@@ -30,7 +14,7 @@ bool LazyOrm::FilterVariant::empty() const
         using T = std::decay_t<decltype(arg)>;
 
         if constexpr (std::is_same_v<T, WhereFilter>) {
-            if(!arg.empty())
+            if(!arg.empty() || !arg.emptyData())
             {
                 return false;
             }
@@ -53,26 +37,6 @@ bool LazyOrm::FilterVariant::empty() const
         return true;
 
     }, *this);
-}
-
-LazyOrm::WhereFilter::WhereFilter(){}
-
-LazyOrm::WhereFilter::WhereFilter(Filters filter, std::vector<WhereType<WhereFilter> > whereFilters)
-    : vector(whereFilters), filter{filter}
-{
-
-}
-
-LazyOrm::WhereFilter::WhereFilter(Filters filter, std::vector<DbVariant> whereFilters)
-    : filter{filter}
-{
-    this->push_back(whereFilters);
-}
-
-LazyOrm::WhereFilter::WhereFilter(std::vector<DbVariant> whereFilters)
-{
-    filter = Filters::AND;
-    this->push_back(whereFilters);
 }
 
 std::vector<LazyOrm::DbVariant> LazyOrm::FilterVariant::toDbVariants() const

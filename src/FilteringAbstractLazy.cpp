@@ -208,4 +208,18 @@ void FilteringAbstractLazy::setWhereFilter(WhereFilter whereFilter){
   mWhereConditions=whereFilter;
 }
 
+std::string FilteringAbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const
+{
+  size_t size = container.size();
+  size_t endPos = container.size()-1;
+  std::string output;
+  for(size_t i = 0; i < size; ++i) {
+        output.append(container[i].toString());
+        if(i!=endPos){
+          output.append(delimiter);
+        }
+  }
+  return output;
+}
+
 }

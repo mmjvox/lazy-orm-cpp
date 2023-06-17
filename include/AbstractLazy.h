@@ -24,9 +24,9 @@ enum Query
   UPDATE,
   DELETE,
   INSERT_UPDATE,
-  BATCH_INSERT,
-  INSERT_IGNORE
-  //TODO: BATCH_UPDATE
+  BULK_INSERT,
+  INSERT_IGNORE,
+  BULK_UPDATE
   //TODO: BATCH_INSERT_UPDATE
 };
 
@@ -47,8 +47,9 @@ protected:
   virtual std::string update_query() const = 0;
   virtual std::string delete_query() const = 0;
   virtual std::string insert_update_query() const = 0;
-  virtual std::string batch_insert_query() const = 0;
+  virtual std::string bulk_insert_query() const = 0;
   virtual std::string insert_ignore_query() const = 0;
+  virtual std::string bulk_update_query() const = 0;
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
 

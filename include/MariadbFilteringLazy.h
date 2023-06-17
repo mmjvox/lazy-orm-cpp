@@ -22,7 +22,7 @@ protected:
     void appendGroup(std::string &retStr) const override;
     void appendHaving(std::string &retStr) const override;
     //
-    void nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) const override;
+    void nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) const override;
 
 public:
     MariadbFilteringLazy();

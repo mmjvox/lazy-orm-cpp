@@ -94,7 +94,7 @@ std::string MariadbLazy::delete_query() const
     return queryString;
 }
 
-std::string MariadbLazy::batch_insert_query() const
+std::string MariadbLazy::bulk_insert_query() const
 {
   if(mBatchProperties.size()<1)
   {
@@ -193,6 +193,11 @@ std::string MariadbLazy::insert_ignore_query() const
   queryString.append(" ("+string_join(",",values)+") ");
   queryString.append(";");
   return queryString;
+}
+
+std::string MariadbLazy::bulk_update_query() const
+{
+  return {};
 }
 
 

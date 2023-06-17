@@ -95,7 +95,7 @@ std::string PostgreLazy::delete_query() const
     return queryString;
 }
 
-std::string PostgreLazy::batch_insert_query() const
+std::string PostgreLazy::bulk_insert_query() const
 {
   if(mBatchProperties.size()<1)
   {
@@ -144,6 +144,11 @@ std::string PostgreLazy::insert_update_query() const
 }
 
 std::string PostgreLazy::insert_ignore_query() const
+{
+  return {};
+}
+
+std::string PostgreLazy::bulk_update_query() const
 {
   return {};
 }

@@ -100,7 +100,7 @@ void PostgreFilteringLazy::setHavingConditions(const std::vector<FilterVariant> 
 }
 
 
-void PostgreFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
+void PostgreFilteringLazy::nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
 {
     if(!firstItem)
     {
@@ -108,66 +108,66 @@ void PostgreFilteringLazy::nestedWhereToString(WhereType<WhereFilter> whereItem,
         retStr.append(" ");
     }
 
-    std::visit([=,&retStr](auto&& arg){
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
+//    std::visit([=,&retStr](auto&& arg){
+//        using T = std::decay_t<decltype(arg)>;
+//        if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
 
-            if(whereFilter==Filters::AND || whereFilter==Filters::OR)
-            {
-                if(arg.size()==1)
-                {
-                    retStr.append(arg.at(0).toCleanString());
-                }
-                else if(arg.size()==2)
-                {
-                    retStr.append(arg.at(0).setBackTick());
-                    retStr.append(" = ");
-                    retStr.append(arg.at(1).setQuote());
-                    retStr.append(" ");
-                }
-                else if(arg.size()==3)
-                {
-                    retStr.append(arg.at(0).setBackTick());
-                    retStr.append(" ");
-                    retStr.append(arg.at(1).toString());
-                    retStr.append(" ");
-                    retStr.append(arg.at(2).setQuote());
-                    retStr.append(" ");
-                }
-            }
-        }
-        else if constexpr (std::is_same_v<T, std::vector<WhereFilter>>) {
+//            if(whereFilter==Filters::AND || whereFilter==Filters::OR)
+//            {
+//                if(arg.size()==1)
+//                {
+//                    retStr.append(arg.at(0).toCleanString());
+//                }
+//                else if(arg.size()==2)
+//                {
+//                    retStr.append(arg.at(0).setBackTick());
+//                    retStr.append(" = ");
+//                    retStr.append(arg.at(1).setQuote());
+//                    retStr.append(" ");
+//                }
+//                else if(arg.size()==3)
+//                {
+//                    retStr.append(arg.at(0).setBackTick());
+//                    retStr.append(" ");
+//                    retStr.append(arg.at(1).toString());
+//                    retStr.append(" ");
+//                    retStr.append(arg.at(2).setQuote());
+//                    retStr.append(" ");
+//                }
+//            }
+//        }
+//        else if constexpr (std::is_same_v<T, std::vector<WhereFilter>>) {
 
-            retStr.append(" (");
-            bool firstItem=true;
-            for(const auto& vectorItem : arg)
-            {
-                for(const auto& item : vectorItem)
-                {
-                    nestedWhereToString(item, retStr, vectorItem.filter, firstItem);
-                    firstItem=false;
-                }
-            }
-            retStr.append(") ");
-        }
-    }, whereItem);
+//            retStr.append(" (");
+//            bool firstItem=true;
+//            for(const auto& vectorItem : arg)
+//            {
+//                for(const auto& item : vectorItem)
+//                {
+//                    nestedWhereToString(item, retStr, vectorItem.filter, firstItem);
+//                    firstItem=false;
+//                }
+//            }
+//            retStr.append(") ");
+//        }
+//    }, whereItem);
 }
 
 void PostgreFilteringLazy::appendWhere(std::string &retStr) const
 {
-    if(mWhereConditions.empty())
-    {
-        return;
-    }
+//    if(mWhereConditions.empty())
+//    {
+//        return;
+//    }
 
-    retStr.append(" WHERE ");
+//    retStr.append(" WHERE ");
 
-    bool firstItem=true;
-    for(const auto& whereItem : mWhereConditions)
-    {
-        nestedWhereToString(whereItem, retStr, mWhereConditions.filter, firstItem);
-        firstItem=false;
-    }
+//    bool firstItem=true;
+//    for(const auto& whereItem : mWhereConditions)
+//    {
+//        nestedWhereToString(whereItem, retStr, mWhereConditions.filter, firstItem);
+//        firstItem=false;
+//    }
 }
 
 void PostgreFilteringLazy::appendOrderby(std::string &retStr) const
@@ -178,17 +178,17 @@ void PostgreFilteringLazy::appendOrderby(std::string &retStr) const
     }
 
     retStr.append("ORDER BY ");
-    if (std::holds_alternative<std::vector<DbVariant>>(mOrderConditions))
-    {
-        std::vector<DbVariant> dt = mOrderConditions.toDbVariants();
-        retStr.append(dt.at(0).toString());
-        retStr.append(",");
-        retStr.append(dt.at(1).toString());
-    }
-    else if(std::holds_alternative<DbVariant>(mOrderConditions))
-    {
-        retStr.append(mOrderConditions.toString());
-    }
+
+    std::visit([&retStr, this](auto&& arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
+            retStr.append(string_join(",",arg));
+        }
+        else if constexpr (std::is_same_v<T, DbVariant>) {
+            retStr.append(arg.toString());
+        }
+    }, mOrderConditions);
+
     retStr.append(" ");
 }
 
@@ -200,26 +200,17 @@ void PostgreFilteringLazy::appendLimit(std::string &retStr) const
     }
 
     retStr.append("LIMIT ");
-    if (std::holds_alternative<std::vector<DbVariant>>(mLimitConditions))
-    {
-        std::vector<DbVariant> dt = mLimitConditions.toDbVariants();
 
-        if(dt.size()==2)
-        {
-          retStr.append(dt.at(0).toString());
-          retStr.append(" OFFSET ");
-          retStr.append(dt.at(1).toString());
-        } else {
-          for(const auto& item : dt)
-          {
-            retStr.append(item.toString()+" ");
-          }
+    std::visit([&retStr, this](auto&& arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
+            retStr.append(string_join(" OFFSET ",arg));
         }
-    }
-    else if(std::holds_alternative<DbVariant>(mLimitConditions))
-    {
-        retStr.append(mLimitConditions.toString());
-    }
+        else if constexpr (std::is_same_v<T, DbVariant>) {
+            retStr.append(arg.toString());
+        }
+    }, mLimitConditions);
+
     retStr.append(" ");
 }
 
@@ -231,17 +222,17 @@ void PostgreFilteringLazy::appendGroup(std::string &retStr) const
     }
 
     retStr.append("GROUP BY ");
-    if (std::holds_alternative<std::vector<DbVariant>>(mGroupConditions))
-    {
-        std::vector<DbVariant> dt = mGroupConditions.toDbVariants();
-        retStr.append(dt.at(0).toString());
-        retStr.append(",");
-        retStr.append(dt.at(1).toString());
-    }
-    else if(std::holds_alternative<DbVariant>(mGroupConditions))
-    {
-        retStr.append(mGroupConditions.toString());
-    }
+
+    std::visit([&retStr, this](auto&& arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
+            retStr.append(string_join(",",arg));
+        }
+        else if constexpr (std::is_same_v<T, DbVariant>) {
+            retStr.append(arg.toString());
+        }
+    }, mGroupConditions);
+
     retStr.append(" ");
 }
 

@@ -73,10 +73,12 @@ std::string AbstractLazy::queryString() const
     return delete_query();
   case INSERT_UPDATE:
     return insert_update_query();
-  case BATCH_INSERT:
-    return batch_insert_query();
+  case BULK_INSERT:
+    return bulk_insert_query();
   case INSERT_IGNORE:
     return insert_ignore_query();
+  case BULK_UPDATE:
+    return bulk_update_query();
   default:
   break;
   }
