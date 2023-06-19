@@ -75,11 +75,11 @@ void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::
         bool singleVal =
         std::visit([=, &conditions](auto&& arg) -> bool {
             using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, WhereFilter>) {
-                mWhereConditions = arg;
-                return true;
-            }
-            else
+//            if constexpr (std::is_same_v<T, WhereFilter>) {
+//                mWhereConditions = arg;
+//                return true;
+//            }
+//            else
             if constexpr (std::is_same_v<T, DbVariant>) {
                 conditions.push_back(arg);
             }
@@ -91,7 +91,7 @@ void MariadbFilteringLazy::setWhereConditions(const Filters &filter, const std::
           break;
         }
     }
-    mWhereConditions = WhereFilter(filter, conditions);
+//    mWhereConditions = WhereFilter(filter, conditions);
 }
 
 void MariadbFilteringLazy::setHavingConditions(const std::vector<FilterVariant> &filtersList)
@@ -100,13 +100,13 @@ void MariadbFilteringLazy::setHavingConditions(const std::vector<FilterVariant> 
 }
 
 
-void MariadbFilteringLazy::nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
-{
-    if(!firstItem)
-    {
-        retStr.append(filterStr(whereFilter));
-        retStr.append(" ");
-    }
+//void MariadbFilteringLazy::nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
+//{
+//    if(!firstItem)
+//    {
+//        retStr.append(filterStr(whereFilter));
+//        retStr.append(" ");
+//    }
 
 //    std::visit([=,&retStr](auto&& arg){
 //        using T = std::decay_t<decltype(arg)>;
@@ -151,7 +151,7 @@ void MariadbFilteringLazy::nestedWhereToString(WhereFilter whereItem, std::strin
 //            retStr.append(") ");
 //        }
 //    }, whereItem);
-}
+//}
 
 void MariadbFilteringLazy::appendWhere(std::string &retStr) const
 {

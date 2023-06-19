@@ -7,10 +7,10 @@
 
 namespace LazyOrm {
 
-class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>, WhereFilter>
+class FilterVariant : public std::variant<DbVariant, std::vector<DbVariant>>
 {
 public:
-    using std::variant<DbVariant, std::vector<DbVariant>, WhereFilter>::variant;
+    using std::variant<DbVariant, std::vector<DbVariant>>::variant;
 
     FilterVariant();
     FilterVariant(std::vector<DbVariant> v);

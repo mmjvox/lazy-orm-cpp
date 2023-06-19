@@ -7,10 +7,6 @@ namespace LazyOrm {
 std::string FilteringAbstractLazy::filterStr(Filters f) const
 {
     switch (f) {
-    case Filters::OR:
-        return "OR";
-    case Filters::AND:
-        return "AND";
     case Filters::LIMIT:
         return "LIMIT";
     case Filters::HAVING:
@@ -31,16 +27,7 @@ FilteringAbstractLazy::FilteringAbstractLazy()
 
 void FilteringAbstractLazy::setFilterForReserved(const FilterVariant &variant)
 {
-  switch (mReservedFilter) {
-  case Filters::OR:
-  case Filters::AND:
-  case Filters::WHERE:
-      mWhereConditions = variant.toDbVariants();
-      break;
-  default:
-      setFilter(mReservedFilter, variant);
-      break;
-  }
+  setFilter(mReservedFilter, variant);
   mReservedFilter = Filters::None;
 }
 
@@ -63,11 +50,11 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
         bool singleVal =
         std::visit([=, &conditions](auto&& arg) -> bool {
             using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, WhereFilter>) {
-                mWhereConditions = arg;
-                return true;
-            }
-            else
+//            if constexpr (std::is_same_v<T, WhereFilter>) {
+//                mWhereConditions = arg;
+//                return true;
+//            }
+//            else
             if constexpr (std::is_same_v<T, DbVariant>) {
                 conditions.push_back(arg);
             }
@@ -86,17 +73,18 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
     }
 
     const auto filter = conditions.at(0).toLowerString();
-    if(filter=="and")
-    {
-        conditions.erase(conditions.begin());
-        setWhereConditions(Filters::AND, filterVariantList);
-    }
-    else if(filter=="or")
-    {
-        conditions.erase(conditions.begin());
-        setWhereConditions(Filters::OR, filterVariantList);
-    }
-    else if(filter=="having")
+//    if(filter=="and")
+//    {
+//        conditions.erase(conditions.begin());
+//        setWhereConditions(Filters::AND, filterVariantList);
+//    }
+//    else if(filter=="or")
+//    {
+//        conditions.erase(conditions.begin());
+//        setWhereConditions(Filters::OR, filterVariantList);
+//    }
+//    else
+    if(filter=="having")
     {
         conditions.erase(conditions.begin());
         setHavingConditions(filterVariantList);
@@ -115,9 +103,10 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
     {
         conditions.erase(conditions.begin());
         setLimitConditions(filterVariantList);
-    } else {
-        setWhereConditions(Filters::AND, filterVariantList);
     }
+//    else {
+//        setWhereConditions(Filters::AND, filterVariantList);
+//    }
 }
 
 //template <typename T>
@@ -125,10 +114,6 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
 void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList)
 {
     switch (filter) {
-    case Filters::OR:
-    case Filters::AND:
-        setWhereConditions(filter, filterVariantList);
-        break;
     case Filters::HAVING:
         setHavingConditions(filterVariantList);
         break;
@@ -149,10 +134,6 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_li
 void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant filterVariant)
 {
     switch (filter) {
-    case Filters::OR:
-    case Filters::AND:
-        setWhereConditions(filter, {filterVariant});
-        break;
     case Filters::LIMIT:
         mLimitConditions=filterVariant;
         break;
@@ -167,17 +148,17 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant filte
     }
 }
 
-void FilteringAbstractLazy::setFilter(const Filters &filter, WhereFilter whereFilter)
-{
-    switch (filter) {
-    case Filters::OR:
-    case Filters::AND:
-        mWhereConditions=whereFilter;
-        break;
-    default:
-        break;
-    }
-}
+//void FilteringAbstractLazy::setFilter(const Filters &filter, WhereFilter whereFilter)
+//{
+//    switch (filter) {
+//    case Filters::OR:
+//    case Filters::AND:
+//        mWhereConditions=whereFilter;
+//        break;
+//    default:
+//        break;
+//    }
+//}
 
 //void FilteringAbstractLazy::setFilter(const Filters &filter, WhereTypes &f)
 //{
@@ -199,14 +180,20 @@ FilteringAbstractLazy& FilteringAbstractLazy::operator[](const Filters &filter)
     return *this;
 }
 
+FilteringAbstractLazy& FilteringAbstractLazy::operator[](const NestedWhere &nestedWhere)
+{
+    mReservedWhere = nestedWhere;
+    return *this;
+}
+
 void FilteringAbstractLazy::operator=(const FilterVariant &variant)
 {
   setFilterForReserved(variant);
 }
 
-void FilteringAbstractLazy::setWhereFilter(WhereFilter whereFilter){
-  mWhereConditions=whereFilter;
-}
+//void FilteringAbstractLazy::setWhereFilter(WhereFilter whereFilter){
+//  mWhereConditions=whereFilter;
+//}
 
 std::string FilteringAbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const
 {

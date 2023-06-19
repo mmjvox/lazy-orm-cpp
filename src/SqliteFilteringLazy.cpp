@@ -75,11 +75,11 @@ void SqliteFilteringLazy::setWhereConditions(const Filters &filter, const std::i
         bool singleVal =
         std::visit([=, &conditions](auto&& arg) -> bool {
             using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, WhereFilter>) {
-                mWhereConditions = arg;
-                return true;
-            }
-            else
+//            if constexpr (std::is_same_v<T, WhereFilter>) {
+//                mWhereConditions = arg;
+//                return true;
+//            }
+//            else
             if constexpr (std::is_same_v<T, DbVariant>) {
                 conditions.push_back(arg);
             }
@@ -91,7 +91,7 @@ void SqliteFilteringLazy::setWhereConditions(const Filters &filter, const std::i
           break;
         }
     }
-    mWhereConditions = WhereFilter(filter, conditions);
+//    mWhereConditions = WhereFilter(filter, conditions);
 }
 
 void SqliteFilteringLazy::setHavingConditions(const std::vector<FilterVariant> &filtersList)
@@ -100,13 +100,13 @@ void SqliteFilteringLazy::setHavingConditions(const std::vector<FilterVariant> &
 }
 
 
-void SqliteFilteringLazy::nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
-{
-    if(!firstItem)
-    {
-        retStr.append(filterStr(whereFilter));
-        retStr.append(" ");
-    }
+//void SqliteFilteringLazy::nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
+//{
+//    if(!firstItem)
+//    {
+//        retStr.append(filterStr(whereFilter));
+//        retStr.append(" ");
+//    }
 
 //    std::visit([=,&retStr](auto&& arg){
 //        using T = std::decay_t<decltype(arg)>;
@@ -151,7 +151,7 @@ void SqliteFilteringLazy::nestedWhereToString(WhereFilter whereItem, std::string
 //            retStr.append(") ");
 //        }
 //    }, whereItem);
-}
+//}
 
 void SqliteFilteringLazy::appendWhere(std::string &retStr) const
 {

@@ -11,13 +11,21 @@ namespace LazyOrm {
 enum Filters
 {
     None = -10,
-    WHERE = 0,
-    AND = 1,
-    OR,
-    ORDERBY,
+//    WHERE = 0,
+//    AND = 1,
+//    OR,
+    ORDERBY=1,
     LIMIT,
     HAVING,
     GROUPBY
+};
+
+enum NestedWhere
+{
+    NNone = -10,
+    WHERE = 0,
+    AND = 1,
+    OR,
 };
 
 using UnsignedIntegerVariant = std::variant<unsigned short, unsigned int, unsigned long, unsigned long long>;

@@ -14,6 +14,7 @@ class FilteringAbstractLazy
 {
 private:
     Filters mReservedFilter=Filters::None;
+    NestedWhere mReservedWhere=NestedWhere::NNone;
 
     struct FilterTypeToWhere
     {
@@ -24,7 +25,7 @@ private:
 
 protected:
     std::string filterStr(Filters f) const;
-    FilterVariant mWhereConditions;
+    //FilterVariant mWhereConditions;
     FilterVariant mLimitConditions;
     FilterVariant mOrderConditions;
     FilterVariant mGroupConditions;
@@ -46,7 +47,7 @@ protected:
     virtual void appendGroup(std::string &retStr) const = 0;
     virtual void appendHaving(std::string &retStr) const = 0;
     //
-    virtual void nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) const = 0;
+//    virtual void nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem=false) const = 0;
 
     virtual std::string where_conditions() const = 0;
 
@@ -57,10 +58,11 @@ public:
     void setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, LazyOrm::FilterVariant filterVariant);
-    void setFilter(const Filters &filter, LazyOrm::WhereFilter whereFilter);
+//    void setFilter(const Filters &filter, LazyOrm::WhereFilter whereFilter);
     FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
+    FilteringAbstractLazy& operator[](const LazyOrm::NestedWhere &nestedWhere);
     void operator=(const LazyOrm::FilterVariant &variant);
-    void setWhereFilter(WhereFilter whereFilter);
+//    void setWhereFilter(WhereFilter whereFilter);
 
 
     std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;

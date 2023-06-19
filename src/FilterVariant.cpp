@@ -13,13 +13,6 @@ bool LazyOrm::FilterVariant::empty() const
 
         using T = std::decay_t<decltype(arg)>;
 
-        if constexpr (std::is_same_v<T, WhereFilter>) {
-            if(!arg.empty() || !arg.emptyData())
-            {
-                return false;
-            }
-        }
-
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
             if(!arg.empty())
             {
