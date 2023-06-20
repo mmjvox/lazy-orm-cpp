@@ -8,6 +8,16 @@ WhereFilter::~WhereFilter()
 //    std::cerr << "~WhereFilter: "<< MDaaaaa.toString() << std::endl;
 }
 
+WhereFilter::WhereFilter(std::initializer_list<WhereFilter> input) : nestedClasses_(input)
+{
+    std::cerr << "initializer_list<WhereFilter>" << this << std::endl;
+
+    for(const auto& filter : input)
+    {
+        std::cerr << "\t initializer_list<WhereFilter>" << &filter << std::endl;
+    }
+}
+
 LazyOrm::WhereFilter::WhereFilter(){
     std::cerr << "() " << this << std::endl;
 }
@@ -19,58 +29,25 @@ LazyOrm::WhereFilter::WhereFilter(std::initializer_list<std::variant<std::vector
 //    : mData{{whereFilters}}
 {
     std::cerr << " func 1 "<< this << std::endl;
+    std::vector<DbVariant> tempVector;
     for(const auto& filter : whereFilters)
     {
-        std::visit([=](auto&& arg) {
+        std::visit([this, &tempVector](auto&& arg) {
             using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, std::vector<LazyOrm::WhereFilter>>) {
-                std::cerr << "std::vector<LazyOrm::WhereFilter>" << std::endl;
-            }
-            if constexpr (std::is_same_v<T, WhereFilter>) {
-                std::cerr << "WhereFilter" << std::endl;
-            }
             if constexpr (std::is_same_v<T, std::vector<LazyOrm::DbVariant>>) {
-                size_t size = arg.size();
-                size_t endPos = arg.size()-1;
-                std::string output;
-                for(size_t i = 0; i < size; ++i) {
-                    output.append(arg[i].toString());
-                    if(i!=endPos){
-                        output.append(",");
-                    }
-                }
-                std::cerr << "std::vector<LazyOrm::DbVariant>: " << output << " depth:"<<mDepth << std::endl;
-                ++mDepth;
+                mNestedDbVariant.push_back(arg);
             }
             if constexpr (std::is_same_v<T, LazyOrm::DbVariant>) {
-                //MDaaaaa=arg;
-                std::cerr << "LazyOrm::DbVariant: " << arg.toString() << " depth:"<<mDepth << std::endl;
-                ++mDepth;
-            }
-//            if constexpr (std::is_same_v<T, std::vector<std::string>>) {
-//                size_t size = arg.size();
-//                size_t endPos = arg.size()-1;
-//                std::string output;
-//                for(size_t i = 0; i < size; ++i) {
-//                    output.append(arg[i]);
-//                    if(i!=endPos){
-//                        output.append(",");
-//                    }
-//                }
-//                std::cerr << "std::vector<std::string>: " << output << std::endl;
-//            }
-//            if constexpr (std::is_same_v<T, std::string>) {
-//                std::cerr << "std::string "<< arg << std::endl;
-//            }
-            if constexpr (std::is_same_v<T, std::vector<int>>) {
-                std::cerr << "std::vector<int>: "<< std::endl;
-            }
-            if constexpr (std::is_same_v<T, int>) {
-                std::cerr << "int: "<< arg << std::endl;
+                std::cerr << "DbVariant: " << arg.toString() <<" " <<this << std::endl;
+                tempVector.push_back(arg);
             }
         }, filter);
-
     }
+    if(!tempVector.empty())
+    {
+        mNestedDbVariant.push_back(tempVector);
+    }
+    //printNestedVectors();
 }
 
 //LazyOrm::WhereFilter::WhereFilter(Filters filter, std::vector<WhereFilter> whereFilters)
@@ -106,6 +83,47 @@ LazyOrm::WhereFilter::WhereFilter(std::vector<WhereFilter> whereFilters)
 //    : vector{whereFilters}, filter{Filters::AND}
 {
     std::cerr << "6" << std::endl;
+}
+
+void WhereFilter::printNestedVectors() const {
+    std::cout << this << std::endl;
+
+    if(nestedClasses_.size()>0)
+    {
+        for (const auto& whereFilter : nestedClasses_) {
+            printNestedVectors(whereFilter);
+        }
+    }
+    else if(mNestedDbVariant.size()>0)
+    {
+        for (const auto& nestedVectorVariant : mNestedDbVariant) {
+
+            for (const auto& dbVariant : nestedVectorVariant) {
+                std::cout << dbVariant.toString() << " ";
+            }
+            std::cout <<"_"<< std::endl;
+        }
+    }
+}
+
+void WhereFilter::printNestedVectors(WhereFilter wf) const
+{
+    for (const auto& whereFilter : wf.nestedClasses_) {
+        if(whereFilter.nestedClasses_.size()>0)
+        {
+            printNestedVectors(whereFilter);
+        }
+        else if(whereFilter.mNestedDbVariant.size()>0)
+        {
+            for (const auto& nestedVectorVariant : whereFilter.mNestedDbVariant) {
+
+                for (const auto& dbVariant : nestedVectorVariant) {
+                    std::cout << dbVariant.toString() << " ";
+                }
+                std::cout <<"_"<< std::endl;
+            }
+        }
+    }
 }
 
 

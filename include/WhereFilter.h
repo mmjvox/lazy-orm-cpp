@@ -5,17 +5,19 @@
 
 namespace LazyOrm {
 
-class WhereFilter : public std::vector<WhereFilter> {
+class WhereFilter /*: public std::vector<WhereFilter>*/ {
 
 private:
-    std::vector<std::vector<DbVariant>> mData;
-    inline static int mDepth = 0;
-//    DbVariant MDaaaaa;
+    std::vector<std::vector<DbVariant>> mNestedDbVariant;
+    std::vector<WhereFilter> nestedClasses_;
+
 
 public:
-    using std::vector<WhereFilter>::vector;
+//    using std::vector<WhereFilter>::vector;
     int filter=NNone;
     ~WhereFilter();
+
+    WhereFilter(std::initializer_list<WhereFilter> input);
 
     WhereFilter();
     WhereFilter(Filters filter);
@@ -32,9 +34,11 @@ public:
 
     bool emptyData() const
     {
-        return mData.empty();
+        return mNestedDbVariant.empty();
     }
 
+    void printNestedVectors() const;
+    void printNestedVectors(WhereFilter wf) const;
 };
 
 }
