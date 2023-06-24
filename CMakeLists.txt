@@ -11,6 +11,7 @@ include_directories(
 
 set(LazyORM_HEADERS
     include/DbVariant.h
+    include/DbList.h
     include/WhereFilter.h
     include/FilterVariant.h
     include/AbstractLazy.h
@@ -32,6 +33,7 @@ add_library(LazyOrm STATIC
     ${LazyORM_HEADERS}
 
     src/DbVariant.cpp
+    src/DbList.cpp
     src/WhereFilter.cpp
     src/FilterVariant.cpp
 
