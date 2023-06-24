@@ -135,7 +135,7 @@ FilteringAbstractLazy& AbstractLazy::operator[](const LazyOrm::Filters &filter)
 
 WhereFilter& AbstractLazy::operator[](const LazyOrm::NestedWhere &nestedWhere)
 {
-  return mWhereFilter;//getCurrentFilters()[nestedWhere];
+  return mWhereFilter;
 }
 
 //void AbstractLazy::operator=(const LazyOrm::FilterVariant &variant)

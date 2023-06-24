@@ -16,6 +16,7 @@ set(LazyORM_HEADERS
     include/FilterVariant.h
     include/AbstractLazy.h
     include/FilteringAbstractLazy.h
+    include/LazyOrm.h
 
     include/MariadbLazy.h
     include/MariadbFilteringLazy.h
@@ -27,6 +28,7 @@ set(LazyORM_HEADERS
     include/PostgreFilteringLazy.h
 
     include/Transaction.h
+
 )
 
 add_library(LazyOrm STATIC
@@ -36,6 +38,7 @@ add_library(LazyOrm STATIC
     src/DbList.cpp
     src/WhereFilter.cpp
     src/FilterVariant.cpp
+    src/LazyOrm.cpp
 
     src/AbstractLazy.cpp
     src/FilteringAbstractLazy.cpp

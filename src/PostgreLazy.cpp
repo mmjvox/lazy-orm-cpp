@@ -8,6 +8,11 @@ PostgreLazy::PostgreLazy()
 
 }
 
+void PostgreLazy::setPrimaryKey(const std::string &primaryKey)
+{
+    this->primaryKey = primaryKey;
+}
+
 PostgreLazy::PostgreLazy(const std::string &table, const Query &queryType)
 {
   setTabeName(table);
@@ -35,7 +40,7 @@ std::string PostgreLazy::insert_query() const
   queryString.append(" ("+string_join(",",keys)+") ");
   queryString.append("VALUES");
   queryString.append(" ("+string_join(",",values)+") ");
-  // TODO:  RETURNING id; i dont now id name
+  queryString.append(" returning "+primaryKey);
   queryString.append(";");
   return queryString;
 }
