@@ -67,107 +67,9 @@ void PostgreFilteringLazy::setGroupConditions(const std::initializer_list<Filter
     mGroupConditions=filters;
 }
 
-void PostgreFilteringLazy::setWhereConditions(const Filters &filter, const std::initializer_list<FilterVariant> &filtersList)
-{
-    std::vector<DbVariant> conditions;
-    for(const auto& item : filtersList)
-    {
-        bool singleVal =
-        std::visit([=, &conditions](auto&& arg) -> bool {
-            using T = std::decay_t<decltype(arg)>;
-//            if constexpr (std::is_same_v<T, WhereFilter>) {
-//                mWhereConditions = arg;
-//                return true;
-//            }
-//            else
-            if constexpr (std::is_same_v<T, DbVariant>) {
-                conditions.push_back(arg);
-            }
-            return false;
-        }, item);
-
-        if(singleVal)
-        {
-          break;
-        }
-    }
-//    mWhereConditions = WhereFilter(filter, conditions);
-}
-
 void PostgreFilteringLazy::setHavingConditions(const std::vector<FilterVariant> &filtersList)
 {
     mHavingConditions=filtersList;
-}
-
-
-//void PostgreFilteringLazy::nestedWhereToString(WhereFilter whereItem, std::string &retStr, Filters whereFilter, bool firstItem) const
-//{
-//    if(!firstItem)
-//    {
-//        retStr.append(filterStr(whereFilter));
-//        retStr.append(" ");
-//    }
-
-//    std::visit([=,&retStr](auto&& arg){
-//        using T = std::decay_t<decltype(arg)>;
-//        if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-
-//            if(whereFilter==Filters::AND || whereFilter==Filters::OR)
-//            {
-//                if(arg.size()==1)
-//                {
-//                    retStr.append(arg.at(0).toCleanString());
-//                }
-//                else if(arg.size()==2)
-//                {
-//                    retStr.append(arg.at(0).setBackTick());
-//                    retStr.append(" = ");
-//                    retStr.append(arg.at(1).setQuote());
-//                    retStr.append(" ");
-//                }
-//                else if(arg.size()==3)
-//                {
-//                    retStr.append(arg.at(0).setBackTick());
-//                    retStr.append(" ");
-//                    retStr.append(arg.at(1).toString());
-//                    retStr.append(" ");
-//                    retStr.append(arg.at(2).setQuote());
-//                    retStr.append(" ");
-//                }
-//            }
-//        }
-//        else if constexpr (std::is_same_v<T, std::vector<WhereFilter>>) {
-
-//            retStr.append(" (");
-//            bool firstItem=true;
-//            for(const auto& vectorItem : arg)
-//            {
-//                for(const auto& item : vectorItem)
-//                {
-//                    nestedWhereToString(item, retStr, vectorItem.filter, firstItem);
-//                    firstItem=false;
-//                }
-//            }
-//            retStr.append(") ");
-//        }
-//    }, whereItem);
-//}
-
-void PostgreFilteringLazy::appendWhere(std::string &retStr) const
-{
-//    if(mWhereConditions.empty())
-//    {
-//        return;
-//    }
-
-//    retStr.append(" WHERE ");
-
-//    bool firstItem=true;
-//    for(const auto& whereItem : mWhereConditions)
-//    {
-//        nestedWhereToString(whereItem, retStr, mWhereConditions.filter, firstItem);
-//        firstItem=false;
-//    }
 }
 
 void PostgreFilteringLazy::appendOrderby(std::string &retStr) const
@@ -276,11 +178,9 @@ void PostgreFilteringLazy::appendHaving(std::string &retStr) const
 }
 
 
-std::string PostgreFilteringLazy::where_conditions() const
+std::string PostgreFilteringLazy::filter_conditions() const
 {
     std::string retStr;
-    // AND OR
-    appendWhere(retStr);
 
     // GROUP BY
     appendGroup(retStr);

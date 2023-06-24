@@ -78,6 +78,11 @@ LazyOrm::WhereFilter::WhereFilter(std::vector<WhereFilter> wfs)
     mNestedWhereFilters.push_back(wfs);
 }
 
+void WhereFilter::operator=(const WhereFilter &wf)
+{
+    mNestedWhereFilters.push_back(wf);
+}
+
 bool WhereFilter::empty() const
 {
     return (mNestedWhereFilters.empty() && mNestedDbVariant.empty());
@@ -100,6 +105,8 @@ std::string WhereFilter::toString() const
         return retStr;
     }
 
+    retStr = " WHERE ";
+
     if(isWhereFilter()){
         for (const auto& whereFilter : mNestedWhereFilters) {
             retStr.append(toString(whereFilter));
@@ -111,7 +118,7 @@ std::string WhereFilter::toString() const
         }
     }
 
-    return retStr;
+    return retStr.append(" ");
 }
 
 std::string WhereFilter::toString(WhereFilter wf) const
@@ -141,11 +148,26 @@ std::string WhereFilter::toString(WhereFilter wf) const
         }
     }
 
-    return "("+retStr+")";
+    if(wf.mNestedWhereFilters.size()>1){
+        return "("+retStr+")";
+    }
+    return retStr;
 }
 
 std::string WhereFilter::string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const
 {
+    if(container.size()==1){
+        return container[0].toString();
+    }
+
+    if(container.size()==2){
+        return container[0].setBackTick() + " = " +container[1].setQuote();
+    }
+
+    if(container.size()==3){
+        return container[0].setBackTick() + " " + container[1].toString() + " " +container[2].setQuote();
+    }
+
     size_t size = container.size();
     size_t endPos = container.size()-1;
     std::string output;

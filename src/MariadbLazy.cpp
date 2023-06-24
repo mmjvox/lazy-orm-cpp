@@ -59,7 +59,8 @@ std::string MariadbLazy::select_query() const
     queryString.append(string_join(",",keys));
     queryString.append(" FROM ");
     queryString.append(mTabeName);
-    queryString.append(mFilter.where_conditions());
+    queryString.append(mWhereFilter.toString());
+    queryString.append(mFilter.filter_conditions());
     queryString.append(";");
     return queryString;
 }
@@ -78,7 +79,8 @@ std::string MariadbLazy::update_query() const
     queryString.append(" SET ");
     queryString.append(string_join(",",updates));
     queryString.append(" ");
-    queryString.append(mFilter.where_conditions());
+    queryString.append(mWhereFilter.toString());
+    queryString.append(mFilter.filter_conditions());
     queryString.append(";");
     return queryString;
 }
@@ -89,7 +91,8 @@ std::string MariadbLazy::delete_query() const
     queryString = "DELETE FROM ";
     queryString.append(mTabeName);
     queryString.append(" ");
-    queryString.append(mFilter.where_conditions());
+    queryString.append(mWhereFilter.toString());
+    queryString.append(mFilter.filter_conditions());
     queryString.append(" ;");
     return queryString;
 }

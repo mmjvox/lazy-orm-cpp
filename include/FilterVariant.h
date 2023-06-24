@@ -2,7 +2,6 @@
 #define FILTERVARIANT_H
 
 #include "DbVariant.h"
-#include "WhereFilter.h"
 
 
 namespace LazyOrm {

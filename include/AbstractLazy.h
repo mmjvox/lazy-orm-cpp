@@ -3,6 +3,7 @@
 
 #include "DbVariant.h"
 #include "FilteringAbstractLazy.h"
+#include "WhereFilter.h"
 
 #include <list>
 #include <vector>
@@ -53,6 +54,8 @@ protected:
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
 
+  WhereFilter mWhereFilter;
+
 public:
   virtual std::string queryString() const;
 
@@ -72,7 +75,7 @@ public:
   void setProperties(const std::list<std::map<DbVariant, LazyOrm::DbVariant>> &list);
 
   FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
-  FilteringAbstractLazy& operator[](const LazyOrm::NestedWhere &nestedWhere);
+  WhereFilter& operator[](const LazyOrm::NestedWhere &nestedWhere);
 //  void operator=(const LazyOrm::FilterVariant &variant);
 };
 }
