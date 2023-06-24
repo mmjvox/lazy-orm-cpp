@@ -134,6 +134,16 @@ std::string LazyOrm::DbVariant::toLowerString() const
     return lower;
 }
 
+std::string LazyOrm::DbVariant::toUpperString() const
+{
+    std::string upper = toString();
+    for(auto& ch : upper)
+    {
+        ch=std::toupper(ch);
+    }
+    return upper;
+}
+
 bool LazyOrm::DbVariant::empty()
 {
     return std::visit([=](auto&& arg) -> bool {

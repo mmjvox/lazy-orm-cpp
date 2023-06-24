@@ -58,31 +58,79 @@ std::string aaaaaa() {
 
 LazyOrm::WhereFilter p1_1 = {
     {
-        {"name","like","asqar"},
-        {"OR"},
-        {"name","like","mamad"}
-    },
-    {"AND"},
-    {
-        {"name","like","asqar"},
-        {"OR"},
-        {"name","like","mamad"}
-    },
-    {"AND"},
-    {
         {
-            { "AGE","in","[4,5,6,7,8]" },
-            {"or"},
-            { "AGE","in","[1,2,3,4,5]" },
-        },
+         { "AGE","in","[4,5,6,7,8]" },
+         {"or"},
+         { "AGE","in","[1,2,3,4,5]" },
+         },
         {"and"},
         {
          { "AGE","in","[40,50,60,70,80]" },
          {"or"},
          { "AGE","in","[10,20,30,40,50]" },
-        }
+         }
+    },
+    {"AND"},
+    {
+        {"name","like","asqar"},
+        {"OR"},
+        {"name","like","mamad"}
+    },
+    {"NOT"},
+    {
+        {"name","like","asqar"},
+        {"OR"},
+        {"name","like","mamad"}
+    },
+    {"AND NOT"},
+    {
+        {"name","like","asqar"},
+        {"OR"},
+        {"name","like","mamad"}
+    },
+    {"OR","NOT"},
+    {
+        {"name","like","asqar"},
+        {"OR"},
+        {"name","like","mamad"}
     }
 };
+
+return p1_1.toString();
+
+
+//LazyOrm::WhereFilter p1_2 = {
+//    {
+//        {
+//            {"name","like","asqar"},
+//            {"OR"},
+//            {"name","like","mamad"}
+//        },
+//        {"AND"},
+//        {
+//            {"name","like","asqar"},
+//            {"OR"},
+//            {"name","like","mamad"}
+//        },
+//        {"AND","sss"},
+//        {
+//            {
+//             { "AGE","in","[4,5,6,7,8]" },
+//             {"or"},
+//             { "AGE","in","[1,2,3,4,5]" },
+//             },
+//            {"and"},
+//            {
+//             { "AGE","in","[40,50,60,70,80]" },
+//             {"or"},
+//             { "AGE","in","[10,20,30,40,50]" },
+//             }
+//        }
+//    }
+//};
+
+//p1_2.printNestedVectors();
+
 
 //  LazyOrm::WhereFilter p2 = {LazyOrm::AND, {"AGE","<=",30}};
 
@@ -96,10 +144,10 @@ LazyOrm::WhereFilter p1_1 = {
 //  auto limit = std::get<int>(nested2[0].nested[1]);
 //  std::cout << "Limit: " << limit << std::endl;
 
-  LazyOrm::MariadbFilteringLazy filters;
+//  LazyOrm::MariadbFilteringLazy filters;
 //  filters.setWhereFilter(p1);
 
-  return filters.where_conditions();
+//  return filters.where_conditions();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_WHERE2]" ) {

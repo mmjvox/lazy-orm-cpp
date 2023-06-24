@@ -5,40 +5,34 @@
 
 namespace LazyOrm {
 
-class WhereFilter /*: public std::vector<WhereFilter>*/ {
+class WhereFilter{
 
 private:
     std::vector<std::vector<DbVariant>> mNestedDbVariant;
-    std::vector<WhereFilter> nestedClasses_;
+    std::vector<WhereFilter> mNestedWhereFilters;
+    bool isWhereFilter() const;
+    bool isVariantVaector() const;
+    std::string toString(WhereFilter wf) const;
+    std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
 
 
 public:
-//    using std::vector<WhereFilter>::vector;
-    int filter=NNone;
+    WhereFilter();
     ~WhereFilter();
 
-    WhereFilter(std::initializer_list<WhereFilter> input);
+    WhereFilter(std::string str);
+    WhereFilter(std::initializer_list<WhereFilter> wfs);
 
-    WhereFilter();
-    WhereFilter(Filters filter);
+    WhereFilter(DbVariant variant);
 
 
-    WhereFilter(std::initializer_list<std::variant<std::vector<DbVariant>,DbVariant>> whereFilters);
-    WhereFilter(std::vector<DbVariant> whereFilters);
-    WhereFilter(std::vector<WhereFilter> whereFilters);
+    WhereFilter(std::initializer_list<std::variant<std::vector<DbVariant>,DbVariant>> variants);
+    WhereFilter(std::vector<DbVariant> variants);
+    WhereFilter(std::vector<WhereFilter> wfs);
 
-//    WhereFilter( Filters filter, std::vector<DbVariant> whereFilters);
-//    WhereFilter( Filters filter, std::vector<WhereFilter> whereFilters);
-//    WhereFilter( Filters filter, std::vector<std::vector<DbVariant>> whereFilters);
-    //WhereFilter( Filters filter, std::vector<std::vector<WhereFilter>> whereFilters);
+    bool empty() const;
 
-    bool emptyData() const
-    {
-        return mNestedDbVariant.empty();
-    }
-
-    void printNestedVectors() const;
-    void printNestedVectors(WhereFilter wf) const;
+    std::string toString() const;
 };
 
 }

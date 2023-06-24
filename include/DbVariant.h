@@ -26,6 +26,7 @@ enum NestedWhere
     WHERE = 0,
     AND = 1,
     OR,
+    NOT,
 };
 
 using UnsignedIntegerVariant = std::variant<unsigned short, unsigned int, unsigned long, unsigned long long>;
@@ -49,6 +50,7 @@ public:
     bool toBool() const;
 
     std::string toLowerString() const;
+    std::string toUpperString() const;
 
     bool empty();
 
