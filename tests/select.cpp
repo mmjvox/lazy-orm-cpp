@@ -1,4 +1,5 @@
 #include <iostream>
+#include "DbList.h"
 #include "MariadbLazy.h"
 #include "SqliteLazy.h"
 
@@ -30,7 +31,7 @@ std::string select4() {
   lazyOrm[LazyOrm::SELECT]="student";
   lazyOrm<<"name"<<"age"<<"hair";
   //
-  lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
+  lazyOrm[LazyOrm::WHERE] = {{"grade","in", LazyOrm::DbList({1,5,7,9})}};
   lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
 //  lazyOrm[LazyOrm::HAVING] = {{"height",">","160"}};
   lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
@@ -46,7 +47,7 @@ std::string select5() {
   lazyOrm[LazyOrm::SELECT]="student";
   lazyOrm<<"name"<<"age"<<"hair";
   //
-  lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
+  lazyOrm[LazyOrm::WHERE] = {{"grade","in", LazyOrm::DbList({1,5,7,9})}};
   lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
   lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
   lazyOrm[LazyOrm::LIMIT] = {{"5",",","6"}};
@@ -59,7 +60,7 @@ std::string select6() {
   lazyOrm[LazyOrm::SELECT]="student";
   lazyOrm<<"name"<<"age"<<"hair";
   //
-  lazyOrm[LazyOrm::WHERE] = {{"grade","in", "[1,5,7,9]"}};
+  lazyOrm[LazyOrm::WHERE] = {{"grade","in", LazyOrm::DbList({1,5,7,9})}};
   lazyOrm[LazyOrm::GROUPBY] = {{"group1","group2"}};
   lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
   lazyOrm[LazyOrm::LIMIT] = {{"5","6"}};
@@ -68,10 +69,6 @@ std::string select6() {
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
-
-    std::cout << select5() << std::endl;
-    std::cout << select6() << std::endl;
-
     REQUIRE( Catch::trim(select1()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
     REQUIRE( Catch::trim(select2()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
     REQUIRE( Catch::trim(select3()) == R"(SELECT `age`,`hair`,`name` FROM student;)" );
