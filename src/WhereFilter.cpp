@@ -121,6 +121,11 @@ std::string WhereFilter::toString() const
     return retStr.append(" ");
 }
 
+void WhereFilter::append(std::vector<DbVariant> variants)
+{
+    mNestedDbVariant.push_back(variants);
+}
+
 std::string WhereFilter::toString(WhereFilter wf) const
 {
     std::string retStr;

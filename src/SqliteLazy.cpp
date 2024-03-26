@@ -142,16 +142,19 @@ std::string SqliteLazy::bulk_insert_query() const
 
 std::string SqliteLazy::insert_update_query() const
 {
+    // TODO:
   return {};
 }
 
 std::string SqliteLazy::insert_ignore_query() const
 {
+    // TODO:
   return {};
 }
 
 std::string SqliteLazy::bulk_update_query() const
 {
+    // TODO:
   return {};
 }
 

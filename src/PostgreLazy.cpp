@@ -148,16 +148,19 @@ std::string PostgreLazy::bulk_insert_query() const
 
 std::string PostgreLazy::insert_update_query() const
 {
+    // TODO:
   return {};
 }
 
 std::string PostgreLazy::insert_ignore_query() const
 {
+    // TODO:
   return {};
 }
 
 std::string PostgreLazy::bulk_update_query() const
 {
+    // TODO:
   return {};
 }
 

@@ -32,6 +32,8 @@ public:
     bool empty() const;
 
     std::string toString() const;
+
+    void append(std::vector<DbVariant> variants);
 };
 
 }
