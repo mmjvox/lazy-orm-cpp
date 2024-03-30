@@ -79,7 +79,7 @@ void SqliteFilteringLazy::appendOrderby(std::string &retStr) const
         return;
     }
 
-    retStr.append("ORDER BY ");
+    retStr.append(" ORDER BY ");
 
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
@@ -101,7 +101,7 @@ void SqliteFilteringLazy::appendLimit(std::string &retStr) const
         return;
     }
 
-    retStr.append("LIMIT ");
+    retStr.append(" LIMIT ");
 
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
@@ -123,7 +123,7 @@ void SqliteFilteringLazy::appendGroup(std::string &retStr) const
         return;
     }
 
-    retStr.append("GROUP BY ");
+    retStr.append(" GROUP BY ");
 
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
@@ -145,7 +145,7 @@ void SqliteFilteringLazy::appendHaving(std::string &retStr) const
       return;
   }
 
-  retStr.append("HAVING ");
+  retStr.append(" HAVING ");
 
   for(const auto &havingItem : mHavingConditions)
   {
