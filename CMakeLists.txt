@@ -63,7 +63,7 @@ add_subdirectory(tests)
 endif(tests)
 
 
-target_include_directories(lazyorm PUBLIC include)
+target_include_directories(lazyorm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
 # string(JOIN ";" LazyORM_HEADERS_STRING ${LazyORM_HEADERS})
