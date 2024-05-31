@@ -63,6 +63,16 @@ add_subdirectory(tests)
 endif(tests)
 
 
+target_include_directories(lazyorm PUBLIC include)
+
+
+# string(JOIN ";" LazyORM_HEADERS_STRING ${LazyORM_HEADERS})
+# set_target_properties(lazyorm PROPERTIES
+#     PUBLIC_HEADER "${LazyORM_HEADERS_STRING}"
+# )
+# install(TARGETS lazyorm)
+
+
 include(GNUInstallDirs)
 
 include(CMakePackageConfigHelpers)
