@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 3.5)
-
-project(LazyOrm LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.15)
+project(lazyorm LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,7 +30,7 @@ set(LazyORM_HEADERS
 
 )
 
-add_library(LazyOrm STATIC
+add_library(lazyorm STATIC
     ${LazyORM_HEADERS}
 
     src/DbVariant.cpp
@@ -55,7 +54,8 @@ add_library(LazyOrm STATIC
     src/Transaction.cpp
 )
 
-target_compile_definitions(LazyOrm PRIVATE LazyOrm_LIBRARY)
+target_compile_definitions(lazyorm PRIVATE LazyOrm_LIBRARY)
+
 
 option(tests "build tests" OFF)
 if(tests)
@@ -63,13 +63,14 @@ add_subdirectory(tests)
 endif(tests)
 
 
-target_include_directories(lazyorm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(lazyorm PUBLIC include)
 
 
-# string(JOIN ";" LazyORM_HEADERS_STRING ${LazyORM_HEADERS})
-# set_target_properties(lazyorm PROPERTIES
-#     PUBLIC_HEADER "${LazyORM_HEADERS_STRING}"
-# )
+string(JOIN ";" LazyORM_HEADERS_STRING ${LazyORM_HEADERS})
+set_target_properties(lazyorm PROPERTIES
+    PUBLIC_HEADER "${LazyORM_HEADERS_STRING}"
+)
+
 # install(TARGETS lazyorm)
 
 
@@ -78,17 +79,17 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/LazyOrmConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/lazyormConfig.cmake"
     INSTALL_DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}/cmake/LazyOrm
+    ${CMAKE_INSTALL_LIBDIR}/cmake/lazyorm
 )
 
 install(FILES ${LazyORM_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LazyOrm)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LazyOrmConfig.cmake
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lazyormConfig.cmake
 #              ${CMAKE_CURRENT_BINARY_DIR}/FooConfigVersion.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LazyOrm)
-install(TARGETS LazyOrm
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lazyorm)
+install(TARGETS lazyorm
     #PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LazyOrm
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
