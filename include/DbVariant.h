@@ -35,14 +35,36 @@ using SignedFloatingPointVariant = std::variant<float, double, long double>;
 
 class DbVariant : public std::variant<std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>
 {
+#ifdef DEBUG_MODE
+public:
+#else
 private:
+#endif
     UnsignedIntegerVariant toUnsignedIntegerVariant() const;
+    bool isUnsignedIntegerVariant() const;
+    unsigned long long toUnsignedInteger() const;
+    bool can_UInt_Fit_Int(unsigned long long value) const;
+    bool can_UInt_Fit_Float(unsigned long long value) const;
+
     SignedIntegerVariant toSignedIntegerVariant() const;
+    bool isSignedIntegerVariant() const;
+    long long toSignedInteger() const;
+    bool can_Int_Fit_UInt(long long value) const;
+    bool can_Int_Fit_Float(long long value) const;
+
     SignedFloatingPointVariant toSignedFloatingPointVariant() const;
+    bool isSignedFloatingPointVariant() const;
+    long double toSignedFloatingPoint() const;
+    bool can_Float_Fit_Int(long double value) const;
+    bool can_Float_Fit_UInt(long double value) const;
+
+    std::string toFixedString(long double value) const;
+
 
 public:
     using std::variant<std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>::variant;
 
+    std::string typeName() const;
     std::string toString() const;
     unsigned long long toUInt64() const;
     long long toInt64() const;
@@ -58,6 +80,8 @@ public:
     std::string setBackTick() const;
     std::string toCleanString() const;
     bool isUpdate() const;
+
+    DbVariant convartStringToBestMatchType();
 };
 
 typedef std::pair<std::string,LazyOrm::DbVariant> pair;

@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
-project(lazyorm LANGUAGES CXX)
+project(lazyorm VERSION 1.0.0 LANGUAGES CXX)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG_MODE)
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -52,6 +56,11 @@ add_library(lazyorm STATIC
     src/PostgreFilteringLazy.cpp
 
     src/Transaction.cpp
+
+    include/Result.h
+    src/Result.cpp
+    include/ResultRow.h
+    src/ResultRow.cpp
 )
 
 target_compile_definitions(lazyorm PRIVATE LazyOrm_LIBRARY)

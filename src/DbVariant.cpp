@@ -1,23 +1,51 @@
 #include "DbVariant.h"
+#include <cfloat>
+#include <cstdint>
+#include <climits>
+#include <limits>
+
 
 std::string LazyOrm::DbVariant::toString() const
 {
-    return std::visit([=](auto&& arg) -> std::string {
+    return std::visit([=, this](auto&& arg) -> std::string {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::string>) {
             return arg;
         }
         else if constexpr (std::is_same_v<T, UnsignedIntegerVariant>) {
-            return std::to_string(toUInt64());
+            return toFixedString(toUnsignedInteger());
         }
         else if constexpr (std::is_same_v<T, SignedIntegerVariant>) {
-                return  std::to_string(toInt64());
+                return  toFixedString(toSignedInteger());
         }
         else if constexpr (std::is_same_v<T, SignedFloatingPointVariant>) {
-                return  std::to_string(toLongDouble());
+                return  toFixedString(toSignedFloatingPoint());
         }
         else if constexpr (std::is_same_v<T, bool>) {
                 return arg?"true":"false";
+        }
+        return "";
+    }, *this);
+}
+
+std::string LazyOrm::DbVariant::typeName() const
+{
+    return std::visit([=](auto&& arg) -> std::string {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::string>) {
+            return "string";
+        }
+        else if constexpr (std::is_same_v<T, UnsignedIntegerVariant>) {
+            return "uint";
+        }
+        else if constexpr (std::is_same_v<T, SignedIntegerVariant>) {
+            return  "int";
+        }
+        else if constexpr (std::is_same_v<T, SignedFloatingPointVariant>) {
+            return  "float";
+        }
+        else if constexpr (std::is_same_v<T, bool>) {
+            return "boolean";
         }
         return "";
     }, *this);
@@ -30,27 +58,99 @@ LazyOrm::UnsignedIntegerVariant LazyOrm::DbVariant::toUnsignedIntegerVariant() c
         if constexpr (std::is_same_v<T, UnsignedIntegerVariant>) {
             return  arg;
         }
-        return {};
+        throw "error toUnsignedIntegerVariant";
     }, *this);
 }
-unsigned long long LazyOrm::DbVariant::toUInt64() const
+
+bool LazyOrm::DbVariant::isUnsignedIntegerVariant() const
+{
+    return std::visit([=](auto&& arg) -> bool {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, UnsignedIntegerVariant>) {
+            return  true;
+        }
+        return  false;
+    }, *this);
+}
+
+unsigned long long LazyOrm::DbVariant::toUnsignedInteger() const
 {
     return std::visit([=](auto&& arg) -> unsigned long long {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, unsigned long long>) {
-            return  arg;
+            return  static_cast<unsigned long long>(arg);
         }
         if constexpr (std::is_same_v<T, unsigned long>) {
-            return  arg;
+            return  static_cast<unsigned long>(arg);
         }
         if constexpr (std::is_same_v<T, unsigned int>) {
-            return  arg;
+            return  static_cast<unsigned int>(arg);
         }
         if constexpr (std::is_same_v<T, unsigned short>) {
-            return  arg;
+            return  static_cast<unsigned short>(arg);
         }
         return 0;
     }, toUnsignedIntegerVariant());
+}
+
+bool LazyOrm::DbVariant::can_UInt_Fit_Int(unsigned long long value) const
+{
+    if (value <= LLONG_MAX) {
+        return true;
+    }
+    return false;
+}
+
+bool LazyOrm::DbVariant::can_UInt_Fit_Float(unsigned long long value) const
+{
+    if (value <= LDBL_MAX) {
+        return true;
+    }
+    return false;
+}
+
+unsigned long long LazyOrm::DbVariant::toUInt64() const
+{
+    if(isUnsignedIntegerVariant()){
+        return toUnsignedInteger();
+    }
+    if(isSignedFloatingPointVariant()){
+        auto value = toSignedFloatingPoint();
+        if(can_Float_Fit_UInt(value)){
+            return value;
+        }
+        return -1;
+    }
+    if(isSignedIntegerVariant()){
+        auto value = toSignedInteger();
+        if(can_Int_Fit_UInt(value)){
+            return value;
+        }
+        return -1;
+    }
+
+    return std::visit([=, this](auto&& arg) -> unsigned long long {
+        using T = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<T, std::string>) {
+            try {
+                auto converted = std::stold(arg);
+                if(can_Float_Fit_UInt(converted)){
+                    return converted;
+                }
+                return -1;
+            } catch (const std::exception&) {
+                return -1;
+            }
+        }
+        if constexpr (std::is_same_v<T, bool>) {
+            return arg?1:0;
+        }
+
+        return -1;
+    }, *this);
+
+    return -1;
 }
 
 
@@ -61,24 +161,103 @@ LazyOrm::SignedFloatingPointVariant LazyOrm::DbVariant::toSignedFloatingPointVar
         if constexpr (std::is_same_v<T, SignedFloatingPointVariant>) {
             return  arg;
         }
-        return 0.0;
+        throw "error toSignedFloatingPointVariant";
     }, *this);
 }
-long double LazyOrm::DbVariant::toLongDouble() const
+
+bool LazyOrm::DbVariant::isSignedFloatingPointVariant() const
+{
+    return std::visit([=](auto&& arg) -> bool {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, SignedFloatingPointVariant>) {
+            return  true;
+        }
+        return  false;
+    }, *this);
+}
+
+long double LazyOrm::DbVariant::toSignedFloatingPoint() const
 {
     return std::visit([=](auto&& arg) -> long double {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, long double>) {
-            return  arg;
+            return  static_cast<long double>(arg);
         }
         if constexpr (std::is_same_v<T, double>) {
-            return  arg;
+            return  static_cast<double>(arg);
         }
         if constexpr (std::is_same_v<T, float>) {
-            return  arg;
+            return  static_cast<float>(arg);
         }
         return 0;
     }, toSignedFloatingPointVariant());
+}
+
+bool LazyOrm::DbVariant::can_Float_Fit_Int(long double value) const
+{
+    if (value >= LLONG_MIN && value <= LLONG_MAX) {
+        return true;
+    }
+    return false;
+}
+
+bool LazyOrm::DbVariant::can_Float_Fit_UInt(long double value) const
+{
+    if (value >= 0 && value <= ULLONG_MAX) {
+        return true;
+    }
+    return false;
+}
+
+std::string LazyOrm::DbVariant::toFixedString(long double value) const
+{
+    std::string str = std::to_string(value);
+    str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+    if (str.back() == '.') {
+        str.pop_back();
+    }
+    return str;
+}
+
+long double LazyOrm::DbVariant::toLongDouble() const
+{
+    if(isSignedFloatingPointVariant()){
+        return toSignedFloatingPoint();
+    }
+    if(isUnsignedIntegerVariant()){
+        auto value = toUnsignedInteger();
+        if(can_UInt_Fit_Float(value)){
+            return value;
+        }
+        return -1;
+    }
+    if(isSignedIntegerVariant()){
+        auto value = toSignedInteger();
+        if(can_Int_Fit_Float(value)){
+            return value;
+        }
+        return -1;
+    }
+
+    return std::visit([=, this](auto&& arg) -> long double {
+        using T = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<T, std::string>) {
+            try {
+                auto converted = std::stold(arg);
+                return converted;
+            } catch (const std::exception&) {
+                return -1;
+            }
+        }
+        if constexpr (std::is_same_v<T, bool>) {
+            return arg?1:0;
+        }
+
+        return -1;
+    }, *this);
+
+    return -1;
 }
 
 
@@ -89,38 +268,122 @@ LazyOrm::SignedIntegerVariant LazyOrm::DbVariant::toSignedIntegerVariant() const
         if constexpr (std::is_same_v<T, SignedIntegerVariant>) {
             return  arg;
         }
-        return 0;
+        throw "error toSignedIntegerVariant";
     }, *this);
 }
-long long LazyOrm::DbVariant::toInt64() const
+
+bool LazyOrm::DbVariant::isSignedIntegerVariant() const
+{
+    return std::visit([=](auto&& arg) -> bool {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, SignedIntegerVariant>) {
+            return  true;
+        }
+        return  false;
+    }, *this);
+}
+
+long long LazyOrm::DbVariant::toSignedInteger() const
 {
     return std::visit([=](auto&& arg) -> long long {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, long long>) {
-            return  arg;
+            return  static_cast<long long>(arg);
         }
         if constexpr (std::is_same_v<T, long>) {
-            return  arg;
+            return  static_cast<long>(arg);
         }
         if constexpr (std::is_same_v<T, int>) {
-            return  arg;
+            return  static_cast<int>(arg);
         }
         if constexpr (std::is_same_v<T, short>) {
-            return  arg;
+            return  static_cast<short>(arg);
         }
         return 0;
     }, toSignedIntegerVariant());
 }
 
+bool LazyOrm::DbVariant::can_Int_Fit_UInt(long long value) const
+{
+    if (value >= 0 && (unsigned long long)value <= ULLONG_MAX) {
+        return true;
+    }
+    return false;
+}
+
+bool LazyOrm::DbVariant::can_Int_Fit_Float(long long value) const
+{
+    if (value >= -LDBL_MAX && value <= LDBL_MAX) {
+        return true;
+    }
+    return false;
+}
+
+long long LazyOrm::DbVariant::toInt64() const
+{
+    if(isSignedIntegerVariant()){
+        return toSignedInteger();
+    }
+    if(isSignedFloatingPointVariant()){
+        auto value = toSignedFloatingPoint();
+        if(can_Float_Fit_Int(value)){
+            return value;
+        }
+        return -1;
+    }
+    if(isUnsignedIntegerVariant()){
+        auto value = toUnsignedInteger();
+        if(can_UInt_Fit_Int(value)){
+            return value;
+        }
+        return -1;
+    }
+
+    return std::visit([=, this](auto&& arg) -> long long {
+        using T = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<T, std::string>) {
+            try {
+                auto converted = std::stold(arg);
+                if(can_Float_Fit_Int(converted)){
+                    return converted;
+                }
+                return -1;
+            } catch (const std::exception&) {
+                return -1;
+            }
+        }
+        if constexpr (std::is_same_v<T, bool>) {
+            return arg?1:0;
+        }
+
+        return -1;
+    }, *this);
+
+    return -1;
+}
+
 
 bool LazyOrm::DbVariant::toBool() const
 {
-    return std::visit([=](auto&& arg) -> bool {
+    return std::visit([=, this](auto&& arg) -> bool {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, bool>) {
             return  arg;
         }
-        return 0;
+        if constexpr (std::is_same_v<T, std::string>) {
+            return !arg.empty();
+        }
+        else if constexpr (std::is_same_v<T, SignedFloatingPointVariant>) {
+            return  toSignedFloatingPoint()>0;
+        }
+        else if constexpr (std::is_same_v<T, UnsignedIntegerVariant>) {
+            return toUnsignedInteger()>0;
+        }
+        else if constexpr (std::is_same_v<T, SignedIntegerVariant>) {
+            return  toSignedInteger()>0;
+        }
+        return false;
     }, *this);
 }
 
@@ -226,4 +489,26 @@ std::string LazyOrm::DbVariant::toCleanString() const
 bool LazyOrm::DbVariant::isUpdate() const
 {
     return toString().substr(0,8)=="[update]";
+}
+
+LazyOrm::DbVariant LazyOrm::DbVariant::convartStringToBestMatchType()
+{
+    std::visit([this](auto&& value) {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, std::string>) {
+            try {
+                auto converted = std::stold(value);
+                // TODO: fix
+                // std::string convertedSTR = toFixedString(converted);
+                // if (convertedSTR!=value) {
+                //     throw "converted is same as value";
+                // }
+                *this = converted;
+            }
+            catch (const std::exception&) {}
+            catch (...) {}
+        }
+    }, *this);
+
+    return *this;
 }
