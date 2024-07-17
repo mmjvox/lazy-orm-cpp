@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <climits>
 #include <limits>
-
+#include <sstream>
 
 std::string LazyOrm::DbVariant::toString() const
 {
@@ -119,38 +119,30 @@ unsigned long long LazyOrm::DbVariant::toUInt64() const
         if(can_Float_Fit_UInt(value)){
             return value;
         }
-        return -1;
+        return 0;
     }
     if(isSignedIntegerVariant()){
         auto value = toSignedInteger();
         if(can_Int_Fit_UInt(value)){
             return value;
         }
-        return -1;
+        return 0;
     }
 
     return std::visit([=, this](auto&& arg) -> unsigned long long {
         using T = std::decay_t<decltype(arg)>;
 
         if constexpr (std::is_same_v<T, std::string>) {
-            try {
-                auto converted = std::stold(arg);
-                if(can_Float_Fit_UInt(converted)){
-                    return converted;
-                }
-                return -1;
-            } catch (const std::exception&) {
-                return -1;
-            }
+            return safeStringToULL(arg);
         }
         if constexpr (std::is_same_v<T, bool>) {
             return arg?1:0;
         }
 
-        return -1;
+        return 0;
     }, *this);
 
-    return -1;
+    return 0;
 }
 
 
@@ -211,12 +203,79 @@ bool LazyOrm::DbVariant::can_Float_Fit_UInt(long double value) const
 
 std::string LazyOrm::DbVariant::toFixedString(long double value) const
 {
-    std::string str = std::to_string(value);
+    return toFixedString(std::to_string(value));
+}
+
+std::string LazyOrm::DbVariant::toFixedString(std::string str) const
+{
     str.erase(str.find_last_not_of('0') + 1, std::string::npos);
     if (str.back() == '.') {
         str.pop_back();
     }
     return str;
+}
+
+long long LazyOrm::DbVariant::safeStringToLL(std::string value) const
+{
+    long long converted;
+    try{
+        std::istringstream iss(value);
+        iss >> converted;
+        // Convert the long double back to string
+        std::ostringstream oss;
+        oss.precision(value.size());  // Set the precision to the size of the original string
+        oss << std::fixed << converted;
+        std::string value2 = oss.str();
+        // check after and befor is same
+        if(toFixedString(value) == toFixedString(value2)){
+            return converted;
+        }
+    } catch(...){
+        return 0;
+    }
+    return 0;
+}
+
+unsigned long long LazyOrm::DbVariant::safeStringToULL(std::string value) const
+{
+    unsigned long long converted;
+    try{
+        std::istringstream iss(value);
+        iss >> converted;
+        // Convert the long double back to string
+        std::ostringstream oss;
+        oss.precision(value.size());  // Set the precision to the size of the original string
+        oss << std::fixed << converted;
+        std::string value2 = oss.str();
+        // check after and befor is same
+        if(toFixedString(value) == toFixedString(value2)){
+            return converted;
+        }
+    } catch(...){
+        return 0;
+    }
+    return 0;
+}
+
+long double LazyOrm::DbVariant::safeStringToLD(std::string value) const
+{
+    long double converted;
+    try{
+        std::istringstream iss(value);
+        iss >> converted;
+        // Convert the long double back to string
+        std::ostringstream oss;
+        oss.precision(value.size());  // Set the precision to the size of the original string
+        oss << std::fixed << converted;
+        std::string value2 = oss.str();
+        // check after and befor is same
+        if(toFixedString(value) == toFixedString(value2)){
+            return converted;
+        }
+    } catch(...){
+        return 0;
+    }
+    return 0;
 }
 
 long double LazyOrm::DbVariant::toLongDouble() const
@@ -229,35 +288,30 @@ long double LazyOrm::DbVariant::toLongDouble() const
         if(can_UInt_Fit_Float(value)){
             return value;
         }
-        return -1;
+        return 0;
     }
     if(isSignedIntegerVariant()){
         auto value = toSignedInteger();
         if(can_Int_Fit_Float(value)){
             return value;
         }
-        return -1;
+        return 0;
     }
 
     return std::visit([=, this](auto&& arg) -> long double {
         using T = std::decay_t<decltype(arg)>;
 
         if constexpr (std::is_same_v<T, std::string>) {
-            try {
-                auto converted = std::stold(arg);
-                return converted;
-            } catch (const std::exception&) {
-                return -1;
-            }
+            return safeStringToLD(arg);
         }
         if constexpr (std::is_same_v<T, bool>) {
             return arg?1:0;
         }
 
-        return -1;
+        return 0;
     }, *this);
 
-    return -1;
+    return 0;
 }
 
 
@@ -329,38 +383,30 @@ long long LazyOrm::DbVariant::toInt64() const
         if(can_Float_Fit_Int(value)){
             return value;
         }
-        return -1;
+        return 0;
     }
     if(isUnsignedIntegerVariant()){
         auto value = toUnsignedInteger();
         if(can_UInt_Fit_Int(value)){
             return value;
         }
-        return -1;
+        return 0;
     }
 
     return std::visit([=, this](auto&& arg) -> long long {
         using T = std::decay_t<decltype(arg)>;
 
         if constexpr (std::is_same_v<T, std::string>) {
-            try {
-                auto converted = std::stold(arg);
-                if(can_Float_Fit_Int(converted)){
-                    return converted;
-                }
-                return -1;
-            } catch (const std::exception&) {
-                return -1;
-            }
+            return safeStringToLL(arg);
         }
         if constexpr (std::is_same_v<T, bool>) {
             return arg?1:0;
         }
 
-        return -1;
+        return 0;
     }, *this);
 
-    return -1;
+    return 0;
 }
 
 
@@ -491,18 +537,47 @@ bool LazyOrm::DbVariant::isUpdate() const
     return toString().substr(0,8)=="[update]";
 }
 
-LazyOrm::DbVariant LazyOrm::DbVariant::convartStringToBestMatchType()
+LazyOrm::DbVariant LazyOrm::DbVariant::alterStringToBestMatchType()
 {
     std::visit([this](auto&& value) {
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, std::string>) {
             try {
-                auto converted = std::stold(value);
-                // TODO: fix
-                // std::string convertedSTR = toFixedString(converted);
-                // if (convertedSTR!=value) {
-                //     throw "converted is same as value";
-                // }
+                // long double converted = std::stold(value);
+                long double converted;
+                std::istringstream iss(value);
+                iss >> converted;
+
+                // Convert the long double back to string
+                std::ostringstream oss;
+                oss.precision(value.size());  // Set the precision to the size of the original string
+                oss << std::fixed << converted;
+
+                std::string value2 = oss.str();
+
+                if(toFixedString(value) != toFixedString(value2)){
+                    throw "parsing with precision loss";
+                }
+
+                *this = converted;
+            }
+            catch (const std::exception&) {}
+            catch (...) {}
+        }
+    }, *this);
+
+    return *this;
+}
+
+LazyOrm::DbVariant LazyOrm::DbVariant::alterStringToNumber()
+{
+    std::visit([this](auto&& value) {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, std::string>) {
+            try {
+                long double converted;
+                std::istringstream iss(value);
+                iss >> converted;
                 *this = converted;
             }
             catch (const std::exception&) {}

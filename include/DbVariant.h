@@ -59,6 +59,11 @@ private:
     bool can_Float_Fit_UInt(long double value) const;
 
     std::string toFixedString(long double value) const;
+    std::string toFixedString(std::string str) const;
+
+    long long safeStringToLL(std::string value) const;
+    unsigned long long safeStringToULL(std::string value) const;
+    long double safeStringToLD(std::string value) const;
 
 
 public:
@@ -81,7 +86,8 @@ public:
     std::string toCleanString() const;
     bool isUpdate() const;
 
-    DbVariant convartStringToBestMatchType();
+    DbVariant alterStringToBestMatchType();
+    DbVariant alterStringToNumber();
 };
 
 typedef std::pair<std::string,LazyOrm::DbVariant> pair;
