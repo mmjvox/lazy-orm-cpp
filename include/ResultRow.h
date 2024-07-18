@@ -15,6 +15,7 @@ public:
     using std::unordered_map<std::string,DbVariant>::unordered_map;
 
     std::string toString() const;
+    std::string toIndentedString() const;
 };
 
 }

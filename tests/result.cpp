@@ -20,7 +20,7 @@ std::string result1() {
         result.push_back(row);
    }
 
-   return result.toString();
+   return result.toIndentedString();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_Result]" ) {

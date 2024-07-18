@@ -15,6 +15,18 @@ std::string Result::toString() const
     return retStr;
 }
 
+std::string Result::toIndentedString() const
+{
+    // TODO remove last ,
+    std::string retStr="[";
+    for(const auto &value : *this){
+        retStr.append(value.toIndentedString());
+        retStr.append(",");
+    }
+    retStr.append("]");
+    return retStr;
+}
+
 bool Result::hasError() const {
     return !mErrorMessage.empty();
 }

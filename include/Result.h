@@ -21,6 +21,7 @@ public:
     using std::vector<ResultRow>::vector;
 
     std::string toString() const;
+    std::string toIndentedString() const;
     bool hasError() const;
     void setError(std::string errorMessage);
     size_t affectedRows() const;
