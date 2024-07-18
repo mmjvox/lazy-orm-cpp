@@ -32,6 +32,9 @@ set(LazyORM_HEADERS
 
     include/Transaction.h
 
+    include/Result.h
+    include/ResultRow.h
+
 )
 
 add_library(lazyorm STATIC
@@ -57,9 +60,7 @@ add_library(lazyorm STATIC
 
     src/Transaction.cpp
 
-    include/Result.h
     src/Result.cpp
-    include/ResultRow.h
     src/ResultRow.cpp
 )
 
