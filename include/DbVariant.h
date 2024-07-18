@@ -71,8 +71,8 @@ public:
 
     std::string typeName() const;
     std::string toString() const;
-    unsigned long long toUInt64() const;
-    long long toInt64() const;
+    unsigned long long toULongLong() const;
+    long long toLongLong() const;
     long double toLongDouble() const;
     bool toBool() const;
 

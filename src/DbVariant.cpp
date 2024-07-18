@@ -109,7 +109,7 @@ bool LazyOrm::DbVariant::can_UInt_Fit_Float(unsigned long long value) const
     return false;
 }
 
-unsigned long long LazyOrm::DbVariant::toUInt64() const
+unsigned long long LazyOrm::DbVariant::toULongLong() const
 {
     if(isUnsignedIntegerVariant()){
         return toUnsignedInteger();
@@ -373,7 +373,7 @@ bool LazyOrm::DbVariant::can_Int_Fit_Float(long long value) const
     return false;
 }
 
-long long LazyOrm::DbVariant::toInt64() const
+long long LazyOrm::DbVariant::toLongLong() const
 {
     if(isSignedIntegerVariant()){
         return toSignedInteger();
