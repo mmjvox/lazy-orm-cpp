@@ -14,9 +14,9 @@ class LazyOrm : public MariadbLazy, public PostgreLazy, public SqliteLazy
 public:
     enum DBMS_TYPE
     {
-        MariaDB =1,
-        Postgre,
-        Sqlite
+        Postgre=0,
+        MariaDB,
+        Sqlite3
     };
 
     LazyOrm();

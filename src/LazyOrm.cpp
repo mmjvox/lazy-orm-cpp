@@ -14,7 +14,7 @@ std::string LazyOrm::queryString(const DBMS_TYPE &dbms)
         return static_cast<MariadbLazy*>(this)->queryString();
     case Postgre:
         return static_cast<PostgreLazy*>(this)->queryString();
-    case Sqlite:
+    case Sqlite3:
         return static_cast<SqliteLazy*>(this)->queryString();
     }
 }
