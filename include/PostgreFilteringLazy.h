@@ -4,7 +4,7 @@
 #include "FilteringAbstractLazy.h"
 
 namespace LazyOrm {
-class PostgreFilteringLazy : public FilteringAbstractLazy
+class PostgreFilteringLazy : virtual public FilteringAbstractLazy
 {
 protected:
 
@@ -23,6 +23,11 @@ public:
     PostgreFilteringLazy();
     //
     std::string filter_conditions() const override;
+
+    // copy contructors:;
+    PostgreFilteringLazy(const FilteringAbstractLazy& abstractLaz);
+    void operator=(const FilteringAbstractLazy& abstractLaz);
+
 };
 }
 

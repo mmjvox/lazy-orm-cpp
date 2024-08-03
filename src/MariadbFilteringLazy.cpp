@@ -197,4 +197,18 @@ std::string MariadbFilteringLazy::filter_conditions() const
     return retStr;
 }
 
+MariadbFilteringLazy::MariadbFilteringLazy(const FilteringAbstractLazy &abstractLaz)
+{
+    *this = abstractLaz;
+}
+
+void MariadbFilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
+{
+    mReservedFilter = abstractLaz.reservedFilter();
+    mLimitConditions = abstractLaz.limitConditions();
+    mOrderConditions = abstractLaz.orderConditions();
+    mGroupConditions = abstractLaz.groupConditions();
+    mHavingConditions = abstractLaz.havingConditions();
+}
+
 }

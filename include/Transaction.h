@@ -27,7 +27,9 @@ private:
     std::string bulk_insert_query() const override{return{};}
     std::string insert_ignore_query() const override{return{};}
     std::string bulk_update_query() const override{return{};}
-    FilteringAbstractLazy& getCurrentFilters() override{
+
+    FilteringAbstractLazy& getCurrentFilters() override
+    {
         throw std::logic_error("Cannot get FilteringAbstractLazy object");
     }
 
@@ -37,6 +39,11 @@ public:
     void append(DBMStype query);
     std::string queryString() const override;
     std::string queryString(bool beginTrans) const;
+
+    const FilteringAbstractLazy& getFilter() const override{
+        throw std::logic_error("Cannot get FilteringAbstractLazy object");
+    }
+
 };
 
 }

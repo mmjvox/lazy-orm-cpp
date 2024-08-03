@@ -23,15 +23,23 @@ protected:
 
   FilteringAbstractLazy& getCurrentFilters() override
   {
-    return mFilter;
+      return mFilter;
   }
-
 
 public:
   MariadbLazy();
   MariadbLazy(const std::string &table, const Query &queryType);
 
   void setFilter(const MariadbFilteringLazy filter);
+
+  // copy contructors:;
+  MariadbLazy(const AbstractLazy& abstractLaz);
+  void operator=(const AbstractLazy& abstractLaz);
+
+  const FilteringAbstractLazy& getFilter() const override
+  {
+      return mFilter;
+  }
 
 };
 }

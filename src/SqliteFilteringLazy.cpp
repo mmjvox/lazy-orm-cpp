@@ -197,4 +197,18 @@ std::string SqliteFilteringLazy::filter_conditions() const
     return retStr;
 }
 
+SqliteFilteringLazy::SqliteFilteringLazy(const FilteringAbstractLazy &abstractLaz)
+{
+    *this = abstractLaz;
+}
+
+void SqliteFilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
+{
+    mReservedFilter = abstractLaz.reservedFilter();
+    mLimitConditions = abstractLaz.limitConditions();
+    mOrderConditions = abstractLaz.orderConditions();
+    mGroupConditions = abstractLaz.groupConditions();
+    mHavingConditions = abstractLaz.havingConditions();
+}
+
 }

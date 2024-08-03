@@ -4,7 +4,7 @@
 #include "FilteringAbstractLazy.h"
 
 namespace LazyOrm {
-class MariadbFilteringLazy : public FilteringAbstractLazy
+class MariadbFilteringLazy : virtual public FilteringAbstractLazy
 {
 protected:
 
@@ -24,6 +24,11 @@ public:
     MariadbFilteringLazy();
     //
     std::string filter_conditions() const override;
+
+    // copy contructors:;
+    MariadbFilteringLazy(const FilteringAbstractLazy& abstractLaz);
+    void operator=(const FilteringAbstractLazy& abstractLaz);
+
 };
 }
 

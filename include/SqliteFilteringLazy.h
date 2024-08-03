@@ -4,7 +4,7 @@
 #include "FilteringAbstractLazy.h"
 
 namespace LazyOrm {
-class SqliteFilteringLazy : public FilteringAbstractLazy
+class SqliteFilteringLazy : virtual public FilteringAbstractLazy
 {
 protected:
 
@@ -23,6 +23,11 @@ public:
     SqliteFilteringLazy();
     //
     std::string filter_conditions() const override;
+
+    // copy contructors:;
+    SqliteFilteringLazy(const FilteringAbstractLazy& abstractLaz);
+    void operator=(const FilteringAbstractLazy& abstractLaz);
+
 };
 }
 

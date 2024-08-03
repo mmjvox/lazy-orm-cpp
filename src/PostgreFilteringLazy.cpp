@@ -197,4 +197,18 @@ std::string PostgreFilteringLazy::filter_conditions() const
     return retStr;
 }
 
+PostgreFilteringLazy::PostgreFilteringLazy(const FilteringAbstractLazy &abstractLaz)
+{
+    *this = abstractLaz;
+}
+
+void PostgreFilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
+{
+    mReservedFilter = abstractLaz.reservedFilter();
+    mLimitConditions = abstractLaz.limitConditions();
+    mOrderConditions = abstractLaz.orderConditions();
+    mGroupConditions = abstractLaz.groupConditions();
+    mHavingConditions = abstractLaz.havingConditions();
+}
+
 }

@@ -9,19 +9,23 @@ WhereFilter::~WhereFilter()
 
 WhereFilter::WhereFilter(std::string str)
 {
+    if(str.empty()){
+        return;
+    }
     mNestedDbVariant.push_back({str});
     mNestedWhereFilters.push_back(*this);
 }
 
-WhereFilter::WhereFilter(std::initializer_list<WhereFilter> wfs) : mNestedWhereFilters(wfs)
-{
-}
+WhereFilter::WhereFilter(std::initializer_list<WhereFilter> wfs) : mNestedWhereFilters(wfs.begin(), wfs.end()) {}
 
 LazyOrm::WhereFilter::WhereFilter()
 {
 }
 
 LazyOrm::WhereFilter::WhereFilter(DbVariant variant){
+    if(variant.empty()){
+        return;
+    }
     mNestedDbVariant.push_back({variant});
     mNestedWhereFilters.push_back(*this);
 }
@@ -75,11 +79,17 @@ LazyOrm::WhereFilter::WhereFilter(std::vector<DbVariant> variants)
 
 LazyOrm::WhereFilter::WhereFilter(std::vector<WhereFilter> wfs)
 {
+    if(wfs.empty()){
+        return;
+    }
     mNestedWhereFilters.push_back(wfs);
 }
 
 void WhereFilter::operator=(const WhereFilter &wf)
 {
+    if(wf.empty()){
+        return;
+    }
     mNestedWhereFilters.push_back(wf);
 }
 

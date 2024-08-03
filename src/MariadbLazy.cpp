@@ -5,8 +5,24 @@ namespace LazyOrm
 
 MariadbLazy::MariadbLazy()
 {
-
 }
+
+MariadbLazy::MariadbLazy(const AbstractLazy &abstractLaz)
+{
+    *this = abstractLaz;
+}
+
+void MariadbLazy::operator=(const AbstractLazy &abstractLaz)
+{
+    mQueryType = abstractLaz.queryType();
+    mTabeName = abstractLaz.tabeName();
+    mProperties = abstractLaz.properties();
+    mBatchProperties = abstractLaz.batchProperties();
+    mWhereFilter = abstractLaz.whereFilter();
+    mFilter = abstractLaz.getFilter();
+    mPrimaryKey = abstractLaz.primaryKey();
+}
+
 
 MariadbLazy::MariadbLazy(const std::string &table, const Query &queryType)
 {

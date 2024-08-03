@@ -20,7 +20,6 @@ DbVariant &AbstractLazy::operator[](const std::string &key)
     return mProperties[key];
 }
 
-
 void AbstractLazy::setQueryType(LazyOrm::Query queryType)
 {
   mQueryType = queryType;
@@ -30,6 +29,26 @@ std::string & AbstractLazy::operator[](const Query &queryType)
 {
   mQueryType = queryType;
   return mTabeName;
+}
+
+std::string AbstractLazy::tabeName() const
+{
+    return mTabeName;
+}
+
+std::map<DbVariant, DbVariant> AbstractLazy::properties() const
+{
+    return mProperties;
+}
+
+std::list<std::map<DbVariant, DbVariant> > AbstractLazy::batchProperties() const
+{
+    return mBatchProperties;
+}
+
+Query AbstractLazy::queryType() const
+{
+    return mQueryType;
 }
 
 std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<std::string> &container) const
@@ -58,6 +77,11 @@ std::string AbstractLazy::string_join(const std::string &delimiter, const std::v
       }
   }
   return output;
+}
+
+WhereFilter AbstractLazy::whereFilter() const
+{
+    return mWhereFilter;
 }
 
 std::string AbstractLazy::queryString() const
@@ -137,6 +161,23 @@ WhereFilter& AbstractLazy::operator[](const LazyOrm::NestedWhere &nestedWhere)
 {
   return mWhereFilter;
 }
+
+
+void AbstractLazy::setPrimaryKey(const std::string &primaryKey)
+{
+    this->mPrimaryKey = primaryKey;
+}
+
+std::string &AbstractLazy::operator[](const LazyOrm::Primary_Key &primaryKey)
+{
+    return mPrimaryKey;
+}
+
+std::string AbstractLazy::primaryKey() const
+{
+    return mPrimaryKey;
+}
+
 
 //void AbstractLazy::operator=(const LazyOrm::FilterVariant &variant)
 //{

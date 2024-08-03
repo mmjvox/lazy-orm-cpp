@@ -1,11 +1,27 @@
 #include "SqliteLazy.h"
+#include "MariadbLazy.h"
 
 namespace LazyOrm
 {
 
 SqliteLazy::SqliteLazy()
 {
+}
 
+SqliteLazy::SqliteLazy(const AbstractLazy &abstractLaz)
+{
+    *this = abstractLaz;
+}
+
+void SqliteLazy::operator=(const AbstractLazy &abstractLaz)
+{
+    mQueryType = abstractLaz.queryType();
+    mTabeName = abstractLaz.tabeName();
+    mProperties = abstractLaz.properties();
+    mBatchProperties = abstractLaz.batchProperties();
+    mWhereFilter = abstractLaz.whereFilter();
+    mFilter = abstractLaz.getFilter();
+    mPrimaryKey = abstractLaz.primaryKey();
 }
 
 SqliteLazy::SqliteLazy(const std::string &table, const Query &queryType)

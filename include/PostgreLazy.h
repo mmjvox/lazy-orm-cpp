@@ -10,7 +10,6 @@ class PostgreLazy : public AbstractLazy
 {
 private:
   PostgreFilteringLazy mFilter;
-  std::string primaryKey="id";
 
 protected:
   std::string insert_query() const override;
@@ -24,9 +23,8 @@ protected:
 
   FilteringAbstractLazy& getCurrentFilters() override
   {
-    return mFilter;
+      return mFilter;
   }
-
 
 public:
   PostgreLazy();
@@ -34,7 +32,14 @@ public:
 
   void setFilter(const PostgreFilteringLazy filter);
 
-  void setPrimaryKey(const std::string &primaryKey);
+  // copy contructors:;
+  PostgreLazy(const AbstractLazy& abstractLaz);
+  void operator=(const AbstractLazy& abstractLaz);
+
+  const FilteringAbstractLazy& getFilter() const override
+  {
+      return mFilter;
+  }
 
 };
 }

@@ -6,6 +6,8 @@
 
 namespace LazyOrm
 {
+class MariadbLazy;
+
 class SqliteLazy : public AbstractLazy
 {
 private:
@@ -23,15 +25,23 @@ protected:
 
   FilteringAbstractLazy& getCurrentFilters() override
   {
-    return mFilter;
+      return mFilter;
   }
-
 
 public:
   SqliteLazy();
   SqliteLazy(const std::string &table, const Query &queryType);
 
   void setFilter(const SqliteFilteringLazy filter);
+
+// copy contructors:;
+  SqliteLazy(const AbstractLazy& abstractLaz);
+  void operator=(const AbstractLazy& abstractLaz);
+
+  const FilteringAbstractLazy& getFilter() const override
+  {
+      return mFilter;
+  }
 
 };
 }

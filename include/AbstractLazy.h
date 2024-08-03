@@ -31,15 +31,18 @@ enum Query
   //TODO: BATCH_INSERT_UPDATE
 };
 
+enum Primary_Key{
+    PrimaryKey=0,
+};
+
 class AbstractLazy
 {
-private:
-  Query mQueryType=UNDEFINED;
-
 protected:
+  Query mQueryType=UNDEFINED;
   std::string mTabeName;
   std::map<DbVariant, DbVariant> mProperties;
   std::list<std::map<DbVariant, DbVariant>> mBatchProperties;
+  std::string mPrimaryKey="id";
   std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
   std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
 
@@ -77,6 +80,19 @@ public:
   FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
   WhereFilter& operator[](const LazyOrm::NestedWhere &nestedWhere);
 //  void operator=(const LazyOrm::FilterVariant &variant);
+
+  void setPrimaryKey(const std::string &primaryKey);
+  std::string & operator[](const LazyOrm::Primary_Key &primaryKey);
+
+  //getters
+  std::string tabeName() const;
+  std::map<DbVariant, DbVariant> properties() const;
+  std::list<std::map<DbVariant, DbVariant> > batchProperties() const;
+  WhereFilter whereFilter() const;
+  Query queryType() const;
+  virtual const FilteringAbstractLazy& getFilter() const = 0;
+  std::string primaryKey() const;
+
 };
 }
 

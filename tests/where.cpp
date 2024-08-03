@@ -1,3 +1,4 @@
+#include <SqliteLazy.h>
 #include <iostream>
 //#include "MariadbLazy.h"
 #include "WhereFilter.h"
@@ -182,11 +183,41 @@ std::string where5() {
     return likes.toString();
 }
 
+std::string where6() {
+    LazyOrm::WhereFilter whereFilter = {
+        {
+         {"field1","NULL"},
+         {"OR"},
+         {"field1",""}
+        }
+    };
+    return whereFilter.toString();
+}
+
+
+std::string where7() {
+
+    LazyOrm::SqliteLazy lazyOrm;
+    lazyOrm[LazyOrm::SELECT]="student";
+    lazyOrm<<"name"<<"age"<<"hair";
+
+
+    lazyOrm[LazyOrm::WHERE] = {
+
+            {"field1","NULL"},
+            {"OR"},
+            {"field1",""}
+
+    };
+    return lazyOrm.queryString();
+}
+
 TEST_CASE( "Factorials are computed", "[Lazy_WHERE]" ) {
 
-    std::cout << where5() << std::endl;
+    std::cout << where7() << std::endl;
 
-    //REQUIRE( Catch::trim(where1()) == R"(WHERE (((`AGE` in '[4,5,6,7,8]') OR (`AGE` in '[1,2,3,4,5]')) AND ((`AGE` in '[40,50,60,70,80]') OR (`AGE` in '[10,20,30,40,50]'))) AND ((`name` like 'asqar') OR (`name` like 'mamad')) NOT ((`name` like 'asqar') OR (`name` like 'mamad')) AND NOT ((`name` like 'asqar') OR (`name` like 'mamad')) OR NOT ((`name` like 'asqar') OR (`name` like 'mamad')))" );
-    //REQUIRE( Catch::trim(where2()) == R"(WHERE (((`name` like 'asqar') OR (`name` like 'mamad')) AND ((`name` like 'asqar') OR (`name` like 'mamad')) AND SSS (((`AGE` in '[4,5,6,7,8]') OR (`AGE` in '[1,2,3,4,5]')) AND ((`AGE` in '[40,50,60,70,80]') OR (`AGE` in '[10,20,30,40,50]')))))" );
-    //REQUIRE( Catch::trim(where5()) == R"(WHERE ((`name` like 'asqar') OR (`name` like 'khar') OR (`name` like 'akbar')))" );
+    // REQUIRE( Catch::trim(where1()) == R"(WHERE (((`AGE` in '[4,5,6,7,8]') OR (`AGE` in '[1,2,3,4,5]')) AND ((`AGE` in '[40,50,60,70,80]') OR (`AGE` in '[10,20,30,40,50]'))) AND ((`name` like 'asqar') OR (`name` like 'mamad')) NOT ((`name` like 'asqar') OR (`name` like 'mamad')) AND NOT ((`name` like 'asqar') OR (`name` like 'mamad')) OR NOT ((`name` like 'asqar') OR (`name` like 'mamad')))" );
+    // REQUIRE( Catch::trim(where2()) == R"(WHERE (((`name` like 'asqar') OR (`name` like 'mamad')) AND ((`name` like 'asqar') OR (`name` like 'mamad')) AND SSS (((`AGE` in '[4,5,6,7,8]') OR (`AGE` in '[1,2,3,4,5]')) AND ((`AGE` in '[40,50,60,70,80]') OR (`AGE` in '[10,20,30,40,50]')))))" );
+    // REQUIRE( Catch::trim(where5()) == R"(WHERE ((`name` like 'asqar') OR (`name` like 'khar') OR (`name` like 'akbar')))" );
+    // REQUIRE( Catch::trim(where6()) == R"(WHERE ((`field1` = NULL) OR (`field1` = '')))" );
 }

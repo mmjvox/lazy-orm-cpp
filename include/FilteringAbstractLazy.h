@@ -12,10 +12,8 @@ namespace LazyOrm {
 
 class FilteringAbstractLazy
 {
-private:
-    Filters mReservedFilter=Filters::None;
-
 protected:
+    Filters mReservedFilter=Filters::None;
     std::string filterStr(Filters f) const;
     FilterVariant mLimitConditions;
     FilterVariant mOrderConditions;
@@ -51,6 +49,12 @@ public:
 
 
     std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
+    // getters
+    Filters reservedFilter() const;
+    FilterVariant limitConditions() const;
+    FilterVariant orderConditions() const;
+    FilterVariant groupConditions() const;
+    std::vector<FilterVariant> havingConditions() const;
 };
 }
 #endif // FILTERINGABSTRACTLAZY_H

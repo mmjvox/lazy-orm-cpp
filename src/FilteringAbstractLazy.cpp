@@ -4,6 +4,11 @@
 namespace LazyOrm {
 
 
+Filters FilteringAbstractLazy::reservedFilter() const
+{
+    return mReservedFilter;
+}
+
 std::string FilteringAbstractLazy::filterStr(Filters f) const
 {
     switch (f) {
@@ -19,6 +24,26 @@ std::string FilteringAbstractLazy::filterStr(Filters f) const
         return {};
     }
     return {};
+}
+
+std::vector<FilterVariant> FilteringAbstractLazy::havingConditions() const
+{
+    return mHavingConditions;
+}
+
+FilterVariant FilteringAbstractLazy::groupConditions() const
+{
+    return mGroupConditions;
+}
+
+FilterVariant FilteringAbstractLazy::orderConditions() const
+{
+    return mOrderConditions;
+}
+
+FilterVariant FilteringAbstractLazy::limitConditions() const
+{
+    return mLimitConditions;
 }
 
 FilteringAbstractLazy::FilteringAbstractLazy()

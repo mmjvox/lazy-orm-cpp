@@ -1,16 +1,27 @@
 #include "PostgreLazy.h"
+#include "LazyOrm.h"
 
 namespace LazyOrm
 {
 
 PostgreLazy::PostgreLazy()
 {
-
 }
 
-void PostgreLazy::setPrimaryKey(const std::string &primaryKey)
+PostgreLazy::PostgreLazy(const AbstractLazy &abstractLaz)
 {
-    this->primaryKey = primaryKey;
+    *this = abstractLaz;
+}
+
+void PostgreLazy::operator=(const AbstractLazy &abstractLaz)
+{
+    mQueryType = abstractLaz.queryType();
+    mTabeName = abstractLaz.tabeName();
+    mProperties = abstractLaz.properties();
+    mBatchProperties = abstractLaz.batchProperties();
+    mWhereFilter = abstractLaz.whereFilter();
+    mFilter = abstractLaz.getFilter();
+    mPrimaryKey = abstractLaz.primaryKey();
 }
 
 PostgreLazy::PostgreLazy(const std::string &table, const Query &queryType)
@@ -40,7 +51,7 @@ std::string PostgreLazy::insert_query() const
   queryString.append(" ("+string_join(",",keys)+") ");
   queryString.append("VALUES");
   queryString.append(" ("+string_join(",",values)+") ");
-  queryString.append(" returning "+primaryKey);
+  queryString.append(" returning "+mPrimaryKey);
   queryString.append(";");
   return queryString;
 }

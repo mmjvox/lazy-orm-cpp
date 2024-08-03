@@ -20,6 +20,7 @@ set(LazyORM_HEADERS
     include/AbstractLazy.h
     include/FilteringAbstractLazy.h
     include/LazyOrm.h
+    include/FilteringLazy.h
 
     include/MariadbLazy.h
     include/MariadbFilteringLazy.h
@@ -45,6 +46,7 @@ add_library(lazyorm STATIC
     src/WhereFilter.cpp
     src/FilterVariant.cpp
     src/LazyOrm.cpp
+    src/FilteringLazy.cpp
 
     src/AbstractLazy.cpp
     src/FilteringAbstractLazy.cpp
