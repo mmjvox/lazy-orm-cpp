@@ -1,7 +1,8 @@
 #include "ResultRow.h"
-#include "DbVariant.h"
 
-std::string LazyOrm::ResultRow::toString() const
+namespace LazyOrm {
+
+std::string ResultRow::toString() const
 {
     // TODO remove last ,
     std::string retStr="{";
@@ -20,7 +21,7 @@ std::string LazyOrm::ResultRow::toString() const
     return retStr;
 }
 
-std::string LazyOrm::ResultRow::toIndentedString() const
+std::string ResultRow::toIndentedString() const
 {
     // TODO remove last ,
     std::string retStr="\n  {";
@@ -37,4 +38,44 @@ std::string LazyOrm::ResultRow::toIndentedString() const
     }
     retStr.append("\n  }");
     return retStr;
+}
+
+LazyOrm::DbVariant ResultRow::value(const std::string key, const DbVariant dbVariant) const
+{
+    auto value = find(key);
+    if(value==std::unordered_map<std::string,DbVariant>::end()){
+        return {};
+    }
+    return value->second;
+}
+
+void ResultRow::insert(const std::string key, const DbVariant dbVariant)
+{
+    std::unordered_map<std::string,DbVariant>::insert_or_assign(key, dbVariant);
+}
+
+LazyOrm::DbVariant ResultRow::operator[](const std::string key) const
+{
+    return this->value(key);
+}
+
+LazyOrm::DbVariant ResultRow::at(unsigned long long columnIndex) const
+{
+    unsigned long long column = -1;
+    DbVariant dbVariant;
+    for(const auto [key, value] : *this){
+        column++;
+        if(column==columnIndex){
+            dbVariant = value;
+            break;
+        }
+    }
+    return dbVariant;
+}
+
+LazyOrm::DbVariant ResultRow::value(unsigned long long columnIndex) const
+{
+    return at(columnIndex);
+}
+
 }

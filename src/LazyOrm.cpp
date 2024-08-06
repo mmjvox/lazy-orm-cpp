@@ -36,11 +36,11 @@ std::string LazyOrm::queryString(const DBMS_TYPE &dbms) const
 {
     switch (dbms) {
     case MariaDB:
-        return MariadbLazy(*this).queryString();
+        return static_cast<MariadbLazy>(*this).queryString();
     case Postgres:
-        return PostgreLazy(*this).queryString();
+        return static_cast<PostgreLazy>(*this).queryString();
     case Sqlite3:
-        return SqliteLazy(*this).queryString();
+        return static_cast<SqliteLazy>(*this).queryString();
     }
 }
 

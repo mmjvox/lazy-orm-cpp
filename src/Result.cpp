@@ -3,6 +3,11 @@
 
 namespace LazyOrm {
 
+std::string Result::errorMessage() const
+{
+    return mErrorMessage;
+}
+
 std::string Result::toString() const
 {
     // TODO remove last ,
@@ -69,6 +74,14 @@ unsigned long long Result::insertId() const {
 
 void Result::setInsertId(unsigned long long insertId) {
     mInsertId = insertId;
+}
+
+ResultRow Result::value(unsigned long long index)
+{
+    if(index < std::vector<ResultRow>::size()){
+        return std::vector<ResultRow>::at(index);
+    }
+    return {};
 }
 
 }

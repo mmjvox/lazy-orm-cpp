@@ -32,6 +32,9 @@ public:
     unsigned long long insertId() const;
     void setInsertId(unsigned long long insertId);
     void setColumnNames(const std::vector<std::string> &columnNames);
+    std::string errorMessage() const;
+
+    ResultRow value(unsigned long long index);
 };
 
 }
