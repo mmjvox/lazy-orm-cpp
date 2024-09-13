@@ -55,6 +55,8 @@ public:
     FilterVariant orderConditions() const;
     FilterVariant groupConditions() const;
     std::vector<FilterVariant> havingConditions() const;
+
+    std::string filter_conditions_with_trim_consecutive_spaces();
 };
 }
 #endif // FILTERINGABSTRACTLAZY_H

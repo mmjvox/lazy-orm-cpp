@@ -11,7 +11,7 @@ std::string filter1() {
     filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {11,23});
-    return filters.filter_conditions();
+    return filters.filter_conditions_with_trim_consecutive_spaces();
 }
 
 std::string filter2() {
@@ -19,7 +19,7 @@ std::string filter2() {
     filters.setFilter(LazyOrm::GROUPBY , {"group1","group2"});
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {11,23});
-    return filters.filter_conditions();
+    return filters.filter_conditions_with_trim_consecutive_spaces();
 }
 
 std::string filter3() {
@@ -27,7 +27,7 @@ std::string filter3() {
     filters[LazyOrm::GROUPBY] = {{"group1","group2"}};
     filters[LazyOrm::ORDERBY] = {{"num1","num2"}};
     filters[LazyOrm::LIMIT] = "10,10";
-    return filters.filter_conditions();
+    return filters.filter_conditions_with_trim_consecutive_spaces();
 }
 
 std::string filter4() {
@@ -47,7 +47,7 @@ std::string filter4() {
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {"14",26});
 
-return filters.filter_conditions();
+return filters.filter_conditions_with_trim_consecutive_spaces();
 }
 
 
@@ -77,7 +77,7 @@ std::string where5() {
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {"14",26});
 
-return filters.filter_conditions();
+return filters.filter_conditions_with_trim_consecutive_spaces();
 }
 
 std::string where6() {
@@ -106,7 +106,7 @@ std::string where6() {
     filters.setFilter(LazyOrm::ORDERBY , {"num1","num2"});
     filters.setFilter(LazyOrm::LIMIT , {"14",26});
 
-return filters.filter_conditions();
+return filters.filter_conditions_with_trim_consecutive_spaces();
 }
 
 std::string where7() {
@@ -136,7 +136,7 @@ std::string where7() {
 
     LazyOrm::MariadbFilteringLazy filters;
 //    filters.setFilter({whereFilter});
-return filters.filter_conditions();
+return filters.filter_conditions_with_trim_consecutive_spaces();
 }
 
 std::string where8() {

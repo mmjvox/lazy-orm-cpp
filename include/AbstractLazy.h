@@ -93,6 +93,10 @@ public:
   virtual const FilteringAbstractLazy& getFilter() const = 0;
   std::string primaryKey() const;
 
+
+  static void trim_consecutive_spaces(std::string& str);
+  virtual std::string query_with_trim_consecutive_spaces();
+
 };
 }
 

@@ -1,4 +1,5 @@
 #include "FilteringAbstractLazy.h"
+#include <algorithm>
 #include <iostream>
 
 namespace LazyOrm {
@@ -29,6 +30,15 @@ std::string FilteringAbstractLazy::filterStr(Filters f) const
 std::vector<FilterVariant> FilteringAbstractLazy::havingConditions() const
 {
     return mHavingConditions;
+}
+
+std::string FilteringAbstractLazy::filter_conditions_with_trim_consecutive_spaces(){
+    std::string str = filter_conditions();
+    auto new_end = std::unique(str.begin(), str.end(), [](char a, char b) {
+        return a == ' ' && b == ' ';
+    });
+    str.erase(new_end, str.end());
+    return str;
 }
 
 FilterVariant FilteringAbstractLazy::groupConditions() const

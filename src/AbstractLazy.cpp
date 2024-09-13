@@ -1,4 +1,5 @@
 #include "AbstractLazy.h"
+#include <algorithm>
 
 namespace LazyOrm {
 
@@ -176,6 +177,23 @@ std::string &AbstractLazy::operator[](const LazyOrm::Primary_Key &primaryKey)
 std::string AbstractLazy::primaryKey() const
 {
     return mPrimaryKey;
+}
+
+void AbstractLazy::trim_consecutive_spaces(std::string &str) {
+    auto new_end = std::unique(str.begin(), str.end(), [](char a, char b) {
+        return a == ' ' && b == ' ';
+    });
+    str.erase(new_end, str.end());
+}
+
+std::string AbstractLazy::query_with_trim_consecutive_spaces()
+{
+    std::string str = queryString();
+    auto new_end = std::unique(str.begin(), str.end(), [](char a, char b) {
+        return a == ' ' && b == ' ';
+    });
+    str.erase(new_end, str.end());
+    return str;
 }
 
 

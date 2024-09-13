@@ -38,12 +38,14 @@ public:
     Transaction(std::initializer_list<DBMStype> queries);
     void append(DBMStype query);
     std::string queryString() const override;
-    std::string queryString(bool beginTrans) const;
+    std::string queryStringWithoutBegining() const;
 
     const FilteringAbstractLazy& getFilter() const override{
         throw std::logic_error("Cannot get FilteringAbstractLazy object");
     }
 
+
+    virtual std::string query_with_trim_consecutive_spaces();
 };
 
 }

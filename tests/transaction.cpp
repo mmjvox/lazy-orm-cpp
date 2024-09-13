@@ -22,7 +22,7 @@ std::string transaction1() {
   transaction.append(lazyOrm);
   transaction.append(lazyOrm2);
 
-  return transaction.queryString();
+  return transaction.query_with_trim_consecutive_spaces();
 }
 
 std::string transaction2() {
@@ -39,7 +39,7 @@ std::string transaction2() {
 
   LazyOrm::Transaction<LazyOrm::MariadbLazy> transaction({lazyOrm,lazyOrm2});
 
-  return transaction.queryString();
+  return transaction.query_with_trim_consecutive_spaces();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_Transaction]" ) {

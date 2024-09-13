@@ -10,11 +10,14 @@ std::string Result::errorMessage() const
 
 std::string Result::toString() const
 {
-    // TODO remove last ,
     std::string retStr="[";
+    bool first = true;
     for(const auto &value : *this){
+        if (!first) {
+            retStr.append(",");
+        }
+        first = false;
         retStr.append(value.toString());
-        retStr.append(",");
     }
     retStr.append("]");
     return retStr;
@@ -22,11 +25,14 @@ std::string Result::toString() const
 
 std::string Result::toIndentedString() const
 {
-    // TODO remove last ,
     std::string retStr="[";
+    bool first = true;
     for(const auto &value : *this){
+        if (!first) {
+            retStr.append(",");
+        }
+        first = false;
         retStr.append(value.toIndentedString());
-        retStr.append(",");
     }
     retStr.append("]");
     return retStr;

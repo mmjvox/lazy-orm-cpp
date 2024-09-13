@@ -3,6 +3,7 @@
 #include "MariadbLazy.h"
 #include "PostgreLazy.h"
 #include "SqliteLazy.h"
+#include <algorithm>
 
 namespace LazyOrm {
 
@@ -85,13 +86,7 @@ void Transaction<DBMStype>::append(DBMStype query)
 }
 
 template<class DBMStype>
-std::string Transaction<DBMStype>::queryString() const
-{
-    return queryString(false);
-}
-
-template<class DBMStype>
-std::string Transaction<DBMStype>::queryString(bool beginTrans) const
+std::string Transaction<DBMStype>::queryStringWithoutBegining() const
 {
     if(mQueries.size()<1)
     {
@@ -100,18 +95,53 @@ std::string Transaction<DBMStype>::queryString(bool beginTrans) const
     auto firstQuery = mQueries.front();
     if constexpr(std::is_same_v<decltype(firstQuery) , MariadbLazy>)
     {
-        return forMariadb(beginTrans);
+        return forMariadb(false);
     }
     if constexpr(std::is_same_v<decltype(firstQuery) , PostgreLazy>)
     {
-        return forPostgre(beginTrans);
+        return forPostgre(false);
     }
     if constexpr(std::is_same_v<decltype(firstQuery) , SqliteLazy>)
     {
-        return forSqlite(beginTrans);
+        return forSqlite(false);
     }
     return {};
 }
+
+template<class DBMStype>
+std::string Transaction<DBMStype>::queryString() const
+{
+    if(mQueries.size()<1)
+    {
+        return {};
+    }
+    auto firstQuery = mQueries.front();
+    if constexpr(std::is_same_v<decltype(firstQuery) , MariadbLazy>)
+    {
+        return forMariadb(true);
+    }
+    if constexpr(std::is_same_v<decltype(firstQuery) , PostgreLazy>)
+    {
+        return forPostgre(true);
+    }
+    if constexpr(std::is_same_v<decltype(firstQuery) , SqliteLazy>)
+    {
+        return forSqlite(true);
+    }
+    return {};
+}
+
+template<class DBMStype>
+std::string Transaction<DBMStype>::query_with_trim_consecutive_spaces()
+{
+    std::string str = queryString();
+    auto new_end = std::unique(str.begin(), str.end(), [](char a, char b) {
+        return a == ' ' && b == ' ';
+    });
+    str.erase(new_end, str.end());
+    return str;
+}
+
 
 template class Transaction<MariadbLazy>;
 template class Transaction<PostgreLazy>;

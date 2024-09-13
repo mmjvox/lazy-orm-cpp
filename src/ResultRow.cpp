@@ -4,9 +4,15 @@ namespace LazyOrm {
 
 std::string ResultRow::toString() const
 {
-    // TODO remove last ,
     std::string retStr="{";
+    bool first = true;
     for(auto [key, value] : *this){
+
+        if (!first) {
+            retStr.append(",");
+        }
+        first = false;
+
         retStr.append("\""+key+"\"");
         retStr.append(":");
         // value.alterStringToBestMatchType();
@@ -15,7 +21,6 @@ std::string ResultRow::toString() const
         } else {
             retStr.append(value.toString());
         }
-        retStr.append(",");
     }
     retStr.append("}");
     return retStr;
@@ -23,9 +28,15 @@ std::string ResultRow::toString() const
 
 std::string ResultRow::toIndentedString() const
 {
-    // TODO remove last ,
     std::string retStr="\n  {";
+    bool first = true;
     for(auto [key, value] : *this){
+
+        if (!first) {
+            retStr.append(",");
+        }
+        first = false;
+
         retStr.append("\n   \""+key+"\"");
         retStr.append(":");
         // value.alterStringToBestMatchType();
@@ -34,7 +45,6 @@ std::string ResultRow::toIndentedString() const
         } else {
             retStr.append(value.toString());
         }
-        retStr.append(",");
     }
     retStr.append("\n  }");
     return retStr;
