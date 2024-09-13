@@ -13,7 +13,7 @@ std::string bulk_insert1() {
                           {{"name","damian"},{"family","Desmond"},{"age",8},{"hair","black"},{"cute",false}},
                           {{"name","loid"},{"family","forger"},{"age",30},{"hair","blond"},{"cute",false}}
                         });
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 std::string bulk_insert2() {
@@ -26,7 +26,7 @@ std::string bulk_insert2() {
   LazyOrm::MariadbLazy lazyOrm;
   lazyOrm[LazyOrm::BULK_INSERT]="student";
   lazyOrm.setProperties(batchProperties);
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_BATCH_INSERT]" ) {

@@ -209,15 +209,18 @@ std::string where7() {
             {"field1",""}
 
     };
-    return lazyOrm.queryString();
+    return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_WHERE]" ) {
 
-    std::cout << where7() << std::endl;
+    // std::cout << where2() << std::endl;
 
-    // REQUIRE( Catch::trim(where1()) == R"(WHERE (((`AGE` in '[4,5,6,7,8]') OR (`AGE` in '[1,2,3,4,5]')) AND ((`AGE` in '[40,50,60,70,80]') OR (`AGE` in '[10,20,30,40,50]'))) AND ((`name` like 'asqar') OR (`name` like 'mamad')) NOT ((`name` like 'asqar') OR (`name` like 'mamad')) AND NOT ((`name` like 'asqar') OR (`name` like 'mamad')) OR NOT ((`name` like 'asqar') OR (`name` like 'mamad')))" );
-    // REQUIRE( Catch::trim(where2()) == R"(WHERE (((`name` like 'asqar') OR (`name` like 'mamad')) AND ((`name` like 'asqar') OR (`name` like 'mamad')) AND SSS (((`AGE` in '[4,5,6,7,8]') OR (`AGE` in '[1,2,3,4,5]')) AND ((`AGE` in '[40,50,60,70,80]') OR (`AGE` in '[10,20,30,40,50]')))))" );
+    REQUIRE( Catch::trim(where1()) == R"(WHERE (((`AGE` in '[4,5,6,7,8]') OR (`AGE` in '[1,2,3,4,5]')) AND ((`AGE` in '[40,50,60,70,80]') OR (`AGE` in '[10,20,30,40,50]'))) AND ((`name` like 'asqar') OR (`name` like 'mamad')) NOT ((`name` like 'asqar') OR (`name` like 'mamad')) AND NOT ((`name` like 'asqar') OR (`name` like 'mamad')) OR NOT ((`name` like 'asqar') OR (`name` like 'mamad')))" );
+    REQUIRE( Catch::trim(where2()) == R"(WHERE (((`name` like 'asqar') OR (`name` like 'mamad')) AND ((`name` like 'asqar') OR (`name` like 'mamad')) AND SSS (((`AGE` in '[4,5,6,7,8]') OR (`AGE` in '[1,2,3,4,5]')) AND ((`AGE` in '[40,50,60,70,80]') OR (`AGE` in '[10,20,30,40,50]')))))" );
+    // REQUIRE( Catch::trim(where3()) == R"(WHERE AGE <= 30)" );
+    REQUIRE( Catch::trim(where4()) == R"(WHERE a wwwww ccc)" );
     // REQUIRE( Catch::trim(where5()) == R"(WHERE ((`name` like 'asqar') OR (`name` like 'khar') OR (`name` like 'akbar')))" );
-    // REQUIRE( Catch::trim(where6()) == R"(WHERE ((`field1` = NULL) OR (`field1` = '')))" );
+    REQUIRE( Catch::trim(where6()) == R"(WHERE ((`field1` = NULL) OR (`field1` = '')))" );
+    REQUIRE( Catch::trim(where7()) == R"(SELECT `age`,`hair`,`name` FROM student WHERE ((`field1` = NULL) OR (`field1` = '')) ;)" );
 }

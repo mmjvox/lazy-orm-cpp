@@ -11,13 +11,13 @@ std::string insert1() {
   lazyOrm["age"]= 6;
   lazyOrm["hair"]="pink";
   lazyOrm["cute"]=true;
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 std::string insert2() {
   LazyOrm::MariadbLazy lazyOrm;
   lazyOrm[LazyOrm::INSERT]="student";
   lazyOrm.setProperties({{"name","ahmad"},{"age",27},{"cute",false}});
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 std::string insert3() {
@@ -26,7 +26,7 @@ std::string insert3() {
   lazyOrm<<LazyOrm::pair{"name","ahmad"};
   lazyOrm<<LazyOrm::pair{"age",23}<<LazyOrm::pair{"hair","black"};
   lazyOrm<<LazyOrm::pair{"cute",false};
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 std::string insert4() {
@@ -35,7 +35,7 @@ std::string insert4() {
   lazyOrm["last_name"]= "yavari";
   lazyOrm["gender"]="male";
   lazyOrm["name_father"]="reza";
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_INSERT]" ) {

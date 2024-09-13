@@ -10,20 +10,20 @@ std::string select1() {
   LazyOrm::MariadbLazy lazyOrm;
   lazyOrm[LazyOrm::SELECT]="student";
   lazyOrm.setProperties({"name","age","hair","*"});
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 std::string select2() {
   LazyOrm::MariadbLazy lazyOrm;
   lazyOrm[LazyOrm::SELECT]="student";
   lazyOrm<<"name"<<"age"<<"hair"<<"*";
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 std::string select3() {
   LazyOrm::MariadbLazy lazyOrm;
   lazyOrm[LazyOrm::SELECT]="student";
   lazyOrm<<"name"<<"age"<<"hair";
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 std::string select4() {
@@ -39,7 +39,7 @@ std::string select4() {
 
 //  lazyOrm.setFilter({LazyOrm::HAVING, {{"height",">","160"}}});
   //
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 std::string select5() {
@@ -52,7 +52,7 @@ std::string select5() {
   lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
   lazyOrm[LazyOrm::LIMIT] = {{"5",",","6"}};
   //
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 std::string select6() {
@@ -65,7 +65,7 @@ std::string select6() {
   lazyOrm[LazyOrm::ORDERBY] = {{"num1","num2"}};
   lazyOrm[LazyOrm::LIMIT] = {{"5","6"}};
   //
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {

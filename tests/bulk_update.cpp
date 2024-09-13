@@ -20,7 +20,7 @@ std::string bulk_update1() {
   //
   lazyOrm[LazyOrm::WHERE] = {{"userid", "20"}};
 
-  return lazyOrm.queryString();
+  return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_UPDATE]" ) {
