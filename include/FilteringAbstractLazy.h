@@ -48,7 +48,7 @@ public:
     void operator=(const LazyOrm::FilterVariant &variant);
 
 
-    std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
+    std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container, bool setQuote=false) const;
     // getters
     Filters reservedFilter() const;
     FilterVariant limitConditions() const;

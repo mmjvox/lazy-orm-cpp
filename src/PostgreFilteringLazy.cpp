@@ -84,10 +84,10 @@ void PostgreFilteringLazy::appendOrderby(std::string &retStr) const
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            retStr.append(string_join(",",arg));
+            retStr.append(string_join(",",arg,true));
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
-            retStr.append(arg.toString());
+            retStr.append(arg.setQuote());
         }
     }, mOrderConditions);
 
@@ -128,10 +128,10 @@ void PostgreFilteringLazy::appendGroup(std::string &retStr) const
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            retStr.append(string_join(",",arg));
+            retStr.append(string_join(",",arg,true));
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
-            retStr.append(arg.toString());
+            retStr.append(arg.setQuote());
         }
     }, mGroupConditions);
 

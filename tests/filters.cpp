@@ -228,9 +228,9 @@ TEST_CASE( "Factorials are computed", "[Lazy_FILTER]" ) {
 
     std::cout << where7() << std::endl;
 
-    REQUIRE( Catch::trim(filter1()) == R"(GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,23)" );
-    REQUIRE( Catch::trim(filter2()) == R"(GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 11,23)" );
-    REQUIRE( Catch::trim(filter3()) == R"(GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 10,10)" );
-    REQUIRE( Catch::trim(filter4()) == R"(GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 14,26)" );
+    REQUIRE( Catch::trim(filter1()) == R"(GROUP BY 'group1','group2' ORDER BY 'num1','num2' LIMIT 11,23)" );
+    REQUIRE( Catch::trim(filter2()) == R"(GROUP BY 'group1','group2' ORDER BY 'num1','num2' LIMIT 11,23)" );
+    REQUIRE( Catch::trim(filter3()) == R"(GROUP BY 'group1','group2' ORDER BY 'num1','num2' LIMIT 10,10)" );
+    REQUIRE( Catch::trim(filter4()) == R"(GROUP BY 'group1','group2' ORDER BY 'num1','num2' LIMIT 14,26)" );
 //    REQUIRE( Catch::trim(where5()) == R"(WHERE  (`name` like 'sa%' OR `name` like '%ra' ) AND  (`age` between '6,13' OR `grade` in '[17,18,19,20]' ) GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 14,26)" );
 }
