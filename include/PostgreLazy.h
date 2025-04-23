@@ -41,6 +41,8 @@ public:
       return mFilter;
   }
 
+  void appendFilter(const Filters &filter, LazyOrm::DbVariant dbVariant) override;
+
 };
 }
 #endif // POSTGRELAZY_H

@@ -1,9 +1,8 @@
 #include "DbVariant.h"
 #include <cfloat>
-#include <cstdint>
 #include <climits>
-#include <limits>
 #include <sstream>
+#include <cmath>
 
 std::string LazyOrm::DbVariant::toString() const
 {
@@ -203,16 +202,25 @@ bool LazyOrm::DbVariant::can_Float_Fit_UInt(long double value) const
 
 std::string LazyOrm::DbVariant::toFixedString(long double value) const
 {
+    if(isScientific(value)){
+        std::ostringstream oss;
+        oss << std::scientific << value;
+        return toFixedString(oss.str());
+    }
     return toFixedString(std::to_string(value));
 }
 
-std::string LazyOrm::DbVariant::toFixedString(std::string str) const
+std::string LazyOrm::DbVariant::toFixedString(const std::string &str) const
 {
-    str.erase(str.find_last_not_of('0') + 1, std::string::npos);
-    if (str.back() == '.') {
-        str.pop_back();
+    if(str.find('.') == std::string::npos){
+        return str;
     }
-    return str;
+    auto fixingStr = str;
+    fixingStr.erase(fixingStr.find_last_not_of('0') + 1, std::string::npos);
+    if (fixingStr.back() == '.') {
+        fixingStr.pop_back();
+    }
+    return fixingStr;
 }
 
 long long LazyOrm::DbVariant::safeStringToLL(std::string value) const
@@ -224,7 +232,11 @@ long long LazyOrm::DbVariant::safeStringToLL(std::string value) const
         // Convert the long double back to string
         std::ostringstream oss;
         oss.precision(value.size());  // Set the precision to the size of the original string
-        oss << std::fixed << converted;
+        if (isScientific(value)) {
+            oss << std::scientific << converted;
+        } else {
+            oss << std::fixed << converted;
+        }
         std::string value2 = oss.str();
         // check after and befor is same
         if(toFixedString(value) == toFixedString(value2)){
@@ -245,7 +257,11 @@ unsigned long long LazyOrm::DbVariant::safeStringToULL(std::string value) const
         // Convert the long double back to string
         std::ostringstream oss;
         oss.precision(value.size());  // Set the precision to the size of the original string
-        oss << std::fixed << converted;
+        if (isScientific(value)) {
+            oss << std::scientific << converted;
+        } else {
+            oss << std::fixed << converted;
+        }
         std::string value2 = oss.str();
         // check after and befor is same
         if(toFixedString(value) == toFixedString(value2)){
@@ -266,7 +282,11 @@ long double LazyOrm::DbVariant::safeStringToLD(std::string value) const
         // Convert the long double back to string
         std::ostringstream oss;
         oss.precision(value.size());  // Set the precision to the size of the original string
-        oss << std::fixed << converted;
+        if (isScientific(value)) {
+            oss << std::scientific << converted;
+        } else {
+            oss << std::fixed << converted;
+        }
         std::string value2 = oss.str();
         // check after and befor is same
         if(toFixedString(value) == toFixedString(value2)){
@@ -551,7 +571,11 @@ LazyOrm::DbVariant LazyOrm::DbVariant::alterStringToBestMatchType()
                 // Convert the long double back to string
                 std::ostringstream oss;
                 oss.precision(value.size());  // Set the precision to the size of the original string
-                oss << std::fixed << converted;
+                if (isScientific(value)) {
+                    oss << std::scientific << converted;
+                } else {
+                    oss << std::fixed << converted;
+                }
 
                 std::string value2 = oss.str();
 
@@ -586,4 +610,26 @@ LazyOrm::DbVariant LazyOrm::DbVariant::alterStringToNumber()
     }, *this);
 
     return *this;
+}
+
+
+bool LazyOrm::DbVariant::isScientific(const std::string &value) const
+{
+    return (value.find('e') != std::string::npos) || (value.find('E') != std::string::npos);
+}
+
+bool LazyOrm::DbVariant::isScientific(const double &value) const {
+    return (std::fpclassify(value) == FP_SUBNORMAL) ||
+           (std::fabs(value) >= 1e6 || std::fabs(value) <= 1e-6);
+}
+
+const std::map<std::string, LazyOrm::Filters> LazyOrm::DbVariant::getFiltersToStringMap() const
+{
+    return {
+        {"None", None},
+        {"ORDERBY", ORDERBY},
+        {"LIMIT", LIMIT},
+        {"HAVING", HAVING},
+        {"GROUPBY", GROUPBY}
+    };
 }

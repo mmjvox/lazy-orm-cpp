@@ -23,7 +23,6 @@ void MariadbLazy::operator=(const AbstractLazy &abstractLaz)
     mPrimaryKey = abstractLaz.primaryKey();
 }
 
-
 MariadbLazy::MariadbLazy(const std::string &table, const Query &queryType)
 {
   setTabeName(table);
@@ -212,6 +211,11 @@ std::string MariadbLazy::insert_ignore_query() const
   queryString.append(" ("+string_join(",",values)+") ");
   queryString.append(";");
   return queryString;
+}
+
+void MariadbLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
+{
+    mFilter.appendFilter(filter, dbVariant);
 }
 
 std::string MariadbLazy::bulk_update_query() const

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
-project(lazyorm VERSION 1.0.0 LANGUAGES CXX)
+project(lazyorm VERSION 1.0.2 LANGUAGES CXX)
+add_definitions (-Dlazy_orm_version="${CMAKE_PROJECT_VERSION}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG_MODE)
@@ -7,6 +8,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include_directories(
     include/

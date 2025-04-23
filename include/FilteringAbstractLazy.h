@@ -46,6 +46,7 @@ public:
     void setFilter(const Filters &filter, LazyOrm::FilterVariant filterVariant);
     FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
     void operator=(const LazyOrm::FilterVariant &variant);
+    void appendFilter(const Filters &filter, LazyOrm::DbVariant &dbVariant);
 
 
     std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container, bool setQuote=false) const;

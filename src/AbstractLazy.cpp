@@ -3,6 +3,8 @@
 
 namespace LazyOrm {
 
+const char *AbstractLazy::version = lazy_orm_version;
+
 void AbstractLazy::setTabeName(const std::string &name)
 {
   mTabeName = name;
@@ -19,6 +21,11 @@ void AbstractLazy::setTabeName(const std::string &name)
 DbVariant &AbstractLazy::operator[](const std::string &key)
 {
     return mProperties[key];
+}
+
+void AbstractLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
+{
+
 }
 
 void AbstractLazy::setQueryType(LazyOrm::Query queryType)

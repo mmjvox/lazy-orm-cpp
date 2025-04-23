@@ -157,6 +157,11 @@ std::string PostgreLazy::bulk_insert_query() const
   return queryString;
 }
 
+void PostgreLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
+{
+    mFilter.appendFilter(filter, dbVariant);
+}
+
 std::string PostgreLazy::insert_update_query() const
 {
     // TODO:

@@ -52,6 +52,8 @@ protected:
     std::string bulk_insert_query() const override;
     std::string insert_ignore_query() const override;
     std::string bulk_update_query() const override;
+    void appendFilter(const Filters &filter, DbVariant dbVariant) override;
+
 };
 
 }

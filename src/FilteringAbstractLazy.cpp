@@ -176,6 +176,26 @@ void FilteringAbstractLazy::operator=(const FilterVariant &variant)
   setFilterForReserved(variant);
 }
 
+void FilteringAbstractLazy::appendFilter(const Filters &filter, DbVariant &dbVariant)
+{
+    switch (filter) {
+    case None:
+        break;
+    case ORDERBY:
+        mOrderConditions.append(dbVariant);
+        break;
+    case LIMIT:
+        mLimitConditions.append(dbVariant);
+        break;
+    case HAVING:
+        // TODO: mHavingConditions
+        break;
+    case GROUPBY:
+        mGroupConditions.append(dbVariant);
+        break;
+    }
+}
+
 std::string FilteringAbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container, bool setQuote) const
 {
   size_t size = container.size();

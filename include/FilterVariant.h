@@ -15,6 +15,7 @@ public:
     FilterVariant(std::vector<DbVariant> v);
 
     bool empty() const;
+    void append(DbVariant &dbVariant);
 
     std::vector<DbVariant> toDbVariants() const;
 };

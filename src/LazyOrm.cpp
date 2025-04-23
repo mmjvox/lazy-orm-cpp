@@ -30,6 +30,7 @@ std::string LazyOrm::insert_update_query() const {return {};}
 std::string LazyOrm::bulk_insert_query() const {return {};}
 std::string LazyOrm::insert_ignore_query() const {return {};}
 std::string LazyOrm::bulk_update_query() const {return {};}
+void LazyOrm::appendFilter(const Filters &filter, DbVariant dbVariant){}
 
 
 std::string LazyOrm::queryString(const DBMS_TYPE &dbms) const

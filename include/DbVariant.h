@@ -3,6 +3,7 @@
 
 #include <string>
 #include <variant>
+#include <map>
 #include <list>
 #include <vector>
 
@@ -11,9 +12,6 @@ namespace LazyOrm {
 enum Filters
 {
     None = -10,
-//    WHERE = 0,
-//    AND = 1,
-//    OR,
     ORDERBY=1,
     LIMIT,
     HAVING,
@@ -59,11 +57,13 @@ private:
     bool can_Float_Fit_UInt(long double value) const;
 
     std::string toFixedString(long double value) const;
-    std::string toFixedString(std::string str) const;
+    std::string toFixedString(const std::string &str) const;
 
     long long safeStringToLL(std::string value) const;
     unsigned long long safeStringToULL(std::string value) const;
     long double safeStringToLD(std::string value) const;
+    bool isScientific(const std::string &value) const;
+    bool isScientific(const double &value) const;
 
 
 public:
@@ -88,6 +88,8 @@ public:
 
     DbVariant alterStringToBestMatchType();
     DbVariant alterStringToNumber();
+
+    const std::map<std::string, LazyOrm::Filters> getFiltersToStringMap() const;
 };
 
 typedef std::pair<std::string,LazyOrm::DbVariant> pair;

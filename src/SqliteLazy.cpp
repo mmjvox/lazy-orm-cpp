@@ -156,6 +156,11 @@ std::string SqliteLazy::bulk_insert_query() const
   return queryString;
 }
 
+void SqliteLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
+{
+    mFilter.appendFilter(filter, dbVariant);
+}
+
 std::string SqliteLazy::insert_update_query() const
 {
     // TODO:

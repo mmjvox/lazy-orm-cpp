@@ -56,10 +56,12 @@ protected:
   virtual std::string bulk_update_query() const = 0;
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
+  virtual void appendFilter(const Filters &filter, LazyOrm::DbVariant dbVariant) = 0;
 
   WhereFilter mWhereFilter;
 
 public:
+  const static char* version;
   virtual std::string queryString() const;
 
   void setTabeName(const std::string &name);

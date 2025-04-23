@@ -177,16 +177,16 @@ TEST_CASE( "Factorials are computed", "[Lazy_DbVariant]" ) {
     REQUIRE( var10.toLongLong() == 0 );
     REQUIRE( var10.toULongLong() == 0 );
     REQUIRE( var10.toLongDouble() == Catch::Approx(-4.25617e+46).epsilon(0.0001));
-    REQUIRE( var10.toString() == "-42561651651561651641963300908244742187757076480" );
+    REQUIRE( var10.toString() == "-4.256165e+46" );
     REQUIRE( var10.toBool() == false );
     REQUIRE( var10.alterStringToBestMatchType().toLongLong() == 0 );
     REQUIRE( var10.alterStringToBestMatchType().toULongLong() == 0 );
     REQUIRE( var10.alterStringToBestMatchType().toLongDouble() == Catch::Approx(-4.25617e+46).epsilon(0.0001) );
-    REQUIRE( var10.alterStringToBestMatchType().toString() == "-42561651651561651641963300908244742187757076480" );
+    REQUIRE( var10.alterStringToBestMatchType().toString() == "-4.256165e+46" );
     REQUIRE( var10.alterStringToBestMatchType().toBool() == false );
     REQUIRE( var10.toLongLong() == 0 );
     REQUIRE( var10.toULongLong() == 0 );
     REQUIRE( var10.toLongDouble() == Catch::Approx(-4.25617e+46).epsilon(0.0001) );
-    REQUIRE( var10.toString() == "-42561651651561651641963300908244742187757076480" );
+    REQUIRE( var10.toString() == "-4.256165e+46" );
     REQUIRE( var10.toBool() == false );
 }

@@ -27,6 +27,7 @@ private:
     std::string bulk_insert_query() const override{return{};}
     std::string insert_ignore_query() const override{return{};}
     std::string bulk_update_query() const override{return{};}
+    void appendFilter(const Filters &filter, DbVariant dbVariant) override {}
 
     FilteringAbstractLazy& getCurrentFilters() override
     {

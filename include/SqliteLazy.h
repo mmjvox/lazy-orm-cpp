@@ -43,6 +43,8 @@ public:
       return mFilter;
   }
 
+  void appendFilter(const Filters &filter, LazyOrm::DbVariant dbVariant) override;
+
 };
 }
 #endif // SQLITELAZY_H
