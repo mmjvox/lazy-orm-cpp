@@ -81,6 +81,7 @@ public:
 
   FilteringAbstractLazy& operator[](const LazyOrm::Filters &filter);
   WhereFilter& operator[](const LazyOrm::NestedWhere &nestedWhere);
+  void setNestedWhere(LazyOrm::WhereFilter nestedWhere);
 //  void operator=(const LazyOrm::FilterVariant &variant);
 
   void setPrimaryKey(const std::string &primaryKey);

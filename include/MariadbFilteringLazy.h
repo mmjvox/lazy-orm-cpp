@@ -25,7 +25,7 @@ public:
     //
     std::string filter_conditions() const override;
 
-    // copy contructors:;
+    // copy contructors
     MariadbFilteringLazy(const FilteringAbstractLazy& abstractLaz);
     void operator=(const FilteringAbstractLazy& abstractLaz);
 

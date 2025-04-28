@@ -28,12 +28,18 @@ public:
     WhereFilter(std::vector<WhereFilter> wfs);
 
     void operator=(const WhereFilter &wf);
+    bool operator==(const WhereFilter& other) const;
+    const std::vector<WhereFilter>& nestedWhereFilters() const;
+    const std::vector<std::vector<DbVariant>>& nestedDbVariant() const;
 
     bool empty() const;
 
     std::string toString() const;
 
     void append(std::vector<DbVariant> variants);
+    void append(std::initializer_list<std::variant<std::vector<DbVariant>,DbVariant>> variants);
+    void append(std::vector<WhereFilter> wfs);
+    void setWhereFilterVector(std::vector<WhereFilter> wfs);
 };
 
 }

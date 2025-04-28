@@ -69,6 +69,8 @@ private:
 public:
     using std::variant<std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>::variant;
 
+    DbVariant& set(DbVariant newVariant);
+
     std::string typeName() const;
     std::string toString() const;
     unsigned long long toULongLong() const;

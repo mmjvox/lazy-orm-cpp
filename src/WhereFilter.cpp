@@ -1,5 +1,4 @@
 #include "WhereFilter.h"
-#include <iostream>
 
 namespace LazyOrm {
 
@@ -32,44 +31,7 @@ LazyOrm::WhereFilter::WhereFilter(DbVariant variant){
 
 LazyOrm::WhereFilter::WhereFilter(std::initializer_list<std::variant<std::vector<DbVariant>,DbVariant>> variants)
 {
-    std::vector<DbVariant> tempVector;
-    for(const auto& filter : variants)
-    {
-        std::visit([this, &tempVector](auto&& arg) {
-            using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, std::vector<LazyOrm::DbVariant>>) {
-                mNestedDbVariant.push_back(arg);
-            }
-            if constexpr (std::is_same_v<T, LazyOrm::DbVariant>) {
-                tempVector.push_back(arg);
-            }
-        }, filter);
-    }
-    if(!tempVector.empty())
-    {
-        if(tempVector.size()==1)
-        {
-            const auto & var = tempVector.at(0).toUpperString();
-            if(var=="AND" || var=="OR"  || var=="NOT" || var=="AND NOT" || var=="OR NOT")
-            {
-                mNestedDbVariant.push_back({{var}});
-                mNestedWhereFilters.push_back(*this);
-                return;
-            }
-        }
-        if(tempVector.size()==2)
-        {
-            const auto & var1 = tempVector.at(0).toUpperString();
-            const auto & var2 = tempVector.at(1).toUpperString();
-            if(var1=="AND" || var1=="OR"  || var1=="NOT" || var2=="NOT")
-            {
-                mNestedDbVariant.push_back({{var1+" "+var2}});
-                mNestedWhereFilters.push_back(*this);
-                return;
-            }
-        }
-        mNestedDbVariant.push_back(tempVector);
-    }
+    this->append(variants);
 }
 
 LazyOrm::WhereFilter::WhereFilter(std::vector<DbVariant> variants)
@@ -79,10 +41,12 @@ LazyOrm::WhereFilter::WhereFilter(std::vector<DbVariant> variants)
 
 LazyOrm::WhereFilter::WhereFilter(std::vector<WhereFilter> wfs)
 {
-    if(wfs.empty()){
-        return;
-    }
-    mNestedWhereFilters.push_back(wfs);
+    this->setWhereFilterVector(wfs);
+}
+
+bool WhereFilter::operator==(const WhereFilter &other) const {
+    return mNestedDbVariant == other.mNestedDbVariant &&
+           mNestedWhereFilters == other.mNestedWhereFilters;
 }
 
 void WhereFilter::operator=(const WhereFilter &wf)
@@ -96,6 +60,16 @@ void WhereFilter::operator=(const WhereFilter &wf)
 bool WhereFilter::empty() const
 {
     return (mNestedWhereFilters.empty() && mNestedDbVariant.empty());
+}
+
+const std::vector<WhereFilter>& WhereFilter::nestedWhereFilters() const
+{
+    return mNestedWhereFilters;
+}
+
+const std::vector<std::vector<DbVariant>>& WhereFilter::nestedDbVariant() const
+{
+    return mNestedDbVariant;
 }
 
 bool WhereFilter::isWhereFilter() const{
@@ -131,9 +105,72 @@ std::string WhereFilter::toString() const
     return retStr.append(" ");
 }
 
+void WhereFilter::append(std::initializer_list<std::variant<std::vector<DbVariant>, DbVariant> > variants)
+{
+    std::vector<DbVariant> tempVector;
+    for(const auto& filter : variants)
+    {
+        std::visit([this, &tempVector](auto&& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::vector<LazyOrm::DbVariant>>) {
+                this->append(arg);
+                // mNestedDbVariant.push_back(arg);
+            }
+            if constexpr (std::is_same_v<T, LazyOrm::DbVariant>) {
+                tempVector.push_back(arg);
+            }
+        }, filter);
+    }
+    if(!tempVector.empty())
+    {
+        this->append(tempVector);
+    }
+}
+
 void WhereFilter::append(std::vector<DbVariant> variants)
 {
-    mNestedDbVariant.push_back(variants);
+    if(!variants.empty())
+    {
+        if(variants.size()==1)
+        {
+            const auto & var = variants.at(0).toUpperString();
+            if(var=="AND" || var=="OR"  || var=="NOT" || var=="AND NOT" || var=="OR NOT")
+            {
+                mNestedDbVariant.push_back({{var}});
+                mNestedWhereFilters.push_back(*this);
+                return;
+            }
+        }
+        if(variants.size()==2)
+        {
+            const auto & var1 = variants.at(0).toUpperString();
+            const auto & var2 = variants.at(1).toUpperString();
+            if(var1=="AND" || var1=="OR"  || var1=="NOT" || var2=="NOT")
+            {
+                mNestedDbVariant.push_back({{var1+" "+var2}});
+                mNestedWhereFilters.push_back(*this);
+                return;
+            }
+        }
+        mNestedDbVariant.push_back(variants);
+    }
+    // mNestedDbVariant.push_back(variants);
+}
+
+void WhereFilter::append(std::vector<WhereFilter> wfs)
+{
+    if(wfs.empty()){
+        return;
+    }
+    mNestedWhereFilters.push_back(wfs);
+}
+
+void WhereFilter::setWhereFilterVector(std::vector<WhereFilter> wfs)
+{
+    if(wfs.empty()){
+        return;
+    }
+    mNestedWhereFilters = wfs;
 }
 
 std::string WhereFilter::toString(WhereFilter wf) const

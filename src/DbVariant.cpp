@@ -4,6 +4,14 @@
 #include <sstream>
 #include <cmath>
 
+LazyOrm::DbVariant &LazyOrm::DbVariant::set(DbVariant newVariant)
+{
+    if(*this!=newVariant){
+        *this = newVariant;
+    }
+    return *this;
+}
+
 std::string LazyOrm::DbVariant::toString() const
 {
     return std::visit([=, this](auto&& arg) -> std::string {

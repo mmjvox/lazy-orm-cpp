@@ -170,6 +170,11 @@ WhereFilter& AbstractLazy::operator[](const LazyOrm::NestedWhere &nestedWhere)
   return mWhereFilter;
 }
 
+void AbstractLazy::setNestedWhere(LazyOrm::WhereFilter nestedWhere){
+    if(mWhereFilter != nestedWhere){
+        mWhereFilter = nestedWhere;
+    }
+}
 
 void AbstractLazy::setPrimaryKey(const std::string &primaryKey)
 {
