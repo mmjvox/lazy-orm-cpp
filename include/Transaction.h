@@ -4,6 +4,7 @@
 #include "AbstractLazy.h"
 #include <string>
 #include <vector>
+#include  <stdexcept>
 #include <type_traits>
 
 namespace LazyOrm {

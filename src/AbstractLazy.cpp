@@ -118,22 +118,22 @@ std::string AbstractLazy::queryString() const
   return {};
 }
 
-void AbstractLazy::setProperty(const std::string &key, const DbVariant value)
+void AbstractLazy::setProperty(const std::string key, const DbVariant value)
 {
-  mProperties.insert_or_assign(key, value);
+    mProperties[key]=value;
 }
 
 void AbstractLazy::setProperties(const std::vector<std::string> &keys)
 {
     for(const auto &key : keys)
     {
-        mProperties.insert_or_assign(key,"");
+        mProperties[key]="";
     }
 }
 
 AbstractLazy & AbstractLazy::operator<<(const std::string &key)
 {
-    mProperties.insert_or_assign(key,"");
+    mProperties[key]="";
     return *this;
 }
 
@@ -141,7 +141,7 @@ void AbstractLazy::setProperties(const std::initializer_list<std::pair<DbVariant
 {
   for(const auto &item : items)
     {
-        mProperties.insert_or_assign(item.first, item.second.toString());
+        mProperties[item.first] = item.second.toString();
     }
 }
 
@@ -156,7 +156,7 @@ void AbstractLazy::setProperties(const std::list<std::map<DbVariant, DbVariant> 
 }
 
 AbstractLazy &AbstractLazy::operator<<(const std::pair<DbVariant, DbVariant> &key_value){
-    mProperties.insert_or_assign(key_value.first, key_value.second);
+    mProperties[key_value.first] = key_value.second;
     return *this;
 }
 

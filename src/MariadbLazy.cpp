@@ -220,7 +220,27 @@ void MariadbLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
 
 std::string MariadbLazy::bulk_update_query() const
 {
-  return {};
+    if(mBatchProperties.size()<1)
+    {
+        return {};
+    }
+
+    const std::string &createTempTableQuery = "CREATE TEMPORARY TABLE lazyormtemp"+ mTabeName +" LIKE "+ mTabeName +";";
+
+    const std::string &bulkInsertQuery = bulk_insert_query();
+
+
+    std::string updateTableQuery ="UPDATE "+ mTabeName +" t \nJOIN updates u ON t."+mPrimaryKey+" = u."+mPrimaryKey;
+    for(const auto &updateRow : mBatchProperties){
+        for (const auto& [key, value] : updateRow) {
+            const auto & col = key.toCleanString();
+            updateTableQuery.append( "\nSET t."+ col +" = u."+ col +"; " );
+        }
+    }
+
+    const std::string &dropTempTableQuery = "DROP TEMPORARY TABLE IF EXISTS lazyormtemp"+ mTabeName +";";
+
+    return dropTempTableQuery +" \n"+ createTempTableQuery +" \n"+ bulkInsertQuery +" \n"+ updateTableQuery +" \n"+ dropTempTableQuery;
 }
 
 

@@ -11,7 +11,6 @@
 #include <variant>
 #include <string>
 #include <initializer_list>
-#include <iostream>
 
 
 namespace LazyOrm {
@@ -68,7 +67,7 @@ public:
   void setQueryType(LazyOrm::Query queryType);
   std::string & operator[](const LazyOrm::Query &queryType);
 
-  void setProperty(const std::string &key, const DbVariant value);
+  void setProperty(const std::string key, const DbVariant value);
   DbVariant & operator[](const std::string &key);
 
   void setProperties(const std::vector<std::string> &keys);
