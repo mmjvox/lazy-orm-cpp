@@ -33,6 +33,12 @@ TEST_CASE( "Factorials are computed", "[Lazy_DbVariant]" ) {
     REQUIRE( privateVar3.toSignedFloatingPoint() == std::numeric_limits<long double>::max() );
 #endif
 
+    LazyOrm::DbVariant var0 = 0;
+    REQUIRE( var0.toLongLong() == 0 );
+    REQUIRE( var0.toULongLong() == 0 );
+    REQUIRE( var0.toLongDouble() == 0 );
+    REQUIRE( var0.toString() == "0" );
+    REQUIRE( var0.toBool() == false );
 
     LazyOrm::DbVariant var1 = 40;
     REQUIRE( var1.toLongLong() == 40 );
