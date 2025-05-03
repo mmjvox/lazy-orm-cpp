@@ -627,6 +627,9 @@ bool LazyOrm::DbVariant::isScientific(const std::string &value) const
 }
 
 bool LazyOrm::DbVariant::isScientific(const double &value) const {
+    if(value == 0.0){
+        return false;
+    }
     return (std::fpclassify(value) == FP_SUBNORMAL) ||
            (std::fabs(value) >= 1e6 || std::fabs(value) <= 1e-6);
 }
