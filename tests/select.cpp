@@ -12,6 +12,7 @@ std::string select1() {
   lazyOrm.setProperties({"name","age","hair","*"});
   return lazyOrm.query_with_trim_consecutive_spaces();
 }
+
 std::string select2() {
   LazyOrm::MariadbLazy lazyOrm;
   lazyOrm[LazyOrm::SELECT]="student";
@@ -83,6 +84,21 @@ std::string select8() {
     return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
+std::string select9() {
+    LazyOrm::MariadbLazy lazyOrm;
+    lazyOrm[LazyOrm::SELECT_DISTINCT]="student";
+    lazyOrm.setProperties({"name","age","hair","*"});
+    return lazyOrm.query_with_trim_consecutive_spaces();
+}
+
+std::string select10() {
+    LazyOrm::MariadbLazy lazyOrm;
+    lazyOrm[LazyOrm::SELECT]="student";
+    lazyOrm.setProperties({"name","age","hair","*"});
+    lazyOrm.enableDistinctSelect(true);
+    return lazyOrm.query_with_trim_consecutive_spaces();
+}
+
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
     REQUIRE( Catch::trim(select1()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
     REQUIRE( Catch::trim(select2()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
@@ -91,4 +107,7 @@ TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
 
     REQUIRE( Catch::trim(select7()) == R"(SELECT *,`age`,`hair`,`name`,COUNT(`name`),COUNT(`age` as 'age2'),COUNT(`hair` as 'hair2'),COUNT(`*`) FROM student;)" );
     REQUIRE( Catch::trim(select8()) == R"(SELECT `age`,`count (*)`,`count (age as age2)`,`count (hair as 'hair2')`,`count (name)`,`hair`,`name` FROM student;)" );
+
+    REQUIRE( Catch::trim(select9()) == R"(SELECT DISTINCT *,`age`,`hair`,`name` FROM student;)" );
+    REQUIRE( Catch::trim(select10()) == R"(SELECT DISTINCT *,`age`,`hair`,`name` FROM student;)" );
 }

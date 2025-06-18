@@ -26,9 +26,10 @@ enum Query
   INSERT_UPDATE,
   BULK_INSERT,
   INSERT_IGNORE,
-  BULK_UPDATE
+  BULK_UPDATE,
   //TODO: BATCH_INSERT_UPDATE
   //TODO: has or contains
+  SELECT_DISTINCT
 };
 
 enum Count{
@@ -96,6 +97,9 @@ public:
 
   void setCountType(std::initializer_list<DbVariant> countFields);
   std::list<DbVariant> & operator[](const LazyOrm::Count &count);
+
+  // convert simple SELECT to SELECT DISTINCT
+  void enableDistinctSelect(bool distinct=true);
 
   //getters
   std::string tabeName() const;

@@ -76,7 +76,7 @@ std::string MariadbLazy::select_query() const
     }
 
     std::string queryString;
-    queryString = "SELECT ";
+    queryString = mQueryType == SELECT_DISTINCT? "SELECT DISTINCT " : "SELECT ";
     queryString.append(string_join(",",keys));
     queryString.append(" FROM ");
     queryString.append(mTabeName);

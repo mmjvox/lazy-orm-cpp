@@ -23,6 +23,15 @@ DbVariant &AbstractLazy::operator[](const std::string &key)
     return mProperties[key];
 }
 
+void AbstractLazy::enableDistinctSelect(bool distinct){
+    if(mQueryType == SELECT and distinct){
+        mQueryType = SELECT_DISTINCT;
+    }
+    else if(mQueryType == SELECT_DISTINCT and !distinct){
+        mQueryType = SELECT;
+    }
+}
+
 void AbstractLazy::setCountType(std::initializer_list<LazyOrm::DbVariant> countFields)
 {
     mCounts = countFields;
@@ -107,6 +116,7 @@ std::string AbstractLazy::queryString() const
   case INSERT:
       return insert_query();
   case SELECT:
+  case SELECT_DISTINCT:
       return select_query();
   case UPDATE:
       return update_query();
