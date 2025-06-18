@@ -70,6 +70,12 @@ std::string SqliteLazy::select_query() const
       }
     }
 
+    if(!mCounts.empty()){
+        for(const auto &countItem : count_queries()){
+            keys.push_back(countItem);
+        }
+    }
+
     std::string queryString;
     queryString = "SELECT ";
     queryString.append(string_join(",",keys));

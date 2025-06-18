@@ -499,6 +499,35 @@ bool LazyOrm::DbVariant::empty()
     }, *this);
 }
 
+const size_t LazyOrm::DbVariant::lenght() const
+{
+    return std::visit([=](auto&& arg) -> bool {
+
+        using T = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<T, std::string>) {
+            return arg.length();
+        }
+
+        return 0;
+
+    }, *this);
+}
+
+bool LazyOrm::DbVariant::contains(std::string substr) const
+{
+    return toString().find(substr) != std::string::npos;
+}
+
+bool LazyOrm::DbVariant::startsWith(std::string prefix) const
+{
+    const auto str = toString();
+    if (prefix.size() > str.size()) {
+        return false;
+    }
+    return str.compare(0, prefix.size(), prefix) == 0;
+}
+
 std::string LazyOrm::DbVariant::setQuote() const
 {
     std::string strVal = toString();
@@ -538,6 +567,21 @@ std::string LazyOrm::DbVariant::setBackTick() const
     {
         return "`"+strVal.substr(8)+"`";
     }
+
+    auto asPos = toLowerString().find(" as ");
+    if(asPos==std::string::npos){
+        asPos = toLowerString().find(" -> ");
+    }
+    if(asPos!=std::string::npos)
+    {
+        if(strVal.length()>asPos+4){
+            if(strVal.at(asPos+4)=='\''){
+                return "`"+strVal.insert(asPos,"`");
+            }
+            return "`"+strVal.insert(asPos,"`").insert(asPos+5,"'")+"'";
+        }
+    }
+
     return "`"+strVal+"`";
 }
 

@@ -23,9 +23,18 @@ DbVariant &AbstractLazy::operator[](const std::string &key)
     return mProperties[key];
 }
 
+void AbstractLazy::setCountType(std::initializer_list<LazyOrm::DbVariant> countFields)
+{
+    mCounts = countFields;
+}
+
+std::list<LazyOrm::DbVariant> &AbstractLazy::operator[](const Count &count){
+    return mCounts;
+}
+
 void AbstractLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
 {
-
+    // TODO: implement
 }
 
 void AbstractLazy::setQueryType(LazyOrm::Query queryType)
@@ -206,6 +215,22 @@ std::string AbstractLazy::query_with_trim_consecutive_spaces()
     });
     str.erase(new_end, str.end());
     return str;
+}
+
+std::list<std::string> AbstractLazy::count_queries() const
+{
+    const std::string distinct = "[DISTINCT]";
+
+    std::list<std::string> list;
+    for(const auto &countItem : mCounts){
+        if(countItem.startsWith(distinct)){
+            DbVariant newCountItem = countItem.toString().substr(distinct.size());
+            list.push_back( "COUNT(DISTINCT "+newCountItem.setBackTick()+")" );
+        } else {
+            list.push_back( "COUNT("+countItem.setBackTick()+")" );
+        }
+    }
+    return list;
 }
 
 

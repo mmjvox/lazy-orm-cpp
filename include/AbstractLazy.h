@@ -28,10 +28,15 @@ enum Query
   INSERT_IGNORE,
   BULK_UPDATE
   //TODO: BATCH_INSERT_UPDATE
+  //TODO: has or contains
+};
+
+enum Count{
+    COUNT=0
 };
 
 enum Primary_Key{
-    PrimaryKey=0,
+    PrimaryKey=0
 };
 
 class AbstractLazy
@@ -42,6 +47,7 @@ protected:
   std::map<DbVariant, DbVariant> mProperties;
   std::list<std::map<DbVariant, DbVariant>> mBatchProperties;
   std::string mPrimaryKey="id";
+  std::list<DbVariant> mCounts;
   std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
   std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
 
@@ -53,6 +59,8 @@ protected:
   virtual std::string bulk_insert_query() const = 0;
   virtual std::string insert_ignore_query() const = 0;
   virtual std::string bulk_update_query() const = 0;
+
+  virtual std::list<std::string> count_queries() const;
 
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
   virtual void appendFilter(const Filters &filter, LazyOrm::DbVariant dbVariant) = 0;
@@ -85,6 +93,9 @@ public:
 
   void setPrimaryKey(const std::string &primaryKey);
   std::string & operator[](const LazyOrm::Primary_Key &primaryKey);
+
+  void setCountType(std::initializer_list<DbVariant> countFields);
+  std::list<DbVariant> & operator[](const LazyOrm::Count &count);
 
   //getters
   std::string tabeName() const;

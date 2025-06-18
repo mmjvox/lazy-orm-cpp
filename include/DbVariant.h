@@ -31,7 +31,7 @@ using UnsignedIntegerVariant = std::variant<unsigned short, unsigned int, unsign
 using SignedIntegerVariant = std::variant<short, int, long, long long>;
 using SignedFloatingPointVariant = std::variant<float, double, long double>;
 
-class DbVariant : public std::variant<std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>
+class DbVariant : public std::variant<std::monostate,std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>
 {
 #ifdef DEBUG_MODE
 public:
@@ -67,7 +67,7 @@ private:
 
 
 public:
-    using std::variant<std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>::variant;
+    using std::variant<std::monostate,std::string,UnsignedIntegerVariant,SignedIntegerVariant,SignedFloatingPointVariant,bool>::variant;
 
     DbVariant& set(DbVariant newVariant);
 
@@ -82,6 +82,9 @@ public:
     std::string toUpperString() const;
 
     bool empty();
+    const size_t lenght() const;
+    bool contains(std::string substr) const;
+    bool startsWith(std::string prefix) const;
 
     std::string setQuote() const;
     std::string setBackTick() const;

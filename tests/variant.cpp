@@ -40,6 +40,13 @@ TEST_CASE( "Factorials are computed", "[Lazy_DbVariant]" ) {
     REQUIRE( var0.toString() == "0" );
     REQUIRE( var0.toBool() == false );
 
+    LazyOrm::DbVariant var_0 = -0;
+    REQUIRE( var_0.toLongLong() == 0 );
+    REQUIRE( var_0.toULongLong() == 0 );
+    REQUIRE( var_0.toLongDouble() == 0 );
+    REQUIRE( var_0.toString() == "0" );
+    REQUIRE( var_0.toBool() == false );
+
     LazyOrm::DbVariant var1 = 40;
     REQUIRE( var1.toLongLong() == 40 );
     REQUIRE( var1.toULongLong() == 40 );
