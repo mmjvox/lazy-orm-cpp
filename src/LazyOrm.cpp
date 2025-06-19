@@ -18,6 +18,7 @@ void LazyOrm::operator=(const AbstractLazy &abstractLaz)
     mProperties = abstractLaz.properties();
     mBatchProperties = abstractLaz.batchProperties();
     mWhereFilter = abstractLaz.whereFilter();
+    mHavingFilter = abstractLaz.havingFilter();
     mFilter = abstractLaz.getFilter();
     mPrimaryKey = abstractLaz.primaryKey();
 }

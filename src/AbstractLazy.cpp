@@ -43,7 +43,7 @@ std::list<LazyOrm::DbVariant> &AbstractLazy::operator[](const Count &count){
 
 void AbstractLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
 {
-    // TODO: implement
+    // TODO: implement later if needed
 }
 
 void AbstractLazy::setQueryType(LazyOrm::Query queryType)
@@ -125,6 +125,11 @@ bool AbstractLazy::appendPropAsCount(DbVariant prop)
 WhereFilter AbstractLazy::whereFilter() const
 {
     return mWhereFilter;
+}
+
+HavingFilter AbstractLazy::havingFilter() const
+{
+    return mHavingFilter;
 }
 
 std::string AbstractLazy::queryString() const
@@ -221,6 +226,17 @@ WhereFilter& AbstractLazy::operator[](const LazyOrm::NestedWhere &nestedWhere)
 void AbstractLazy::setNestedWhere(LazyOrm::WhereFilter nestedWhere){
     if(mWhereFilter != nestedWhere){
         mWhereFilter = nestedWhere;
+    }
+}
+
+HavingFilter& AbstractLazy::operator[](const LazyOrm::Having &nestedHaving)
+{
+    return mHavingFilter;
+}
+
+void AbstractLazy::setNestedHaving(LazyOrm::HavingFilter nestedHaving){
+    if(mHavingFilter != nestedHaving){
+        mHavingFilter = nestedHaving;
     }
 }
 

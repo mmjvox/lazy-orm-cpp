@@ -20,6 +20,7 @@ void SqliteLazy::operator=(const AbstractLazy &abstractLaz)
     mProperties = abstractLaz.properties();
     mBatchProperties = abstractLaz.batchProperties();
     mWhereFilter = abstractLaz.whereFilter();
+    mHavingFilter = abstractLaz.havingFilter();
     mFilter = abstractLaz.getFilter();
     mPrimaryKey = abstractLaz.primaryKey();
 }
@@ -82,7 +83,10 @@ std::string SqliteLazy::select_query() const
     queryString.append(" FROM ");
     queryString.append(mTabeName);
     queryString.append(mWhereFilter.toString());
-    queryString.append(mFilter.filter_conditions());
+    queryString.append(mFilter.groupString());
+    queryString.append(mHavingFilter.toString());
+    queryString.append(mFilter.orderbyString());
+    queryString.append(mFilter.limitString());
     queryString.append(";");
     return queryString;
 }
@@ -102,7 +106,10 @@ std::string SqliteLazy::update_query() const
     queryString.append(string_join(",",updates));
     queryString.append(" ");
     queryString.append(mWhereFilter.toString());
-    queryString.append(mFilter.filter_conditions());
+    queryString.append(mFilter.groupString());
+    queryString.append(mHavingFilter.toString());
+    queryString.append(mFilter.orderbyString());
+    queryString.append(mFilter.limitString());
     queryString.append(";");
     return queryString;
 }
@@ -114,7 +121,10 @@ std::string SqliteLazy::delete_query() const
     queryString.append(mTabeName);
     queryString.append(" ");
     queryString.append(mWhereFilter.toString());
-    queryString.append(mFilter.filter_conditions());
+    queryString.append(mFilter.groupString());
+    queryString.append(mHavingFilter.toString());
+    queryString.append(mFilter.orderbyString());
+    queryString.append(mFilter.limitString());
     queryString.append(" ;");
     return queryString;
 }

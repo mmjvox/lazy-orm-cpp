@@ -19,26 +19,23 @@ protected:
     FilterVariant mLimitConditions;
     FilterVariant mOrderConditions;
     FilterVariant mGroupConditions;
-    std::vector<FilterVariant> mHavingConditions;
 //    std::vector<FilterTypes> mFetchConditions;
     //
 
 protected:
     //
-    virtual void setHavingConditions(const std::vector<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setLimitConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setGroupConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     //
-    virtual void appendOrderby(std::string &retStr) const = 0;
-    virtual void appendLimit(std::string &retStr) const = 0;
-    virtual void appendGroup(std::string &retStr) const = 0;
-    virtual void appendHaving(std::string &retStr) const = 0;
+    virtual std::string orderbyString() const = 0;
+    virtual std::string limitString() const = 0;
+    virtual std::string groupString() const = 0;
     //
 
-    virtual std::string filter_conditions() const = 0;
-
     const std::string setQuoteForOrderType(DbVariant var) const;
+
+    std::string filter_conditions() const;
 
 public:
     FilteringAbstractLazy();
@@ -60,7 +57,6 @@ public:
     FilterVariant limitConditions() const;
     FilterVariant orderConditions() const;
     FilterVariant groupConditions() const;
-    std::vector<FilterVariant> havingConditions() const;
 
     std::string filter_conditions_with_trim_consecutive_spaces();
 };

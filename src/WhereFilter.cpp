@@ -72,6 +72,11 @@ const std::vector<std::vector<DbVariant>>& WhereFilter::nestedDbVariant() const
     return mNestedDbVariant;
 }
 
+std::string WhereFilter::leadingString() const
+{
+    return " WHERE ";
+}
+
 bool WhereFilter::isWhereFilter() const{
     return (mNestedWhereFilters.size()>0);
 }
@@ -89,7 +94,7 @@ std::string WhereFilter::toString() const
         return retStr;
     }
 
-    retStr = " WHERE ";
+    retStr = leadingString();
 
     if(isWhereFilter()){
         for (const auto& whereFilter : mNestedWhereFilters) {

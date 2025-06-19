@@ -67,19 +67,14 @@ void SqliteFilteringLazy::setGroupConditions(const std::initializer_list<FilterV
     mGroupConditions=filters;
 }
 
-void SqliteFilteringLazy::setHavingConditions(const std::vector<FilterVariant> &filtersList)
-{
-    mHavingConditions=filtersList;
-}
-
-void SqliteFilteringLazy::appendOrderby(std::string &retStr) const
+std::string SqliteFilteringLazy::orderbyString() const
 {
     if(mOrderConditions.empty())
     {
-        return;
+        return {};
     }
 
-    retStr.append(" ORDER BY ");
+    std::string retStr(" ORDER BY ");
 
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
@@ -92,16 +87,18 @@ void SqliteFilteringLazy::appendOrderby(std::string &retStr) const
     }, mOrderConditions);
 
     retStr.append(" ");
+
+    return retStr;
 }
 
-void SqliteFilteringLazy::appendLimit(std::string &retStr) const
+std::string SqliteFilteringLazy::limitString() const
 {
     if(mLimitConditions.empty())
     {
-        return;
+        return {};
     }
 
-    retStr.append(" LIMIT ");
+    std::string retStr(" LIMIT ");
 
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
@@ -114,16 +111,18 @@ void SqliteFilteringLazy::appendLimit(std::string &retStr) const
     }, mLimitConditions);
 
     retStr.append(" ");
+
+    return retStr;
 }
 
-void SqliteFilteringLazy::appendGroup(std::string &retStr) const
+std::string SqliteFilteringLazy::groupString() const
 {
     if(mGroupConditions.empty())
     {
-        return;
+        return {};
     }
 
-    retStr.append(" GROUP BY ");
+    std::string retStr(" GROUP BY ");
 
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
@@ -136,63 +135,6 @@ void SqliteFilteringLazy::appendGroup(std::string &retStr) const
     }, mGroupConditions);
 
     retStr.append(" ");
-}
-
-void SqliteFilteringLazy::appendHaving(std::string &retStr) const
-{
-  if(mHavingConditions.empty())
-  {
-      return;
-  }
-
-  retStr.append(" HAVING ");
-
-  for(const auto &havingItem : mHavingConditions)
-  {
-    std::visit([=,&retStr](auto&& arg){
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            if(arg.size()==1)
-            {
-                retStr.append(arg.at(0).toCleanString());
-            }
-            else if(arg.size()==2)
-            {
-                retStr.append(arg.at(0).setBackTick());
-                retStr.append(" = ");
-                retStr.append(arg.at(1).toString());
-                retStr.append(" ");
-            }
-            else if(arg.size()==3)
-            {
-                retStr.append(arg.at(0).setBackTick());
-                retStr.append(" ");
-                retStr.append(arg.at(1).toString());
-                retStr.append(" ");
-                retStr.append(arg.at(2).setQuote());
-                retStr.append(" ");
-            }
-        }
-    }, havingItem);
-  }
-}
-
-
-std::string SqliteFilteringLazy::filter_conditions() const
-{
-    std::string retStr;
-
-    // GROUP BY
-    appendGroup(retStr);
-
-    // HAVING
-    appendHaving(retStr);
-
-    // ORDER BY
-    appendOrderby(retStr);
-
-    // LIMIT
-    appendLimit(retStr);
 
     return retStr;
 }
@@ -208,7 +150,6 @@ void SqliteFilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
     mLimitConditions = abstractLaz.limitConditions();
     mOrderConditions = abstractLaz.orderConditions();
     mGroupConditions = abstractLaz.groupConditions();
-    mHavingConditions = abstractLaz.havingConditions();
 }
 
 }

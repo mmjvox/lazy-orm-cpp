@@ -8,6 +8,7 @@ namespace LazyOrm {
 class WhereFilter{
 
 private:
+    virtual std::string leadingString() const;
     std::vector<std::vector<DbVariant>> mNestedDbVariant;
     std::vector<WhereFilter> mNestedWhereFilters;
     bool isWhereFilter() const;

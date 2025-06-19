@@ -17,12 +17,6 @@ void FilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
     mLimitConditions = abstractLaz.limitConditions();
     mOrderConditions = abstractLaz.orderConditions();
     mGroupConditions = abstractLaz.groupConditions();
-    mHavingConditions = abstractLaz.havingConditions();
-}
-
-void FilteringLazy::setHavingConditions(const std::vector<FilterVariant> &filtersList)
-{
-
 }
 
 void FilteringLazy::setLimitConditions(const std::initializer_list<FilterVariant> &filtersList)
@@ -40,29 +34,20 @@ void FilteringLazy::setGroupConditions(const std::initializer_list<FilterVariant
 
 }
 
-void FilteringLazy::appendOrderby(std::string &retStr) const
-{
-
-}
-
-void FilteringLazy::appendLimit(std::string &retStr) const
-{
-
-}
-
-void FilteringLazy::appendGroup(std::string &retStr) const
-{
-
-}
-
-void FilteringLazy::appendHaving(std::string &retStr) const
-{
-
-}
-
-std::string FilteringLazy::filter_conditions() const
+std::string FilteringLazy::orderbyString() const
 {
     return {};
 }
+
+std::string FilteringLazy::limitString() const
+{
+    return {};
+}
+
+std::string FilteringLazy::groupString() const
+{
+    return {};
+}
+
 
 }

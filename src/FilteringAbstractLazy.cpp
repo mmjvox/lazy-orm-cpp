@@ -14,8 +14,6 @@ std::string FilteringAbstractLazy::filterStr(Filters f) const
     switch (f) {
     case Filters::LIMIT:
         return "LIMIT";
-    case Filters::HAVING:
-        return "HAVING";
     case Filters::ORDERBY:
     case Filters::ORDERBY_DESC:
     case Filters::ORDERBY_ASC:
@@ -53,10 +51,21 @@ const std::string FilteringAbstractLazy::setQuoteForOrderType(DbVariant var) con
     return var.setQuote();
 }
 
-std::vector<FilterVariant> FilteringAbstractLazy::havingConditions() const
+std::string FilteringAbstractLazy::filter_conditions() const
 {
-    return mHavingConditions;
+    return
+
+        // GROUP BY
+        groupString() +
+
+        // ORDER BY
+        orderbyString() +
+
+        // LIMIT
+        limitString();
 }
+
+
 
 std::string FilteringAbstractLazy::filter_conditions_with_trim_consecutive_spaces(){
     std::string str = filter_conditions();
@@ -94,13 +103,7 @@ void FilteringAbstractLazy::setFilterForReserved(const FilterVariant &variant)
 
 void FilteringAbstractLazy::setFilterForReserved(const std::vector<FilterVariant> &variantList)
 {
-  switch (mReservedFilter) {
-  case Filters::HAVING:
-      setHavingConditions(variantList);
-      break;
-  default:
-  break;
-  }
+  // TODO: implement later if needed
 }
 
 void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList)
@@ -130,12 +133,7 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
 
     const auto filter = conditions.at(0).toLowerString();
 
-    if(filter=="having")
-    {
-        conditions.erase(conditions.begin());
-        setHavingConditions(filterVariantList);
-    }
-    else if(filter=="orderby")
+    if(filter=="orderby")
     {
         conditions.erase(conditions.begin());
         setOrderConditions(filterVariantList);
@@ -157,9 +155,6 @@ void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVaria
 void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList)
 {
     switch (filter) {
-    case Filters::HAVING:
-        setHavingConditions(filterVariantList);
-        break;
     case Filters::ORDERBY:
     case Filters::ORDERBY_DESC:
     case Filters::ORDERBY_ASC:{
@@ -223,9 +218,6 @@ void FilteringAbstractLazy::appendFilter(const Filters &filter, DbVariant &dbVar
         break;
     case LIMIT:
         mLimitConditions.append(dbVariant);
-        break;
-    case HAVING:
-        // TODO: mHavingConditions
         break;
     case GROUPBY:
         mGroupConditions.append(dbVariant);

@@ -16,7 +16,6 @@ enum Filters
     ORDERBY_DESC,
     ORDERBY_ASC,
     LIMIT,
-    HAVING,
     GROUPBY
 };
 
@@ -24,6 +23,15 @@ enum NestedWhere
 {
     NNone = -10,
     WHERE = 0,
+    AND = 1,
+    OR,
+    NOT,
+};
+
+enum class Having
+{
+    NNone = -10,
+    HAVING = 0,
     AND = 1,
     OR,
     NOT,
