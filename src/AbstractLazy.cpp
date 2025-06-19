@@ -105,6 +105,23 @@ std::string AbstractLazy::string_join(const std::string &delimiter, const std::v
   return output;
 }
 
+bool AbstractLazy::appendPropAsCount(DbVariant prop)
+{
+    std::string countKey = prop.toString();
+    countKey.erase(std::remove_if(countKey.begin(), countKey.end(), ::isspace), countKey.end());
+    if(DbVariant(countKey).startsWith("count(", false)){
+        std::string propStr = prop.toString();
+        size_t start = propStr.find('(');
+        size_t end = propStr.find(')');
+        if (start != std::string::npos && end != std::string::npos && start < end) {
+            mCounts.push_back( propStr.substr(start + 1, end - start - 1) );
+            return true;
+        }
+    }
+
+    return false;
+}
+
 WhereFilter AbstractLazy::whereFilter() const
 {
     return mWhereFilter;
@@ -139,20 +156,26 @@ std::string AbstractLazy::queryString() const
 
 void AbstractLazy::setProperty(const std::string key, const DbVariant value)
 {
-    mProperties[key]=value;
+    if(!appendPropAsCount(key)){
+        mProperties[key]=value;
+    }
 }
 
 void AbstractLazy::setProperties(const std::vector<std::string> &keys)
 {
     for(const auto &key : keys)
     {
-        mProperties[key]="";
+        if(!appendPropAsCount(key)){
+            mProperties[key]="";
+        }
     }
 }
 
 AbstractLazy & AbstractLazy::operator<<(const std::string &key)
 {
-    mProperties[key]="";
+    if(!appendPropAsCount(key)){
+        mProperties[key]="";
+    }
     return *this;
 }
 
@@ -160,7 +183,9 @@ void AbstractLazy::setProperties(const std::initializer_list<std::pair<DbVariant
 {
   for(const auto &item : items)
     {
-        mProperties[item.first] = item.second.toString();
+        if(!appendPropAsCount(item.first)){
+            mProperties[item.first] = item.second.toString();
+        }
     }
 }
 
@@ -174,8 +199,12 @@ void AbstractLazy::setProperties(const std::list<std::map<DbVariant, DbVariant> 
   mBatchProperties = list;
 }
 
-AbstractLazy &AbstractLazy::operator<<(const std::pair<DbVariant, DbVariant> &key_value){
-    mProperties[key_value.first] = key_value.second;
+AbstractLazy &AbstractLazy::operator<<(const std::pair<DbVariant, DbVariant> &key_value)
+{
+    if(!appendPropAsCount(key_value.first)){
+        mProperties[key_value.first] = key_value.second;
+    }
+
     return *this;
 }
 

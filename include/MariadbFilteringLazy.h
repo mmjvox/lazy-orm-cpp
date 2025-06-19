@@ -13,7 +13,6 @@ protected:
     void setOrderConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;
     void setGroupConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) override;
     //
-    // TODO: support DISTINCT
     // TODO: support ASC and DESC in order
     void appendOrderby(std::string &retStr) const override;
     void appendLimit(std::string &retStr) const override;

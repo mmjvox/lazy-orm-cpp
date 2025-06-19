@@ -519,13 +519,25 @@ bool LazyOrm::DbVariant::contains(std::string substr) const
     return toString().find(substr) != std::string::npos;
 }
 
-bool LazyOrm::DbVariant::startsWith(std::string prefix) const
+bool LazyOrm::DbVariant::startsWith(std::string prefix, bool caseSensitive) const
 {
-    const auto str = toString();
+#if __cplusplus >= 202002L
+    return caseSensitive? toString().starts_with(prefix) : toLowerString().starts_with(prefix);
+#else
+    const auto str = caseSensitive? toString() : toLowerString();
     if (prefix.size() > str.size()) {
         return false;
     }
     return str.compare(0, prefix.size(), prefix) == 0;
+#endif
+}
+
+std::string LazyOrm::DbVariant::trim() const {
+    auto str = toString();
+    auto left = std::ranges::find_if_not(str, [](unsigned char ch){ return std::isspace(ch); });
+    auto right = std::ranges::find_if_not(str.rbegin(), str.rend(), [](unsigned char ch){ return std::isspace(ch); }).base();
+    if (left >= right) return "";
+    return std::string(left, right);
 }
 
 std::string LazyOrm::DbVariant::setQuote() const
@@ -553,7 +565,12 @@ std::string LazyOrm::DbVariant::setQuote() const
 
 std::string LazyOrm::DbVariant::setBackTick() const
 {
-    std::string strVal = toString();
+    std::string strVal = trim();
+
+    if(strVal=="*"){
+        return strVal;
+    }
+
     auto substr05=strVal.substr(0,5);
     if(substr05=="[no']" or substr05=="[no`]")
     {

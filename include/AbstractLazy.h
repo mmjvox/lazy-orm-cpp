@@ -51,6 +51,7 @@ protected:
   std::list<DbVariant> mCounts;
   std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
   std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
+  bool appendPropAsCount(DbVariant prop);
 
   virtual std::string insert_query() const = 0;
   virtual std::string select_query() const = 0;

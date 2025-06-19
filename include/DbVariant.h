@@ -84,7 +84,8 @@ public:
     bool empty();
     const size_t lenght() const;
     bool contains(std::string substr) const;
-    bool startsWith(std::string prefix) const;
+    bool startsWith(std::string prefix, bool caseSensitive=true) const;
+    std::string trim() const;
 
     std::string setQuote() const;
     std::string setBackTick() const;
