@@ -87,7 +87,7 @@ void PostgreFilteringLazy::appendOrderby(std::string &retStr) const
             retStr.append(string_join(",",arg,true));
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
-            retStr.append(arg.setQuote());
+            retStr.append(setQuoteForOrderType(arg));
         }
     }, mOrderConditions);
 
