@@ -73,7 +73,7 @@ std::string select7() {
     LazyOrm::MariadbLazy lazyOrm;
     lazyOrm[LazyOrm::SELECT]="student";
     lazyOrm<<"name"<<"age"<<"hair"<<"*";
-    lazyOrm[LazyOrm::COUNT] = {{"name","age as age2","hair as 'hair2'","*"}};
+    lazyOrm[LazyOrm::COUNT_PROPS] = {{"name","age as age2","hair as 'hair2'","*"}};
     return lazyOrm.query_with_trim_consecutive_spaces();
 }
 

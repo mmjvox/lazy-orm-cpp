@@ -122,6 +122,24 @@ bool AbstractLazy::appendPropAsCount(DbVariant prop)
     return false;
 }
 
+std::string AbstractLazy::contains_query() const
+{
+    std::string queryString = "SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END AS \"contains\" FROM ";
+    queryString.append(mTabeName);
+    queryString.append(mWhereFilter.toString());
+    queryString.append(";");
+    return queryString;
+}
+
+std::string AbstractLazy::count_query() const
+{
+    std::string queryString = "SELECT COUNT(*) AS \"count\" FROM ";
+    queryString.append(mTabeName);
+    queryString.append(mWhereFilter.toString());
+    queryString.append(";");
+    return queryString;
+}
+
 WhereFilter AbstractLazy::whereFilter() const
 {
     return mWhereFilter;
@@ -152,6 +170,10 @@ std::string AbstractLazy::queryString() const
     return insert_ignore_query();
   case BULK_UPDATE:
     return bulk_update_query();
+  case CONTAINS:
+      return contains_query();
+  case COUNT:
+      return count_query();
   default:
   break;
   }

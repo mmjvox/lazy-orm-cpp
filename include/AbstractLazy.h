@@ -18,23 +18,24 @@ namespace LazyOrm {
 
 enum Query
 {
-  UNDEFINED = -1,
-  INIT      = 0,
-  INSERT    = 10,
-  SELECT,
-  UPDATE,
-  DELETE,
-  INSERT_UPDATE,
-  BULK_INSERT,
-  INSERT_IGNORE,
-  BULK_UPDATE,
-  //TODO: BATCH_INSERT_UPDATE
-  //TODO: has or contains
-  SELECT_DISTINCT
+    UNDEFINED = -1,
+    INIT      = 0,
+    INSERT    = 10,
+    SELECT,
+    UPDATE,
+    DELETE,
+    INSERT_UPDATE,
+    BULK_INSERT,
+    INSERT_IGNORE,
+    BULK_UPDATE,
+    //TODO: BATCH_INSERT_UPDATE
+    SELECT_DISTINCT,
+    CONTAINS,
+    COUNT
 };
 
 enum Count{
-    COUNT=0
+    COUNT_PROPS=0
 };
 
 enum Primary_Key{
@@ -62,6 +63,8 @@ protected:
   virtual std::string bulk_insert_query() const = 0;
   virtual std::string insert_ignore_query() const = 0;
   virtual std::string bulk_update_query() const = 0;
+  virtual std::string contains_query() const;
+  virtual std::string count_query() const;
 
   virtual std::list<std::string> count_queries() const;
 
