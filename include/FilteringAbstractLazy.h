@@ -14,6 +14,7 @@ class FilteringAbstractLazy
 {
 protected:
     Filters mReservedFilter=Filters::None;
+    Filters mOrderByType=Filters::ORDERBY;
     std::string filterStr(Filters f) const;
     FilterVariant mLimitConditions;
     FilterVariant mOrderConditions;
@@ -37,6 +38,8 @@ protected:
 
     virtual std::string filter_conditions() const = 0;
 
+    const std::string setQuoteForOrderType(DbVariant var) const;
+
 public:
     FilteringAbstractLazy();
     void setFilterForReserved(const LazyOrm::FilterVariant &variant);
@@ -48,6 +51,8 @@ public:
     void operator=(const LazyOrm::FilterVariant &variant);
     void appendFilter(const Filters &filter, LazyOrm::DbVariant &dbVariant);
 
+    void setDESC(bool desc=true);
+    void setASC(bool asc=true);
 
     std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container, bool setQuote=false) const;
     // getters

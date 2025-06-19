@@ -50,6 +50,27 @@ std::string filter4() {
 return filters.filter_conditions_with_trim_consecutive_spaces();
 }
 
+std::string filter5() {
+    LazyOrm::MariadbFilteringLazy filters;
+    filters.setFilter(LazyOrm::ORDERBY , {"num1","num2","num3[DESC]","num4[ASC]"});
+    filters.setFilter(LazyOrm::LIMIT , {11,23});
+    return filters.filter_conditions_with_trim_consecutive_spaces();
+}
+
+std::string filter6() {
+    LazyOrm::MariadbFilteringLazy filters;
+    filters.setFilter(LazyOrm::ORDERBY_DESC , {"num1","num2","num3[DESC]","num4[ASC]"});
+    filters.setFilter(LazyOrm::LIMIT , {11,23});
+    return filters.filter_conditions_with_trim_consecutive_spaces();
+}
+
+std::string filter7() {
+    LazyOrm::MariadbFilteringLazy filters;
+    filters[LazyOrm::ORDERBY_ASC] = {{"num1","num2","num3[DESC]","num4[ASC]"}};
+    filters.setFilter(LazyOrm::LIMIT , {11,23});
+    return filters.filter_conditions_with_trim_consecutive_spaces();
+}
+
 
 std::string where5() {
 
@@ -232,5 +253,8 @@ TEST_CASE( "Factorials are computed", "[Lazy_FILTER]" ) {
     REQUIRE( Catch::trim(filter2()) == R"(GROUP BY 'group1','group2' ORDER BY 'num1','num2' LIMIT 11,23)" );
     REQUIRE( Catch::trim(filter3()) == R"(GROUP BY 'group1','group2' ORDER BY 'num1','num2' LIMIT 10,10)" );
     REQUIRE( Catch::trim(filter4()) == R"(GROUP BY 'group1','group2' ORDER BY 'num1','num2' LIMIT 14,26)" );
+    REQUIRE( Catch::trim(filter5()) == R"(ORDER BY 'num1','num2','num3' DESC,'num4' ASC LIMIT 11,23)" );
+    REQUIRE( Catch::trim(filter6()) == R"(ORDER BY 'num1' DESC,'num2' DESC,'num3' DESC,'num4' ASC LIMIT 11,23)" );
+    REQUIRE( Catch::trim(filter7()) == R"(ORDER BY 'num1' ASC,'num2' ASC,'num3' DESC,'num4' ASC LIMIT 11,23)" );
 //    REQUIRE( Catch::trim(where5()) == R"(WHERE  (`name` like 'sa%' OR `name` like '%ra' ) AND  (`age` between '6,13' OR `grade` in '[17,18,19,20]' ) GROUP BY group1,group2 ORDER BY num1,num2 LIMIT 14,26)" );
 }

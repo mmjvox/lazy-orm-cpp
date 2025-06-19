@@ -13,6 +13,8 @@ enum Filters
 {
     None = -10,
     ORDERBY=1,
+    ORDERBY_DESC,
+    ORDERBY_ASC,
     LIMIT,
     HAVING,
     GROUPBY

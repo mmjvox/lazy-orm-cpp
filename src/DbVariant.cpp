@@ -700,6 +700,8 @@ const std::map<std::string, LazyOrm::Filters> LazyOrm::DbVariant::getFiltersToSt
     return {
         {"None", None},
         {"ORDERBY", ORDERBY},
+        {"ORDERBY_DESC", ORDERBY_DESC},
+        {"ORDERBY_ASC", ORDERBY_ASC},
         {"LIMIT", LIMIT},
         {"HAVING", HAVING},
         {"GROUPBY", GROUPBY}

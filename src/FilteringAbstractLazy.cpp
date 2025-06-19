@@ -1,6 +1,5 @@
 #include "FilteringAbstractLazy.h"
 #include <algorithm>
-#include <iostream>
 
 namespace LazyOrm {
 
@@ -18,6 +17,8 @@ std::string FilteringAbstractLazy::filterStr(Filters f) const
     case Filters::HAVING:
         return "HAVING";
     case Filters::ORDERBY:
+    case Filters::ORDERBY_DESC:
+    case Filters::ORDERBY_ASC:
         return "ORDER BY";
     case Filters::GROUPBY:
         return "GROUP BY";
@@ -25,6 +26,31 @@ std::string FilteringAbstractLazy::filterStr(Filters f) const
         return {};
     }
     return {};
+}
+
+const std::string FilteringAbstractLazy::setQuoteForOrderType(DbVariant var) const
+{
+    const auto &lowercaseArg = var.toLowerString();
+
+    const auto &descPos = lowercaseArg.find("[desc]");
+    if(descPos!=std::string::npos){
+        return DbVariant(var.toString().substr(0, descPos)).setQuote().append(" DESC");
+    }
+
+    const auto &ascPos = lowercaseArg.find("[asc]");
+    if(ascPos!=std::string::npos){
+        return DbVariant(var.toString().substr(0, ascPos)).setQuote().append(" ASC");
+    }
+
+    if(mOrderByType==ORDERBY_DESC){
+       return var.setQuote().append(" DESC");
+    }
+
+    if(mOrderByType==ORDERBY_ASC){
+      return  var.setQuote().append(" ASC");
+    }
+
+    return var.setQuote();
 }
 
 std::vector<FilterVariant> FilteringAbstractLazy::havingConditions() const
@@ -135,7 +161,11 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, std::initializer_li
         setHavingConditions(filterVariantList);
         break;
     case Filters::ORDERBY:
-        setOrderConditions(filterVariantList);
+    case Filters::ORDERBY_DESC:
+    case Filters::ORDERBY_ASC:{
+            mOrderByType = filter;
+            setOrderConditions(filterVariantList);
+        }
         break;
     case Filters::GROUPBY:
         setGroupConditions(filterVariantList);
@@ -155,6 +185,8 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant filte
         mLimitConditions=filterVariant;
         break;
     case Filters::ORDERBY:
+    case Filters::ORDERBY_DESC:
+    case Filters::ORDERBY_ASC:
         mOrderConditions=filterVariant;
         break;
     case Filters::GROUPBY:
@@ -168,6 +200,9 @@ void FilteringAbstractLazy::setFilter(const Filters &filter, FilterVariant filte
 FilteringAbstractLazy& FilteringAbstractLazy::operator[](const Filters &filter)
 {
     mReservedFilter = filter;
+    if(filter == ORDERBY || filter == ORDERBY_DESC || filter == ORDERBY_ASC){
+        mOrderByType = filter;
+    }
     return *this;
 }
 
@@ -182,6 +217,8 @@ void FilteringAbstractLazy::appendFilter(const Filters &filter, DbVariant &dbVar
     case None:
         break;
     case ORDERBY:
+    case ORDERBY_DESC:
+    case ORDERBY_ASC:
         mOrderConditions.append(dbVariant);
         break;
     case LIMIT:
@@ -196,6 +233,26 @@ void FilteringAbstractLazy::appendFilter(const Filters &filter, DbVariant &dbVar
     }
 }
 
+void FilteringAbstractLazy::setDESC(bool desc)
+{
+    if(mOrderByType == ORDERBY and desc){
+        mOrderByType = ORDERBY_DESC;
+    }
+    else if(mOrderByType == ORDERBY_DESC and !desc){
+        mOrderByType = ORDERBY;
+    }
+}
+
+void FilteringAbstractLazy::setASC(bool asc)
+{
+    if(mOrderByType == ORDERBY and asc){
+        mOrderByType = ORDERBY_ASC;
+    }
+    else if(mOrderByType == ORDERBY_ASC and !asc){
+        mOrderByType = ORDERBY;
+    }
+}
+
 std::string FilteringAbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container, bool setQuote) const
 {
   size_t size = container.size();
@@ -203,7 +260,7 @@ std::string FilteringAbstractLazy::string_join(const std::string &delimiter, con
   std::string output;
   for(size_t i = 0; i < size; ++i) {
         if(setQuote){
-            output.append(container[i].setQuote());
+            output.append(setQuoteForOrderType(container[i]));
         } else {
             output.append(container[i].toString());
         }
