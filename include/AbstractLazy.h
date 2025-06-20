@@ -31,7 +31,8 @@ enum Query
     //TODO: BATCH_INSERT_UPDATE
     SELECT_DISTINCT,
     CONTAINS,
-    COUNT
+    COUNT,
+    RAW_QUERY
 };
 
 enum Count{
@@ -65,6 +66,7 @@ protected:
   virtual std::string bulk_update_query() const = 0;
   virtual std::string contains_query() const;
   virtual std::string count_query() const;
+  virtual std::string raw_query() const;
 
   virtual std::list<std::string> count_queries() const;
 

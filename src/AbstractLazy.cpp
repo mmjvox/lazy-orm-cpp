@@ -1,5 +1,6 @@
 #include "AbstractLazy.h"
 #include <algorithm>
+#include <sstream>
 
 namespace LazyOrm {
 
@@ -140,6 +141,35 @@ std::string AbstractLazy::count_query() const
     return queryString;
 }
 
+std::string AbstractLazy::raw_query() const
+{
+    std::vector<DbVariant> keys;
+    for(const auto &[key, value] : mProperties)
+    {
+        if(key.toString()=="*")
+        {
+            keys.push_back(key);
+        }
+        else
+        {
+            keys.push_back(key.setQuote());
+        }
+    }
+
+    std::string queryString(mTabeName);
+
+    return [&queryString, &keys] {
+        std::ostringstream oss;
+        size_t pos = 0, last = 0, idx = 0;
+        while ((pos = queryString.find('?', last)) != std::string::npos && idx < keys.size()) {
+            oss << queryString.substr(last, pos - last) << keys[idx++].toString();
+            last = pos + 1;
+        }
+        oss << queryString.substr(last);
+        return oss.str();
+    }();
+}
+
 WhereFilter AbstractLazy::whereFilter() const
 {
     return mWhereFilter;
@@ -174,6 +204,8 @@ std::string AbstractLazy::queryString() const
       return contains_query();
   case COUNT:
       return count_query();
+  case RAW_QUERY:
+      return raw_query();
   default:
   break;
   }
