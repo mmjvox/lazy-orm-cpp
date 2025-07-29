@@ -20,12 +20,20 @@ void DbList::setList(std::vector<DbVariant> list)
 
     auto it = list.begin();
     if (it != list.end()) {
-        ss << it->toString();
+        if(it->typeName()=="string"){
+            ss << it->setQuote();
+        } else {
+            ss << it->toString();
+        }
         ++it;
     }
 
     for (; it != list.end(); ++it) {
-        ss << "," << it->toString();
+        if(it->typeName()=="string"){
+            ss << "," << it->setQuote();
+        } else {
+            ss << "," << it->toString();
+        }
     }
 
     ss<<")";
