@@ -3,6 +3,7 @@
 #include <climits>
 #include <sstream>
 #include <cmath>
+#include <algorithm>
 
 LazyOrm::DbVariant &LazyOrm::DbVariant::set(DbVariant newVariant)
 {
