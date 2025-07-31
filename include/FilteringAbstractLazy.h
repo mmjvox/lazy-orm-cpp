@@ -33,7 +33,7 @@ protected:
     virtual std::string groupString() const = 0;
     //
 
-    const std::string setQuoteForOrderType(DbVariant var) const;
+    const std::string setBackTickForOrderType(DbVariant var) const;
 
     std::string filter_conditions() const;
 

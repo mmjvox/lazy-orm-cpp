@@ -82,7 +82,7 @@ std::string SqliteFilteringLazy::orderbyString() const
             retStr.append(string_join(",",arg,true));
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
-            retStr.append(setQuoteForOrderType(arg));
+            retStr.append(setBackTickForOrderType(arg));
         }
     }, mOrderConditions);
 
@@ -130,7 +130,7 @@ std::string SqliteFilteringLazy::groupString() const
             retStr.append(string_join(",",arg,true));
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
-            retStr.append(arg.setQuote());
+            retStr.append(arg.setBackTick());
         }
     }, mGroupConditions);
 

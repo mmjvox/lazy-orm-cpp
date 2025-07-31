@@ -26,29 +26,29 @@ std::string FilteringAbstractLazy::filterStr(Filters f) const
     return {};
 }
 
-const std::string FilteringAbstractLazy::setQuoteForOrderType(DbVariant var) const
+const std::string FilteringAbstractLazy::setBackTickForOrderType(DbVariant var) const
 {
     const auto &lowercaseArg = var.toLowerString();
 
     const auto &descPos = lowercaseArg.find("[desc]");
     if(descPos!=std::string::npos){
-        return DbVariant(var.toString().substr(0, descPos)).setQuote().append(" DESC");
+        return DbVariant(var.toString().substr(0, descPos)).setBackTick().append(" DESC");
     }
 
     const auto &ascPos = lowercaseArg.find("[asc]");
     if(ascPos!=std::string::npos){
-        return DbVariant(var.toString().substr(0, ascPos)).setQuote().append(" ASC");
+        return DbVariant(var.toString().substr(0, ascPos)).setBackTick().append(" ASC");
     }
 
     if(mOrderByType==ORDERBY_DESC){
-       return var.setQuote().append(" DESC");
+       return var.setBackTick().append(" DESC");
     }
 
     if(mOrderByType==ORDERBY_ASC){
-      return  var.setQuote().append(" ASC");
+      return  var.setBackTick().append(" ASC");
     }
 
-    return var.setQuote();
+    return var.setBackTick();
 }
 
 std::string FilteringAbstractLazy::filter_conditions() const
@@ -252,7 +252,7 @@ std::string FilteringAbstractLazy::string_join(const std::string &delimiter, con
   std::string output;
   for(size_t i = 0; i < size; ++i) {
         if(setQuote){
-            output.append(setQuoteForOrderType(container[i]));
+            output.append(setBackTickForOrderType(container[i]));
         } else {
             output.append(container[i].toString());
         }
