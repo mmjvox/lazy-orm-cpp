@@ -206,7 +206,9 @@ std::string where7() {
 
             {"field1","NULL"},
             {"OR"},
-            {"field1",""}
+            {"field1",""},
+            {"OR"},
+            {"field1","IS","NULL"}
 
     };
 
@@ -252,7 +254,7 @@ TEST_CASE( "Factorials are computed", "[Lazy_WHERE]" ) {
     REQUIRE( Catch::trim(where4()) == R"(WHERE a wwwww ccc)" );
     // REQUIRE( Catch::trim(where5()) == R"(WHERE ((`name` like 'asqar') OR (`name` like 'khar') OR (`name` like 'akbar')))" );
     REQUIRE( Catch::trim(where6()) == R"(WHERE ((`field1` = NULL) OR (`field1` = '')))" );
-    REQUIRE( Catch::trim(where7()) == R"(SELECT `age`,`hair`,`name` FROM student WHERE ((`field1` = NULL) OR (`field1` = '')) ;)" );
+    REQUIRE( Catch::trim(where7()) == R"(SELECT `age`,`hair`,`name` FROM student WHERE ((`field1` = NULL) OR (`field1` = '') OR (`field1` IS NULL)) ;)" );
     REQUIRE( Catch::trim(where8()) == R"(HAVING ((`COUNT(*)` > '2') OR (`hair` = 'blue')))" );
     REQUIRE( Catch::trim(where9()) == R"(SELECT `age`,`hair`,`name` FROM student HAVING ((`COUNT(*)` > '2') OR (`hair` = 'blue')) ;)" );
 }
