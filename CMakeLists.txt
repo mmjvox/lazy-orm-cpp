@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(lazyorm VERSION 1.0.6 LANGUAGES CXX)
+project(lazyorm VERSION 1.0.7 LANGUAGES CXX)
 add_definitions (-Dlazy_orm_version="${CMAKE_PROJECT_VERSION}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

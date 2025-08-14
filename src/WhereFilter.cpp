@@ -225,6 +225,10 @@ std::string WhereFilter::string_join(const std::string &delimiter, const std::ve
         return container[0].setBackTick() + " " + container[1].toString() + " " +container[2].setQuote();
     }
 
+    if(container.size()==5 && container[1].toLowerString()=="between"){
+        return container[0].setBackTick() + " " + container[1].toString() + " " + container[2].setQuote() + " " + container[3].toString() + " " + container[4].setQuote();
+    }
+
     size_t size = container.size();
     size_t endPos = container.size()-1;
     std::string output;
