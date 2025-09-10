@@ -561,7 +561,7 @@ std::string LazyOrm::DbVariant::setQuote() const
     {
         return strVal.substr(5);
     }
-    return "'"+strVal+"'";
+    return "'"+ escapeSingleQuotes(strVal) +"'";
 }
 
 std::string LazyOrm::DbVariant::setBackTick() const
@@ -694,6 +694,46 @@ bool LazyOrm::DbVariant::isScientific(const double &value) const {
     }
     return (std::fpclassify(value) == FP_SUBNORMAL) ||
            (std::fabs(value) >= 1e6 || std::fabs(value) <= 1e-6);
+}
+
+std::string LazyOrm::DbVariant::escapeSingleQuotes(const std::string &in) const{
+    // count unescaped quotes using a running backslash count
+    std::size_t unescaped_quotes = 0;
+    std::size_t bs_run = 0; // number of consecutive '\' immediately before current char
+    for (char c : in) {
+        if (c == '\\') {
+            ++bs_run;
+        } else {
+            if (c == '\'' && (bs_run % 2 == 0)) {
+                ++unescaped_quotes;
+            }
+            bs_run = 0;
+        }
+    }
+
+    // Allocate once with exact final size
+    std::string out;
+    out.resize(in.size() + unescaped_quotes); // each unescaped quote adds one '\'
+
+    // write output
+    std::size_t w = 0;
+    bs_run = 0;
+    for (char c : in) {
+        if (c == '\\') {
+            out[w++] = c;
+            ++bs_run;
+        } else if (c == '\'') {
+            if (bs_run % 2 == 0) {
+                out[w++] = '\\';  // insert escape
+            }
+            out[w++] = '\'';
+            bs_run = 0;
+        } else {
+            out[w++] = c;
+            bs_run = 0;
+        }
+    }
+    return out;
 }
 
 const std::map<std::string, LazyOrm::Filters> LazyOrm::DbVariant::getFiltersToStringMap() const

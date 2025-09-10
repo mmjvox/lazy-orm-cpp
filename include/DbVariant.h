@@ -74,6 +74,8 @@ private:
     long double safeStringToLD(std::string value) const;
     bool isScientific(const std::string &value) const;
     bool isScientific(const double &value) const;
+    std::string escapeSingleQuotes(const std::string& in) const;
+
 
 
 public:
