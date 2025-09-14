@@ -245,15 +245,22 @@ void FilteringAbstractLazy::setASC(bool asc)
     }
 }
 
-std::string FilteringAbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container, bool setQuote) const
+std::string FilteringAbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container, QuoteFor setQuote) const
 {
   size_t size = container.size();
   size_t endPos = container.size()-1;
   std::string output;
   for(size_t i = 0; i < size; ++i) {
-        if(setQuote){
+        if(setQuote==GroupType){
+            output.append(container[i].setBackTick());
+        }
+        else if(setQuote==OrderType){
             output.append(setBackTickForOrderType(container[i]));
-        } else {
+        }
+        else if(setQuote==LimitType){
+            output.append(container[i].toString());
+        }
+        else {
             output.append(container[i].toString());
         }
         if(i!=endPos){

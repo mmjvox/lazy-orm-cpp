@@ -24,6 +24,15 @@ protected:
 
 protected:
     //
+    enum QuoteFor
+    {
+        NoQuote=0,
+        QuoteAll=1,
+        GroupType=2,
+        OrderType,
+        LimitType
+    };
+    //
     virtual void setLimitConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setOrderConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
     virtual void setGroupConditions(const std::initializer_list<LazyOrm::FilterVariant> &filtersList) = 0;
@@ -36,6 +45,8 @@ protected:
     const std::string setBackTickForOrderType(DbVariant var) const;
 
     std::string filter_conditions() const;
+
+    std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container, QuoteFor setQuote=NoQuote) const;
 
 public:
     FilteringAbstractLazy();
@@ -51,7 +62,6 @@ public:
     void setDESC(bool desc=true);
     void setASC(bool asc=true);
 
-    std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container, bool setQuote=false) const;
     // getters
     Filters reservedFilter() const;
     FilterVariant limitConditions() const;

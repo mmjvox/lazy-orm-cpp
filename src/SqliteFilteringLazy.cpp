@@ -79,7 +79,7 @@ std::string SqliteFilteringLazy::orderbyString() const
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            retStr.append(string_join(",",arg,true));
+            retStr.append(string_join(",",arg, QuoteFor::OrderType));
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
             retStr.append(setBackTickForOrderType(arg));
@@ -103,7 +103,7 @@ std::string SqliteFilteringLazy::limitString() const
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            retStr.append(string_join(" OFFSET ",arg));
+            retStr.append(string_join(" OFFSET ",arg, QuoteFor::LimitType));
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
             retStr.append(arg.toString());
@@ -127,7 +127,7 @@ std::string SqliteFilteringLazy::groupString() const
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            retStr.append(string_join(",",arg,true));
+            retStr.append(string_join(",",arg, QuoteFor::GroupType));
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
             retStr.append(arg.setBackTick());

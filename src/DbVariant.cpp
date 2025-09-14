@@ -1,5 +1,6 @@
 #include "DbVariant.h"
 #include <cfloat>
+#include <charconv>
 #include <climits>
 #include <sstream>
 #include <cmath>
@@ -625,6 +626,31 @@ std::string LazyOrm::DbVariant::toCleanString() const
 bool LazyOrm::DbVariant::isUpdate() const
 {
     return toString().substr(0,8)=="[update]";
+}
+
+bool LazyOrm::DbVariant::isNumeric() const
+{
+    return std::visit([=, this](auto&& arg) -> bool {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::string>) {
+            double value;
+            auto [ptr, ec] = std::from_chars(arg.data(), arg.data() + arg.size(), value);
+            return ec == std::errc() && ptr == arg.data() + arg.size();
+        }
+        else if constexpr (std::is_same_v<T, UnsignedIntegerVariant>) {
+            return false;
+        }
+        else if constexpr (std::is_same_v<T, SignedIntegerVariant>) {
+            return false;
+        }
+        else if constexpr (std::is_same_v<T, SignedFloatingPointVariant>) {
+            return false;
+        }
+        else if constexpr (std::is_same_v<T, bool>) {
+            return false;
+        }
+        return false;
+    }, *this);
 }
 
 LazyOrm::DbVariant LazyOrm::DbVariant::alterStringToBestMatchType()

@@ -107,6 +107,8 @@ public:
     DbVariant alterStringToBestMatchType();
     DbVariant alterStringToNumber();
 
+    bool isNumeric() const;
+
     const std::map<std::string, LazyOrm::Filters> getFiltersToStringMap() const;
 };
 
