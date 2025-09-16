@@ -103,7 +103,12 @@ std::string MariadbFilteringLazy::limitString() const
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            retStr.append(string_join(",",arg, QuoteFor::LimitType));
+            if(arg.size()==2){
+                retStr.append(string_join(" OFFSET ",arg, QuoteFor::LimitType));
+            }
+            else{
+                retStr.append(string_join(" ",arg, QuoteFor::LimitType));
+            }
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
             retStr.append(arg.toString());
