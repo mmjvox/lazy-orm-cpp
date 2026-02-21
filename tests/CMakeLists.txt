@@ -24,6 +24,7 @@ include(Catch)
 
 foreach(each_file ${CppFiles})
     string(REPLACE ".cpp" "" EACH_NAME ${each_file})
+    string(REPLACE "/" "_" EACH_NAME ${EACH_NAME})
     add_executable(${EACH_NAME} ${each_file})
     target_link_libraries(${EACH_NAME} PRIVATE lazyorm Catch2::Catch2WithMain)
     catch_discover_tests(${EACH_NAME})

@@ -1,5 +1,6 @@
 #include <iostream>
 #include "PostgreLazy.h"
+#include "DbList.h"
 #include <catch2/catch_all.hpp>
 #include <cstdint>
 
