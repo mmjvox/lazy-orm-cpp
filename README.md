@@ -1,9 +1,8 @@
-# [Project Name] 🚧
 
 > **⚠️ Warning: Under Active Development**  
 > This library is in the early stages of development. The API is unstable and may change significantly without notice until version 1.0.0 is released. Expect bugs, incomplete documentation, and rough edges.
 >
-> **Not recommended for production use.**
+> **🚧 Not recommended for production use.**
 
 <p align="center">
   <img src="https://img.shields.io/badge/C++-20-blue?logo=c%2B%2B" alt="C++20"/>
