@@ -7,10 +7,10 @@
 std::string query1()
 {
     LazyOrm::LazyOrm lazyOrm;
-    lazyOrm[LazyOrm::RAW_QUERY]="INSERT INTO student (`age`,`hair`,`name`) VALUES ($1,$2,$3)  returning idx;";
+    lazyOrm[LazyOrm::RAW_QUERY]="INSERT INTO student (`age`,`hair`,`name`) VALUES (?,?,?)  returning idx;";
     lazyOrm<<"56"<<"black"<<"jack";
 
-    return lazyOrm.queryString(LazyOrm::LazyOrm::Postgres);
+    return lazyOrm.queryString(LazyOrm::LazyOrm::MariaDB);
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_raw_query]" ) {
