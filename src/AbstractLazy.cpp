@@ -141,31 +141,89 @@ std::string AbstractLazy::count_query() const
     return queryString;
 }
 
-std::string AbstractLazy::raw_query() const
-{
+// std::string AbstractLazy::raw_query() const
+// {
+//     std::vector<DbVariant> keys;
+//     for(const auto &[key, value] : mProperties)
+//     {
+//         if(key.toString()=="*")
+//         {
+//             keys.push_back(key);
+//         }
+//         else
+//         {
+//             keys.push_back(key.setQuote());
+//         }
+//     }
+
+//     std::string queryString(mTabeName);
+
+//     return [&queryString, &keys] {
+//         std::ostringstream oss;
+//         size_t pos = 0, last = 0, idx = 0;
+//         while ((pos = queryString.find('?', last)) != std::string::npos && idx < keys.size()) {
+//             oss << queryString.substr(last, pos - last) << keys[idx++].toString();
+//             last = pos + 1;
+//         }
+//         oss << queryString.substr(last);
+//         return oss.str();
+//     }();
+// }
+
+
+std::string AbstractLazy::raw_query() const {
     std::vector<DbVariant> keys;
-    for(const auto &[key, value] : mProperties)
-    {
-        if(key.toString()=="*")
-        {
+    for(const auto &[key, value] : mProperties) {
+        if(key.toString()=="*") {
             keys.push_back(key);
-        }
-        else
-        {
+        } else {
             keys.push_back(key.setQuote());
         }
     }
-
     std::string queryString(mTabeName);
-
     return [&queryString, &keys] {
         std::ostringstream oss;
-        size_t pos = 0, last = 0, idx = 0;
-        while ((pos = queryString.find('?', last)) != std::string::npos && idx < keys.size()) {
-            oss << queryString.substr(last, pos - last) << keys[idx++].toString();
-            last = pos + 1;
+        size_t pos = 0, last = 0;
+        if (queryString.find('$') != std::string::npos)
+        {
+            size_t idx = 0;
+            while ((pos = queryString.find('$', last)) != std::string::npos)
+            {
+                oss << queryString.substr(last, pos - last);
+                size_t digitStart = pos + 1;
+                if (digitStart < queryString.length() && std::isdigit(queryString[digitStart]))
+                {
+                    size_t digitEnd = digitStart;
+                    while (digitEnd < queryString.length() && std::isdigit(queryString[digitEnd]))
+                    {
+                        digitEnd++;
+                    }
+                    last = digitEnd;
+                    if (idx < keys.size())
+                    {
+                        oss << keys[idx++].toString();
+                    }
+                    else
+                    {
+                        oss << queryString.substr(pos, digitEnd - pos);
+                    }
+                }
+                else
+                {
+                    oss << '$'; last = pos + 1;
+                }
+            }
+            oss << queryString.substr(last);
         }
-        oss << queryString.substr(last);
+        else
+        {
+            size_t idx = 0;
+            while ((pos = queryString.find('?', last)) != std::string::npos && idx < keys.size())
+            {
+                oss << queryString.substr(last, pos - last) << keys[idx++].toString(); last = pos + 1;
+            }
+            oss << queryString.substr(last);
+        }
         return oss.str();
     }();
 }
