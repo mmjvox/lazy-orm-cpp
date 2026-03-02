@@ -103,7 +103,14 @@ std::string SqliteFilteringLazy::limitString() const
     std::visit([&retStr, this](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            retStr.append(string_join(" OFFSET ",arg, QuoteFor::LimitType));
+            if(arg.size()==3){
+                auto middleVar = arg[1];
+                if(middleVar==","){
+                    retStr.append(string_join(" OFFSET ",{arg[0],arg[2]}, QuoteFor::LimitType));
+                }
+            } else {
+                retStr.append(string_join(" OFFSET ",arg, QuoteFor::LimitType));
+            }
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
             retStr.append(arg.toString());

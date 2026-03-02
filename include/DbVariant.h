@@ -84,6 +84,7 @@ public:
     DbVariant& set(DbVariant newVariant);
 
     std::string typeName() const;
+    bool isMonostate();
     std::string toString() const;
     unsigned long long toULongLong() const;
     long long toLongLong() const;
@@ -101,6 +102,7 @@ public:
 
     std::string setQuote() const;
     std::string setBackTick() const;
+    std::string setDoubleQuote() const;
     std::string toCleanString() const;
     bool isUpdate() const;
 
@@ -110,6 +112,13 @@ public:
     bool isNumeric() const;
 
     const std::map<std::string, LazyOrm::Filters> getFiltersToStringMap() const;
+
+    bool operator==(std::monostate);
+    bool operator==(std::string);
+    bool operator==(unsigned long long);
+    bool operator==(long long);
+    bool operator==(long double);
+    bool operator==(bool);
 };
 
 typedef std::pair<std::string,LazyOrm::DbVariant> pair;

@@ -19,7 +19,7 @@ std::string select2()
     lazyOrm[LazyOrm::SELECT]="student";
     lazyOrm<<"name"<<"age"<<"hair";
 
-    return lazyOrm.queryString(LazyOrm::LazyOrm::Postgres);
+    return lazyOrm.queryString(LazyOrm::LazyOrm::MariaDB);
 }
 
 std::string select3()
@@ -28,7 +28,7 @@ std::string select3()
     lazyOrm[LazyOrm::SELECT]="student";
     lazyOrm<<"name"<<"age"<<"hair";
 
-    return lazyOrm.queryString(LazyOrm::LazyOrm::Sqlite3);
+    return lazyOrm.queryString(LazyOrm::LazyOrm::MariaDB);
 }
 
 
@@ -41,7 +41,7 @@ std::string select4()
     lazyOrm["hair"] = "black";
     lazyOrm[LazyOrm::PrimaryKey] = "idx";
 
-    return lazyOrm.queryString(LazyOrm::LazyOrm::Postgres);
+    return lazyOrm.queryString(LazyOrm::LazyOrm::MariaDB);
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_class_LazyOrm]" ) {
@@ -49,5 +49,5 @@ TEST_CASE( "Factorials are computed", "[Lazy_class_LazyOrm]" ) {
     REQUIRE( Catch::trim(select1()) == R"(SELECT `age`,`hair`,`name` FROM student;)" );
     REQUIRE( Catch::trim(select2()) == R"(SELECT `age`,`hair`,`name` FROM student;)" );
     REQUIRE( Catch::trim(select3()) == R"(SELECT `age`,`hair`,`name` FROM student;)" );
-    REQUIRE( Catch::trim(select4()) == R"(INSERT INTO student (`age`,`hair`,`name`) VALUES ('56','black','jack')  returning idx;)" );
+    REQUIRE( Catch::trim(select4()) == R"(INSERT INTO student (`age`,`hair`,`name`) VALUES ('56','black','jack') ;)" );
 }

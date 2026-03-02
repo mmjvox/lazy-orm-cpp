@@ -50,7 +50,7 @@ std::string Transaction<DBMStype>::forPostgre(bool beginTrans) const
 template<class DBMStype>
 std::string Transaction<DBMStype>::forSqlite(bool beginTrans) const
 {
-    std::string retStr="BEGIN TRANSACTION; ";
+    std::string retStr;
     if(beginTrans)
     {
         retStr.append("BEGIN TRANSACTION; ");

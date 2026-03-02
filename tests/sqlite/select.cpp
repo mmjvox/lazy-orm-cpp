@@ -86,15 +86,15 @@ std::string select10() {
 }
 
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
-    REQUIRE( Catch::trim(select1()) == R"(SELECT *,"age","hair","name" FROM student;)" );
-    REQUIRE( Catch::trim(select2()) == R"(SELECT *,"age","hair","name" FROM student;)" );
-    REQUIRE( Catch::trim(select3()) == R"(SELECT "age","hair","name" FROM student;)" );
-    REQUIRE( Catch::trim(select4()) == R"(SELECT "age","hair","name" FROM student WHERE ("grade" in (1,5,7,9)) GROUP BY "group1","group2" ORDER BY "num1","num2" LIMIT 5 , 6 ;)" );
-    REQUIRE( Catch::trim(select5()) == R"(SELECT "age","hair","name" FROM student WHERE ("grade" in (1,5,7,9)) GROUP BY "group1","group2" ORDER BY "num1","num2" LIMIT 5 OFFSET 6 ;)" );
+    REQUIRE( Catch::trim(select1()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
+    REQUIRE( Catch::trim(select2()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
+    REQUIRE( Catch::trim(select3()) == R"(SELECT `age`,`hair`,`name` FROM student;)" );
+    REQUIRE( Catch::trim(select4()) == R"(SELECT `age`,`hair`,`name` FROM student WHERE (`grade` in (1,5,7,9)) GROUP BY `group1`,`group2` ORDER BY `num1`,`num2` LIMIT 5 OFFSET 6 ;)" );
+    REQUIRE( Catch::trim(select5()) == R"(SELECT `age`,`hair`,`name` FROM student WHERE (`grade` in (1,5,7,9)) GROUP BY `group1`,`group2` ORDER BY `num1`,`num2` LIMIT 5 OFFSET 6 ;)" );
 
-    REQUIRE( Catch::trim(select7()) == R"(SELECT *,"age","hair","name",COUNT("name"),COUNT("age" as 'age2'),COUNT("hair" as 'hair2'),COUNT(*) FROM student;)" );
-    REQUIRE( Catch::trim(select8()) == R"(SELECT "age","hair","name",COUNT(*),COUNT("name"),COUNT("age" as 'age2'),COUNT("hair" as 'hair2') FROM student;)" );
+    REQUIRE( Catch::trim(select7()) == R"(SELECT *,`age`,`hair`,`name`,COUNT(`name`),COUNT(`age` as 'age2'),COUNT(`hair` as 'hair2'),COUNT(*) FROM student;)" );
+    REQUIRE( Catch::trim(select8()) == R"(SELECT `age`,`hair`,`name`,COUNT(*),COUNT(`name`),COUNT(`age` as 'age2'),COUNT(`hair` as 'hair2') FROM student;)" );
 
-    REQUIRE( Catch::trim(select9()) == R"(SELECT DISTINCT *,"age","hair","name" FROM student;)" );
-    REQUIRE( Catch::trim(select10()) == R"(SELECT DISTINCT *,"age","hair","name" FROM student;)" );
+    REQUIRE( Catch::trim(select9()) == R"(SELECT DISTINCT *,`age`,`hair`,`name` FROM student;)" );
+    REQUIRE( Catch::trim(select10()) == R"(SELECT DISTINCT *,`age`,`hair`,`name` FROM student;)" );
 }

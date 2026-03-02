@@ -43,6 +43,7 @@ protected:
     //
 
     const std::string setBackTickForOrderType(DbVariant var) const;
+    const std::string setDoubleQuoteForOrderType(DbVariant var) const;
 
     std::string filter_conditions() const;
 

@@ -42,7 +42,7 @@ std::string PostgreLazy::insert_query() const
 
   for(const auto &[key, value] : mProperties)
   {
-    keys.push_back(key.setBackTick());
+    keys.push_back(key.setDoubleQuote());
     values.push_back(value.setQuote());
   }
 
@@ -52,7 +52,9 @@ std::string PostgreLazy::insert_query() const
   queryString.append(" ("+string_join(",",keys)+") ");
   queryString.append("VALUES");
   queryString.append(" ("+string_join(",",values)+") ");
-  queryString.append(" returning "+mPrimaryKey);
+  if(!mPrimaryKey.empty()){
+      queryString.append(" returning "+mPrimaryKey);
+  }
   queryString.append(";");
   return queryString;
 }
@@ -68,7 +70,7 @@ std::string PostgreLazy::select_query() const
       }
       else
       {
-        keys.push_back(key.setBackTick());
+        keys.push_back(key.setDoubleQuote());
       }
     }
 
@@ -97,7 +99,7 @@ std::string PostgreLazy::update_query() const
     std::vector<std::string> updates;
     for(const auto &[key, value] : mProperties)
     {
-      updates.push_back(key.setBackTick()+"="+value.setQuote());
+      updates.push_back(key.setDoubleQuote()+"="+value.setQuote());
     }
 
     std::string queryString;
@@ -145,7 +147,7 @@ std::string PostgreLazy::bulk_insert_query() const
 
   for(const auto &[key, value] : firstRow)
   {
-    keys.push_back(key.setBackTick());
+    keys.push_back(key.setDoubleQuote());
   }
 
   for(const auto &mapItem : mBatchProperties)

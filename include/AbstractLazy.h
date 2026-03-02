@@ -50,7 +50,7 @@ protected:
   std::string mTabeName;
   std::map<DbVariant, DbVariant> mProperties;
   std::list<std::map<DbVariant, DbVariant>> mBatchProperties;
-  std::string mPrimaryKey="id";
+  std::string mPrimaryKey;
   std::list<DbVariant> mCounts;
   std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
   std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;

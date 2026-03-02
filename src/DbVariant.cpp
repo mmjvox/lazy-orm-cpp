@@ -60,6 +60,17 @@ std::string LazyOrm::DbVariant::typeName() const
     }, *this);
 }
 
+bool LazyOrm::DbVariant::isMonostate()
+{
+    return std::visit([=](auto&& arg) -> bool {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::monostate>) {
+            return  true;
+        }
+        return false;
+    }, *this);
+}
+
 LazyOrm::UnsignedIntegerVariant LazyOrm::DbVariant::toUnsignedIntegerVariant() const
 {
     return std::visit([=](auto&& arg) -> UnsignedIntegerVariant {
@@ -604,6 +615,45 @@ std::string LazyOrm::DbVariant::setBackTick() const
     return "`"+strVal+"`";
 }
 
+std::string LazyOrm::DbVariant::setDoubleQuote() const
+{
+    std::string strVal = trim();
+
+    if(strVal=="*"){
+        return strVal;
+    }
+
+    auto substr05=strVal.substr(0,5);
+    if(substr05=="[no']" or substr05=="[no`]")
+    {
+        return strVal.substr(5);
+    }
+    if(strVal.substr(0,6)=="[func]")
+    {
+        return strVal.substr(6);
+    }
+    if(strVal.substr(0,8)=="[update]")
+    {
+        return "\""+strVal.substr(8)+"\"";
+    }
+
+    auto asPos = toLowerString().find(" as ");
+    if(asPos==std::string::npos){
+        asPos = toLowerString().find(" -> ");
+    }
+    if(asPos!=std::string::npos)
+    {
+        if(strVal.length()>asPos+4){
+            if(strVal.at(asPos+4)=='\''){
+                return "\""+strVal.insert(asPos,"\"")+"\"";
+            }
+            return "\""+strVal.insert(asPos,"\"").insert(asPos+5,"'")+"'";
+        }
+    }
+
+    return "\""+strVal+"\"";
+}
+
 std::string LazyOrm::DbVariant::toCleanString() const
 {
     std::string strVal = toString();
@@ -773,3 +823,35 @@ const std::map<std::string, LazyOrm::Filters> LazyOrm::DbVariant::getFiltersToSt
         {"GROUPBY", GROUPBY}
     };
 }
+
+bool LazyOrm::DbVariant::operator==(std::monostate mono)
+{
+    return isMonostate();
+}
+
+bool LazyOrm::DbVariant::operator==(std::string str)
+{
+    return toString()==str;
+}
+
+bool LazyOrm::DbVariant::operator==(unsigned long long ull)
+{
+    return toUnsignedInteger() == ull;
+}
+
+bool LazyOrm::DbVariant::operator==(long long ll)
+{
+    return toLongLong() == ll;
+}
+
+bool LazyOrm::DbVariant::operator==(long double ld)
+{
+    return toLongDouble() == ld;
+}
+
+bool LazyOrm::DbVariant::operator==(bool b)
+{
+    return toBool() == b;
+}
+
+

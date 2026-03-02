@@ -23,6 +23,9 @@ public:
     std::string limitString() const override;
     std::string groupString() const override;
 
+protected:
+    std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container, QuoteFor setQuote=NoQuote) const;
+
 };
 }
 

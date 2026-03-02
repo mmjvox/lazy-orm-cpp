@@ -51,6 +51,31 @@ const std::string FilteringAbstractLazy::setBackTickForOrderType(DbVariant var) 
     return var.setBackTick();
 }
 
+const std::string FilteringAbstractLazy::setDoubleQuoteForOrderType(DbVariant var) const
+{
+    const auto &lowercaseArg = var.toLowerString();
+
+    const auto &descPos = lowercaseArg.find("[desc]");
+    if(descPos!=std::string::npos){
+        return DbVariant(var.toString().substr(0, descPos)).setDoubleQuote().append(" DESC");
+    }
+
+    const auto &ascPos = lowercaseArg.find("[asc]");
+    if(ascPos!=std::string::npos){
+        return DbVariant(var.toString().substr(0, ascPos)).setDoubleQuote().append(" ASC");
+    }
+
+    if(mOrderByType==ORDERBY_DESC){
+       return var.setDoubleQuote().append(" DESC");
+    }
+
+    if(mOrderByType==ORDERBY_ASC){
+      return  var.setDoubleQuote().append(" ASC");
+    }
+
+    return var.setDoubleQuote();
+}
+
 std::string FilteringAbstractLazy::filter_conditions() const
 {
     return
