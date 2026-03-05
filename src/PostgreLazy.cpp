@@ -36,6 +36,11 @@ void PostgreLazy::setFilter(const PostgreFilteringLazy filter)
   mFilter=filter;
 }
 
+const WhereFilterPostgre PostgreLazy::getWhereFilterPostgre() const
+{
+    return mWhereFilter;
+}
+
 std::string PostgreLazy::insert_query() const
 {
   std::vector<std::string> keys, values;
@@ -85,7 +90,7 @@ std::string PostgreLazy::select_query() const
     queryString.append(string_join(",",keys));
     queryString.append(" FROM ");
     queryString.append(mTabeName);
-    queryString.append(mWhereFilter.toString());
+    queryString.append(getWhereFilterPostgre().toString());
     queryString.append(mFilter.groupString());
     queryString.append(mHavingFilter.toString());
     queryString.append(mFilter.orderbyString());
@@ -108,7 +113,7 @@ std::string PostgreLazy::update_query() const
     queryString.append(" SET ");
     queryString.append(string_join(",",updates));
     queryString.append(" ");
-    queryString.append(mWhereFilter.toString());
+    queryString.append(getWhereFilterPostgre().toString());
     queryString.append(mFilter.groupString());
     queryString.append(mHavingFilter.toString());
     queryString.append(mFilter.orderbyString());
@@ -123,7 +128,7 @@ std::string PostgreLazy::delete_query() const
     queryString = "DELETE FROM ";
     queryString.append(mTabeName);
     queryString.append(" ");
-    queryString.append(mWhereFilter.toString());
+    queryString.append(getWhereFilterPostgre().toString());
     queryString.append(mFilter.groupString());
     queryString.append(mHavingFilter.toString());
     queryString.append(mFilter.orderbyString());

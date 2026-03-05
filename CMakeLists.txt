@@ -18,6 +18,7 @@ set(LazyORM_HEADERS
     include/DbVariant.h
     include/DbList.h
     include/WhereFilter.h
+    include/WhereFilterPostgre.h
     include/HavingFilter.h
     include/FilterVariant.h
     include/AbstractLazy.h
@@ -48,6 +49,7 @@ add_library(lazyorm STATIC
     src/DbList.cpp
     src/WhereFilter.cpp
     src/FilterVariant.cpp
+    src/WhereFilterPostgre.cpp
     src/LazyOrm.cpp
     src/FilteringLazy.cpp
 

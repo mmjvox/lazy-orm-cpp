@@ -3,6 +3,7 @@
 
 #include "PostgreFilteringLazy.h"
 #include "AbstractLazy.h"
+#include "WhereFilterPostgre.h"
 
 namespace LazyOrm
 {
@@ -10,6 +11,7 @@ class PostgreLazy : public AbstractLazy
 {
 private:
   PostgreFilteringLazy mFilter;
+  const WhereFilterPostgre getWhereFilterPostgre() const;
 
 protected:
   std::string insert_query() const override;

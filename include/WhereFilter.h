@@ -9,13 +9,14 @@ class WhereFilter{
 
 private:
     virtual std::string leadingString() const;
-    std::vector<std::vector<DbVariant>> mNestedDbVariant;
-    std::vector<WhereFilter> mNestedWhereFilters;
     bool isWhereFilter() const;
     bool isVariantVaector() const;
     std::string toString(WhereFilter wf) const;
-    std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
 
+protected:
+    std::vector<std::vector<DbVariant>> mNestedDbVariant;
+    std::vector<WhereFilter> mNestedWhereFilters;
+    virtual std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
 
 public:
     WhereFilter();
