@@ -1,5 +1,6 @@
 #include "PostgreLazy.h"
 #include "LazyOrm.h"
+#include <iostream>
 
 namespace LazyOrm
 {
@@ -201,6 +202,22 @@ std::string PostgreLazy::bulk_update_query() const
 {
     // TODO:
   return {};
+}
+
+std::list<std::string> PostgreLazy::count_queries() const
+{
+    const std::string distinct = "[DISTINCT]";
+
+    std::list<std::string> list;
+    for(const auto &countItem : mCounts){
+        if(countItem.startsWith(distinct)){
+            DbVariant newCountItem = countItem.toString().substr(distinct.size());
+            list.push_back( "COUNT(DISTINCT "+newCountItem.setDoubleQuote()+")" );
+        } else {
+            list.push_back( "COUNT("+countItem.setDoubleQuote()+")" );
+        }
+    }
+    return list;
 }
 
 

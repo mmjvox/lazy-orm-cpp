@@ -645,7 +645,7 @@ std::string LazyOrm::DbVariant::setDoubleQuote() const
     {
         if(strVal.length()>asPos+4){
             if(strVal.at(asPos+4)=='\''){
-                return "\""+strVal.insert(asPos,"\"")+"\"";
+                return "\""+strVal.insert(asPos,"\"");
             }
             return "\""+strVal.insert(asPos,"\"").insert(asPos+5,"'")+"'";
         }

@@ -28,6 +28,8 @@ protected:
       return mFilter;
   }
 
+  std::list<std::string> count_queries() const override;
+
 public:
   PostgreLazy();
   PostgreLazy(const std::string &table, const Query &queryType);
