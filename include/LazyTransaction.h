@@ -18,11 +18,16 @@ public:
     };
 
     LazyTransaction();
+    LazyTransaction(const std::initializer_list<LazyOrm> queries);
+
+    std::string queryString(const DBMS_TYPE &dbms) const;
+    std::string queryStringWithoutBegining(const DBMS_TYPE &dbms) const;
+    std::string query_with_trim_consecutive_spaces(const DBMS_TYPE &dbms) const;
 
     // Transaction interface
 public:
-    std::string queryString(const DBMS_TYPE &dbms) const;
-    std::string queryStringWithoutBegining(const DBMS_TYPE &dbms) const;
+    std::string queryString() const;
+    std::string queryStringWithoutBegining() const;
 };
 
 }
