@@ -1,6 +1,6 @@
 #include <iostream>
 #include "SqliteLazy.h"
-#include "Transaction.h"
+#include "TransactionSqlite.h"
 
 
 #include <catch2/catch_all.hpp>
@@ -18,7 +18,7 @@ std::string transaction1() {
   lazyOrm2[LazyOrm::SELECT]="student";
   lazyOrm2<<"name"<<"age"<<"hair";
 
-  LazyOrm::Transaction<LazyOrm::SqliteLazy> transaction;
+  LazyOrm::TransactionSqlite transaction;
   transaction.append(lazyOrm);
   transaction.append(lazyOrm2);
 
@@ -37,7 +37,7 @@ std::string transaction2() {
   lazyOrm2[LazyOrm::SELECT]="student";
   lazyOrm2<<"name"<<"age"<<"hair";
 
-  LazyOrm::Transaction<LazyOrm::SqliteLazy> transaction({lazyOrm,lazyOrm2});
+  LazyOrm::TransactionSqlite transaction({lazyOrm,lazyOrm2});
 
   return transaction.query_with_trim_consecutive_spaces();
 }

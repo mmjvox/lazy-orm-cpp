@@ -36,6 +36,10 @@ set(LazyORM_HEADERS
     include/PostgreFilteringLazy.h
 
     include/Transaction.h
+    include/TransactionMariadb.h
+    include/TransactionPostgre.h
+    include/TransactionSqlite.h
+    include/LazyTransaction.h
 
     include/Result.h
     include/ResultRow.h
@@ -66,9 +70,14 @@ add_library(lazyorm STATIC
     src/PostgreFilteringLazy.cpp
 
     src/Transaction.cpp
+    src/TransactionMariadb.cpp
+    src/TransactionPostgre.cpp
+    src/TransactionSqlite.cpp
+    src/LazyTransaction.cpp
 
     src/Result.cpp
     src/ResultRow.cpp
+
 )
 
 target_compile_definitions(lazyorm PRIVATE LazyOrm_LIBRARY)
