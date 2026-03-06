@@ -246,12 +246,12 @@ std::string MariadbLazy::bulk_update_query() const
     const std::string &bulkInsertQuery = bulk_insert_query();
 
 
-    std::string updateTableQuery ="UPDATE "+ mTabeName +" t \nJOIN updates u ON t."+mPrimaryKey+" = u."+mPrimaryKey;
-    for(const auto &updateRow : mBatchProperties){
-        for (const auto& [key, value] : updateRow) {
-            const auto & col = key.toCleanString();
-            updateTableQuery.append( "\nSET t."+ col +" = u."+ col +"; " );
-        }
+    std::string updateTableQuery ="UPDATE "+ mTabeName +" t \nJOIN updates u ON t."+mPrimaryKey+" = u."+mPrimaryKey + " ";
+
+    const auto &updateRow = *mBatchProperties.begin();
+    for (const auto& [key, value] : updateRow) {
+        const auto & col = key.toCleanString();
+        updateTableQuery.append( "\nSET t."+ col +" = u."+ col +"; " );
     }
 
     const std::string &dropTempTableQuery = "DROP TEMPORARY TABLE IF EXISTS lazyormtemp"+ mTabeName +";";

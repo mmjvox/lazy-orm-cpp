@@ -6,6 +6,7 @@
 
 std::string bulk_update1() {
   LazyOrm::PostgreLazy lazyOrm;
+  lazyOrm[LazyOrm::PrimaryKey] = "id";
   lazyOrm[LazyOrm::BULK_UPDATE]="fruits";
   //
   lazyOrm.setProperties({
@@ -21,30 +22,17 @@ std::string bulk_update1() {
 
 TEST_CASE( "Factorials are computed", "[Lazy_UPDATE]" ) {
 
-    // std::cout << bulk_update1() << std::endl;
-
-   REQUIRE( Catch::trim(bulk_update1()) == R"(DROP TEMPORARY TABLE IF EXISTS lazyormtempfruits;
-CREATE TEMPORARY TABLE lazyormtempfruits LIKE fruits;
-INSERT INTO fruits ("age","cute","family","hair","id","name") VALUES ('6',true,'forger','pink','1','anya'),('8',false,'Desmond','black','2','damian'),('30',false,'forger','blond','3','loid') ;
-UPDATE fruits t
-JOIN updates u ON t.id = u.id
-SET t.age = u.age;
-SET t.cute = u.cute;
-SET t.family = u.family;
-SET t.hair = u.hair;
-SET t.id = u.id;
-SET t.name = u.name;
-SET t.age = u.age;
-SET t.cute = u.cute;
-SET t.family = u.family;
-SET t.hair = u.hair;
-SET t.id = u.id;
-SET t.name = u.name;
-SET t.age = u.age;
-SET t.cute = u.cute;
-SET t.family = u.family;
-SET t.hair = u.hair;
-SET t.id = u.id;
-SET t.name = u.name;
-DROP TEMPORARY TABLE IF EXISTS lazyormtempfruits;)" );
+    REQUIRE( Catch::trim(bulk_update1()) == R"(DROP TEMPORARY TABLE IF EXISTS lazyormtempfruits; )"
+                                           "\n" R"(CREATE TEMPORARY TABLE lazyormtempfruits LIKE fruits; )"
+                                           "\n" R"(INSERT INTO fruits ("age","cute","family","hair","id","name") VALUES ('6',true,'forger','pink','1','anya'),('8',false,'Desmond','black','2','damian'),('30',false,'forger','blond','3','loid') ; )"
+                                           "\n" R"(UPDATE fruits t )"
+                                           "\n" R"(JOIN updates u ON t.id = u.id )"
+                                           "\n" R"(SET t.age = u.age; )"
+                                           "\n" R"(SET t.cute = u.cute; )"
+                                           "\n" R"(SET t.family = u.family; )"
+                                           "\n" R"(SET t.hair = u.hair; )"
+                                           "\n" R"(SET t.id = u.id; )"
+                                           "\n" R"(SET t.name = u.name; )"
+                                           "\n" R"(DROP TEMPORARY TABLE IF EXISTS lazyormtempfruits;)"
+            );
 }
