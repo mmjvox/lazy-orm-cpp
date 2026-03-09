@@ -24,6 +24,15 @@ DbVariant &AbstractLazy::operator[](const std::string &key)
     return mProperties[key];
 }
 
+void AbstractLazy::setUniqueKeys(const std::initializer_list<std::string> &uniqueKeys)
+{
+    mUniqueKeys = uniqueKeys;
+}
+
+std::list<std::string> & AbstractLazy::operator[](const LazyOrm::Unique_Keys &uniqueKeys){
+    return mUniqueKeys;
+}
+
 void AbstractLazy::enableDistinctSelect(bool distinct){
     if(mQueryType == SELECT and distinct){
         mQueryType = SELECT_DISTINCT;
@@ -365,6 +374,11 @@ std::string &AbstractLazy::operator[](const LazyOrm::Primary_Key &primaryKey)
 std::string AbstractLazy::primaryKey() const
 {
     return mPrimaryKey;
+}
+
+std::list<std::string> AbstractLazy::uniqueKeys() const
+{
+    return mUniqueKeys;
 }
 
 void AbstractLazy::trim_consecutive_spaces(std::string &str) {
