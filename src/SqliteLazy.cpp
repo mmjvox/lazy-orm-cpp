@@ -185,8 +185,22 @@ std::string SqliteLazy::insert_update_query() const
 
 std::string SqliteLazy::insert_ignore_query() const
 {
-    // TODO:
-  return {};
+    std::vector<std::string> keys, values;
+
+    for(const auto &[key, value] : mProperties)
+    {
+        keys.push_back(key.setDoubleQuote());
+        values.push_back(value.setQuote());
+    }
+
+    std::string queryString;
+    queryString = "INSERT OR IGNORE INTO ";
+    queryString.append(mTabeName);
+    queryString.append(" ("+string_join(",",keys)+") ");
+    queryString.append("VALUES");
+    queryString.append(" ("+string_join(",",values)+") ");
+    queryString.append(";");
+    return queryString;
 }
 
 std::string SqliteLazy::bulk_update_query() const

@@ -50,15 +50,24 @@ enum Unique_Keys{
 class AbstractLazy
 {
 protected:
+
+    enum QuoteType
+    {
+        NoQuote=0,
+        SingleQuote=1,
+        DoubleQuote,
+        BackTick
+    };
+
   Query mQueryType=UNDEFINED;
   std::string mTabeName;
   std::map<DbVariant, DbVariant> mProperties;
   std::list<std::map<DbVariant, DbVariant>> mBatchProperties;
   std::string mPrimaryKey;
-  std::list<std::string> mUniqueKeys;
+  std::vector<std::string> mUniqueKeys;
   std::list<DbVariant> mCounts;
-  std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
-  std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const;
+  std::string string_join(const std::string &delimiter, const std::vector<std::string> &container, QuoteType quote = NoQuote) const;
+  std::string string_join(const std::string &delimiter, const std::vector<DbVariant> &container, QuoteType quote = NoQuote) const;
   bool appendPropAsCount(DbVariant prop);
 
   virtual std::string insert_query() const = 0;
@@ -111,7 +120,7 @@ public:
   std::string & operator[](const LazyOrm::Primary_Key &primaryKey);
 
   void setUniqueKeys(const std::initializer_list<std::string> &uniqueKeys);
-  std::list<std::string> & operator[](const LazyOrm::Unique_Keys &uniqueKeys);
+  std::vector<std::string> & operator[](const LazyOrm::Unique_Keys &uniqueKeys);
 
   void setCountType(std::initializer_list<DbVariant> countFields);
   std::list<DbVariant> & operator[](const LazyOrm::Count &count);
@@ -128,7 +137,7 @@ public:
   Query queryType() const;
   virtual const FilteringAbstractLazy& getFilter() const = 0;
   std::string primaryKey() const;
-  std::list<std::string> uniqueKeys() const;
+  std::vector<std::string> uniqueKeys() const;
 
 
   static void trim_consecutive_spaces(std::string& str);

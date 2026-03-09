@@ -29,7 +29,7 @@ void AbstractLazy::setUniqueKeys(const std::initializer_list<std::string> &uniqu
     mUniqueKeys = uniqueKeys;
 }
 
-std::list<std::string> & AbstractLazy::operator[](const LazyOrm::Unique_Keys &uniqueKeys){
+std::vector<std::string> & AbstractLazy::operator[](const LazyOrm::Unique_Keys &uniqueKeys){
     return mUniqueKeys;
 }
 
@@ -87,13 +87,27 @@ Query AbstractLazy::queryType() const
     return mQueryType;
 }
 
-std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<std::string> &container) const
+std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<std::string> &container, QuoteType quote) const
 {
   size_t size = container.size();
   size_t endPos = container.size()-1;
   std::string output;
   for(size_t i = 0; i < size; ++i) {
-      output.append(container[i]);
+      switch (quote) {
+      case SingleQuote:
+          output.append("'"+container[i]+"'");
+          break;
+      case DoubleQuote:
+          output.append("\""+container[i]+"\"");
+          break;
+      case BackTick:
+          output.append("`"+container[i]+"`");
+          break;
+      case NoQuote:
+      default:
+          output.append(container[i]);
+          break;
+      }
       if(i!=endPos){
           output.append(delimiter);
       }
@@ -101,13 +115,27 @@ std::string AbstractLazy::string_join(const std::string &delimiter, const std::v
   return output;
 }
 
-std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container) const
+std::string AbstractLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container, QuoteType quote) const
 {
   size_t size = container.size();
   size_t endPos = container.size()-1;
   std::string output;
   for(size_t i = 0; i < size; ++i) {
-      output.append(container[i].toString());
+      switch (quote) {
+      case SingleQuote:
+          output.append(container[i].setQuote());
+          break;
+      case DoubleQuote:
+          output.append(container[i].setDoubleQuote());
+          break;
+      case BackTick:
+          output.append(container[i].setBackTick());
+          break;
+      case NoQuote:
+      default:
+          output.append(container[i].toString());
+          break;
+      }
       if(i!=endPos){
           output.append(delimiter);
       }
@@ -376,7 +404,7 @@ std::string AbstractLazy::primaryKey() const
     return mPrimaryKey;
 }
 
-std::list<std::string> AbstractLazy::uniqueKeys() const
+std::vector<std::string> AbstractLazy::uniqueKeys() const
 {
     return mUniqueKeys;
 }

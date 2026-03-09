@@ -188,14 +188,60 @@ void PostgreLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
 
 std::string PostgreLazy::insert_update_query() const
 {
-    // TODO:
-  return {};
+    std::vector<std::string> keys, values;
+
+    for(const auto &[key, value] : mProperties)
+    {
+        if(key.isUpdate())
+        {
+            continue;
+        }
+        keys.push_back(key.setDoubleQuote());
+        values.push_back(value.setQuote());
+    }
+
+    std::vector<std::string> updates;
+    for(const auto &[key, value] : mProperties)
+    {
+        if(key.isUpdate())
+        {
+            updates.push_back(key.setDoubleQuote()+"="+value.setQuote());
+        }
+    }
+
+    std::string queryString;
+    queryString = "INSERT INTO ";
+    queryString.append(mTabeName);
+    queryString.append(" ("+string_join(",",keys)+") ");
+    queryString.append("VALUES");
+    queryString.append(" ("+string_join(",",values)+") ");
+    if(!updates.empty() && !mUniqueKeys.empty())
+    {
+        queryString.append("ON CONFLICT ("+ string_join(",",mUniqueKeys, QuoteType::DoubleQuote) +") DO UPDATE SET ");
+        queryString.append(string_join(",",updates));
+    }
+    queryString.append(";");
+    return queryString;
 }
 
 std::string PostgreLazy::insert_ignore_query() const
 {
-    // TODO:
-  return {};
+    std::vector<std::string> keys, values;
+
+    for(const auto &[key, value] : mProperties)
+    {
+        keys.push_back(key.setDoubleQuote());
+        values.push_back(value.setQuote());
+    }
+
+    std::string queryString;
+    queryString = "INSERT INTO ";
+    queryString.append(mTabeName);
+    queryString.append(" ("+string_join(",",keys)+") ");
+    queryString.append("VALUES");
+    queryString.append(" ("+string_join(",",values)+") ");
+    queryString.append("ON CONFLICT DO NOTHING;");
+    return queryString;
 }
 
 std::string PostgreLazy::bulk_update_query() const
