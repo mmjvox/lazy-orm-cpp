@@ -179,8 +179,40 @@ void SqliteLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
 
 std::string SqliteLazy::insert_update_query() const
 {
-    // TODO:
-  return {};
+    std::vector<std::string> keys, values;
+
+    for(const auto &[key, value] : mProperties)
+    {
+        if(key.isUpdate())
+        {
+            continue;
+        }
+        keys.push_back(key.setBackTick());
+        values.push_back(value.setQuote());
+    }
+
+    std::vector<std::string> updates;
+    for(const auto &[key, value] : mProperties)
+    {
+        if(key.isUpdate())
+        {
+            updates.push_back(key.setBackTick()+"="+value.setQuote());
+        }
+    }
+
+    std::string queryString;
+    queryString = "INSERT INTO ";
+    queryString.append(mTabeName);
+    queryString.append(" ("+string_join(",",keys)+") ");
+    queryString.append("VALUES");
+    queryString.append(" ("+string_join(",",values)+") ");
+    if(!updates.empty() && !mUniqueKeys.empty())
+    {
+        queryString.append("ON CONFLICT ("+ string_join(",",mUniqueKeys, QuoteType::BackTick) +") DO UPDATE SET ");
+        queryString.append(string_join(",",updates));
+    }
+    queryString.append(";");
+    return queryString;
 }
 
 std::string SqliteLazy::insert_ignore_query() const
