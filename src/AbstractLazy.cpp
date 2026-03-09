@@ -51,11 +51,6 @@ std::list<LazyOrm::DbVariant> &AbstractLazy::operator[](const Count &count){
     return mCounts;
 }
 
-void AbstractLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
-{
-    // TODO: implement later if needed
-}
-
 void AbstractLazy::setQueryType(LazyOrm::Query queryType)
 {
   mQueryType = queryType;

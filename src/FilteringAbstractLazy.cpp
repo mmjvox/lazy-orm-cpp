@@ -126,9 +126,12 @@ void FilteringAbstractLazy::setFilterForReserved(const FilterVariant &variant)
   mReservedFilter = Filters::None;
 }
 
-void FilteringAbstractLazy::setFilterForReserved(const std::vector<FilterVariant> &variantList)
+void FilteringAbstractLazy::setFilterForReserved(const std::initializer_list<std::pair<LazyOrm::Filters,LazyOrm::FilterVariant>> &variantList)
 {
-  // TODO: implement later if needed
+    for(const auto &pair : variantList){
+        mReservedFilter = pair.first;
+        setFilterForReserved(pair.second);
+    }
 }
 
 void FilteringAbstractLazy::setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList)

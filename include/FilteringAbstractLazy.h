@@ -52,7 +52,7 @@ protected:
 public:
     FilteringAbstractLazy();
     void setFilterForReserved(const LazyOrm::FilterVariant &variant);
-    void setFilterForReserved(const std::vector<LazyOrm::FilterVariant> &variantList);
+    void setFilterForReserved(const std::initializer_list<std::pair<LazyOrm::Filters,LazyOrm::FilterVariant>> &variantList);
     void setFilter(std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, std::initializer_list<LazyOrm::FilterVariant> filterVariantList);
     void setFilter(const Filters &filter, LazyOrm::FilterVariant filterVariant);
