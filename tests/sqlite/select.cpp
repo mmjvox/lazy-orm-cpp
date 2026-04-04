@@ -58,7 +58,7 @@ std::string select5() {
 std::string select7() {
     LazyOrm::SqliteLazy lazyOrm;
     lazyOrm[LazyOrm::SELECT]="student";
-    lazyOrm<<"name"<<"age"<<"hair"<<"*";
+    lazyOrm<<"name"<<"age as age2"<<"hair"<<"*";
     lazyOrm[LazyOrm::COUNT_PROPS] = {{"name","age as age2","hair as 'hair2'","*"}};
     return lazyOrm.query_with_trim_consecutive_spaces();
 }
@@ -85,6 +85,13 @@ std::string select10() {
     return lazyOrm.query_with_trim_consecutive_spaces();
 }
 
+std::string select11() {
+    LazyOrm::SqliteLazy lazyOrm;
+    lazyOrm[LazyOrm::SELECT]="student";
+    lazyOrm<<"name"<<LazyOrm::DbVariant::as("age","age2")<<"hair"<<"*";
+    return lazyOrm.query_with_trim_consecutive_spaces();
+}
+
 TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
     REQUIRE( Catch::trim(select1()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
     REQUIRE( Catch::trim(select2()) == R"(SELECT *,`age`,`hair`,`name` FROM student;)" );
@@ -92,9 +99,11 @@ TEST_CASE( "Factorials are computed", "[Lazy_SELECT]" ) {
     REQUIRE( Catch::trim(select4()) == R"(SELECT `age`,`hair`,`name` FROM student WHERE (`grade` in (1,5,7,9)) GROUP BY `group1`,`group2` ORDER BY `num1`,`num2` LIMIT 5 OFFSET 6 ;)" );
     REQUIRE( Catch::trim(select5()) == R"(SELECT `age`,`hair`,`name` FROM student WHERE (`grade` in (1,5,7,9)) GROUP BY `group1`,`group2` ORDER BY `num1`,`num2` LIMIT 5 OFFSET 6 ;)" );
 
-    REQUIRE( Catch::trim(select7()) == R"(SELECT *,`age`,`hair`,`name`,COUNT(`name`),COUNT(`age` as 'age2'),COUNT(`hair` as 'hair2'),COUNT(*) FROM student;)" );
+    REQUIRE( Catch::trim(select7()) == R"(SELECT *,`age` as 'age2',`hair`,`name`,COUNT(`name`),COUNT(`age` as 'age2'),COUNT(`hair` as 'hair2'),COUNT(*) FROM student;)" );
     REQUIRE( Catch::trim(select8()) == R"(SELECT `age`,`hair`,`name`,COUNT(*),COUNT(`name`),COUNT(`age` as 'age2'),COUNT(`hair` as 'hair2') FROM student;)" );
 
     REQUIRE( Catch::trim(select9()) == R"(SELECT DISTINCT *,`age`,`hair`,`name` FROM student;)" );
     REQUIRE( Catch::trim(select10()) == R"(SELECT DISTINCT *,`age`,`hair`,`name` FROM student;)" );
+
+    REQUIRE( Catch::trim(select11()) == R"(SELECT *,`age` as 'age2',`hair`,`name` FROM student;)" );
 }

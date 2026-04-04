@@ -2,6 +2,7 @@
 #include <cfloat>
 #include <charconv>
 #include <climits>
+#include <iostream>
 #include <sstream>
 #include <cmath>
 #include <algorithm>
@@ -645,9 +646,17 @@ std::string LazyOrm::DbVariant::setDoubleQuote() const
     {
         if(strVal.length()>asPos+4){
             if(strVal.at(asPos+4)=='\''){
+                strVal = strVal.replace(asPos+4,1,"\"");
+                auto lastQuotePos = strVal.size()-1;
+                if(strVal[lastQuotePos]!='\''){
+                    lastQuotePos = toLowerString().find("\'");
+                }
+                strVal = strVal.replace(lastQuotePos,1,"\"");
+            }
+            if(strVal.at(asPos+4)=='\"'){
                 return "\""+strVal.insert(asPos,"\"");
             }
-            return "\""+strVal.insert(asPos,"\"").insert(asPos+5,"'")+"'";
+            return "\""+strVal.insert(asPos,"\"").insert(asPos+5,"\"")+"\"";
         }
     }
 
@@ -854,4 +863,7 @@ bool LazyOrm::DbVariant::operator==(bool b)
     return toBool() == b;
 }
 
-
+const std::string LazyOrm::DbVariant::as(const std::string &columnName, const std::string &asName)
+{
+    return columnName + " as " + asName;
+}

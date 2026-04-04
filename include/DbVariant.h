@@ -119,6 +119,8 @@ public:
     bool operator==(long long);
     bool operator==(long double);
     bool operator==(bool);
+
+    static const std::string as(const std::string &columnName, const std::string &asName);
 };
 
 typedef std::pair<std::string,LazyOrm::DbVariant> pair;
