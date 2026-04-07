@@ -78,6 +78,11 @@ add_library(lazyorm STATIC
     src/Result.cpp
     src/ResultRow.cpp
 
+    include/JoinAbstract.h
+    src/JoinAbstract.cpp
+    include/JoinMariadb.h
+    src/JoinMariadb.cpp
+
 )
 
 target_compile_definitions(lazyorm PRIVATE LazyOrm_LIBRARY)
