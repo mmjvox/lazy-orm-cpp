@@ -26,6 +26,8 @@ std::string join1() {
   return joinMariadb.query_with_trim_consecutive_spaces();
 }
 
+// TODO: more tests
+
 TEST_CASE( "Factorials are computed", "[Lazy_JOIN]" ) {
     REQUIRE( Catch::trim(join1()) == R"()" );
 }

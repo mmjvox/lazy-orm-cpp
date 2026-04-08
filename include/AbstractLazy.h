@@ -60,6 +60,7 @@ protected:
     };
 
   Query mQueryType=UNDEFINED;
+    // TODO: set backtick for name of tabes in queries
   std::string mTabeName;
   std::map<DbVariant, DbVariant> mProperties;
   std::list<std::map<DbVariant, DbVariant>> mBatchProperties;
