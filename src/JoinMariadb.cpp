@@ -37,6 +37,19 @@ std::string JoinMariadb::joinedToString(const Joined &joined) const
     return "JOIN " + makeCondition(joined);;
 }
 
+std::string JoinMariadb::queryString() const
+{
+    std::string queryString = minQueryString();
+
+    queryString.append(mWhereFilter.toString());
+    queryString.append(mFilter.groupString());
+    queryString.append(mHavingFilter.toString());
+    queryString.append(mFilter.orderbyString());
+    queryString.append(mFilter.limitString());
+    queryString.append(";");
+    return queryString;
+}
+
 std::string JoinMariadb::makeCondition(const Joined &j) const
 {
     return  j.joinedOne.tabeName() +

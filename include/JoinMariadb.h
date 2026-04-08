@@ -8,14 +8,16 @@ namespace LazyOrm {
 
 class JoinMariadb : public JoinAbstract
 {
+private:
+    MariadbFilteringLazy mFilter;
+    std::string  makeCondition (const Joined &j) const;
+
 public:
     JoinMariadb();
 
     std::string propertiesToJoinedString(const LazyOrm &lazyOrm) const override;
     std::string joinedToString(const Joined &joined) const override;
-
-private:
-    std::string  makeCondition (const Joined &j) const;
+    std::string queryString() const override;
 };
 
 }

@@ -20,7 +20,7 @@ std::vector<Joined> &JoinAbstract::operator[](const enum Joins &joinType)
     return mJoinedOnes;
 }
 
-std::string JoinAbstract::queryString() const
+std::string JoinAbstract::minQueryString() const
 {
     std::string queryString = "SELECT \n";
 
@@ -40,8 +40,6 @@ std::string JoinAbstract::queryString() const
         queryString.append(joinedToString(joinedItem));
         queryString.append(" \n");
     }
-
-    // TODO: where and ...
 
     return queryString;
 }

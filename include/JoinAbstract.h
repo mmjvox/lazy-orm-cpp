@@ -43,7 +43,10 @@ private:
     std::vector<Joined> mJoinedOnes;
 
 protected:
+    WhereFilter mWhereFilter;
+    HavingFilter mHavingFilter;
     std::string string_join(const std::string &delimiter, const std::vector<std::string> &container) const;
+    std::string minQueryString() const;
 
 public:
     JoinAbstract();
@@ -55,8 +58,8 @@ public:
 
     virtual std::string propertiesToJoinedString(const LazyOrm &lazyOrm) const = 0;
     virtual std::string joinedToString(const Joined &joined) const = 0;
+    virtual std::string queryString() const = 0;
 
-    std::string queryString() const;
     std::string query_with_trim_consecutive_spaces() const;
 };
 
