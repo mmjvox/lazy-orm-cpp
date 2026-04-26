@@ -1,0 +1,3 @@
+[submodule "lazy-variant"]
+	path = lazy-variant
+	url = https://github.com/mmjvox/lazy-variant

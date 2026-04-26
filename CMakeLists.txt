@@ -15,8 +15,6 @@ include_directories(
 )
 
 set(LazyORM_HEADERS
-    include/DbVariant.h
-    include/DbList.h
     include/WhereFilter.h
     include/WhereFilterPostgre.h
     include/HavingFilter.h
@@ -40,17 +38,11 @@ set(LazyORM_HEADERS
     include/TransactionPostgre.h
     include/TransactionSqlite.h
     include/LazyTransaction.h
-
-    include/Result.h
-    include/ResultRow.h
-
 )
 
 add_library(lazyorm STATIC
     ${LazyORM_HEADERS}
 
-    src/DbVariant.cpp
-    src/DbList.cpp
     src/WhereFilter.cpp
     src/FilterVariant.cpp
     src/WhereFilterPostgre.cpp
@@ -75,14 +67,10 @@ add_library(lazyorm STATIC
     src/TransactionSqlite.cpp
     src/LazyTransaction.cpp
 
-    src/Result.cpp
-    src/ResultRow.cpp
-
     include/JoinAbstract.h
     src/JoinAbstract.cpp
     include/JoinMariadb.h
     src/JoinMariadb.cpp
-
 )
 
 target_compile_definitions(lazyorm PRIVATE LazyOrm_LIBRARY)
