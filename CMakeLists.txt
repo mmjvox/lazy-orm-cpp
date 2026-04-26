@@ -10,7 +10,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+add_subdirectory(lazy-variant)
+
 include_directories(
+    lazy-variant/include
     include/
 )
 
@@ -72,6 +75,8 @@ add_library(lazyorm STATIC
     include/JoinMariadb.h
     src/JoinMariadb.cpp
 )
+
+target_link_libraries(${PROJECT_NAME} PUBLIC lazyvariant)
 
 target_compile_definitions(lazyorm PRIVATE LazyOrm_LIBRARY)
 
