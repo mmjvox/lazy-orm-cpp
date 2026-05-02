@@ -81,10 +81,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC lazyvariant)
 target_compile_definitions(lazyorm PRIVATE LazyOrm_LIBRARY)
 
 
-option(tests "build tests" OFF)
-if(tests)
+option(orm_tests "build tests of lazy-orm-cpp" OFF)
+if(orm_tests)
 add_subdirectory(tests)
-endif(tests)
+endif(orm_tests)
 
 
 target_include_directories(lazyorm PUBLIC include)
