@@ -20,7 +20,8 @@ std::string WhereFilterPostgre::string_join(const std::string &delimiter, const 
     }
 
     if(container.size()==2){
-        return container[0].setDoubleQuote() + " = " +container[1].setQuote();
+        const std::string &equalityOperator = container[1].toLowerString()=="null"? "IS" : "=";
+        return container[0].setDoubleQuote() + " " + equalityOperator + " " +container[1].setQuote();
     }
 
     if(container.size()==3){

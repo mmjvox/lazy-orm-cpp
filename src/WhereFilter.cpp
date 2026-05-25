@@ -218,7 +218,8 @@ std::string WhereFilter::string_join(const std::string &delimiter, const std::ve
     }
 
     if(container.size()==2){
-        return container[0].setBackTick() + " = " +container[1].setQuote();
+        const std::string &equalityOperator = container[1].toLowerString()=="null"? "IS" : "=";
+        return container[0].setBackTick() + " " + equalityOperator + " " +container[1].setQuote();
     }
 
     if(container.size()==3){
