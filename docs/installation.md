@@ -43,6 +43,16 @@ cmake --build .
 cmake --install .
 ```
 
+#### Using an installed lazyvariant
+
+If you installed `lazyvariant` into a custom prefix (for example `/home/mmjvox/dev-libs/install`), point CMake at its package config directory when configuring LazyOrm-CPP:
+
+```bash
+cmake -S . -B build -Dlazyvariant_DIR=/home/mmjvox/dev-libs/install/lib/cmake/lazyvariant
+```
+
+You can also add the prefix to `CMAKE_PREFIX_PATH` or set the `lazyvariant_ROOT` environment variable. When no installed package is found, the build automatically falls back to the bundled submodule (if present).
+
 #### Using in Your CMake Project
 
 Add LazyOrm-CPP to your CMake project using `add_subdirectory`:
@@ -74,12 +84,12 @@ The following CMake options are available:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `tests` | `OFF` | Build test suite |
+| `orm_tests` | `OFF` | Build the LazyOrm-CPP Catch2 suite |
 
 To build tests:
 
 ```bash
-cmake -Dtests=ON ..
+cmake -Dorm_tests=ON ..
 cmake --build .
 ```
 
