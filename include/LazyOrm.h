@@ -31,6 +31,7 @@ public:
     LazyOrm();
 
     std::string queryString(const DBMS_TYPE &dbms) const;
+    ParameterizedQuery buildParameterized(const DBMS_TYPE &dbms) const;
 
 
     // copy contructors:;

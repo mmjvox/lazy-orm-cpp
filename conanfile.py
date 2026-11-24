@@ -1,5 +1,7 @@
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
+from conan.tools.files import copy
+import os
 
 
 class lazyormRecipe(ConanFile):
@@ -7,20 +9,28 @@ class lazyormRecipe(ConanFile):
     version = "1.0"
     package_type = "library"
 
-    # Optional metadata
-    license = "<Put the package license here>"
-    author = "<Put your name here> <And your email here>"
-    url = "<Package recipe repository url here, for issues about the package>"
-    description = "<Description of lazyorm package here>"
-    topics = ("<Put some tag here>", "<here>", "<and here>")
+    license = "MIT"
+    url = "https://github.com/mmjvox/lazy-orm-cpp"
+    description = "A C++20 SQL query builder for PostgreSQL, MariaDB, and SQLite"
+    topics = ("orm", "sql", "postgresql", "mariadb", "cpp20")
 
     # Binary configuration
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}
 
-    # Sources are located in the same place as this recipe, copy them to the recipe
-    exports_sources = "CMakeLists.txt", "src/*", "include/*", "Config.cmake.in"
+    exports_sources = (
+        "CMakeLists.txt",
+        "Config.cmake.in",
+        "LICENSE",
+        "src/*",
+        "include/*",
+        "lazy-variant/CMakeLists.txt",
+        "lazy-variant/Config.cmake.in",
+        "lazy-variant/LICENSE",
+        "lazy-variant/src/*",
+        "lazy-variant/include/*",
+    )
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -47,9 +57,13 @@ class lazyormRecipe(ConanFile):
     def package(self):
         cmake = CMake(self)
         cmake.install()
+        copy(self, "LICENSE", self.source_folder, os.path.join(self.package_folder, "licenses"))
 
     def package_info(self):
-        self.cpp_info.libs = ["lazyorm"]
+        self.cpp_info.libs = ["lazyorm", "lazyvariant"]
+        self.cpp_info.includedirs = ["include/LazyOrm", "include/LazyVariant"]
+        self.cpp_info.set_property("cmake_file_name", "lazyorm")
+        self.cpp_info.set_property("cmake_target_name", "lazyorm::lazyorm")
 
     
 

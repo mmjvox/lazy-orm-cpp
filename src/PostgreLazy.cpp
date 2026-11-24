@@ -32,6 +32,15 @@ PostgreLazy::PostgreLazy(const std::string &table, const Query &queryType)
   setQueryType(queryType);
 }
 
+ParameterizedQuery PostgreLazy::buildParameterized() const
+{
+    auto result = parameterizedQuery(ParameterDialect::PostgreSQL);
+    if (queryType() != RAW_QUERY) {
+        trim_consecutive_spaces(result.sql);
+    }
+    return result;
+}
+
 void PostgreLazy::setFilter(const PostgreFilteringLazy filter)
 {
   mFilter=filter;

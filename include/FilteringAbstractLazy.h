@@ -69,6 +69,9 @@ public:
     FilterVariant orderConditions() const;
     FilterVariant groupConditions() const;
 
+    std::string orderByString() const { return orderbyString(); }
+    std::string groupByString() const { return groupString(); }
+
     std::string filter_conditions_with_trim_consecutive_spaces();
 };
 }

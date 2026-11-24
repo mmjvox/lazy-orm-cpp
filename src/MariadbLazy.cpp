@@ -30,6 +30,15 @@ MariadbLazy::MariadbLazy(const std::string &table, const Query &queryType)
   setQueryType(queryType);
 }
 
+ParameterizedQuery MariadbLazy::buildParameterized() const
+{
+    auto result = parameterizedQuery(ParameterDialect::MariaDB);
+    if (queryType() != RAW_QUERY) {
+        trim_consecutive_spaces(result.sql);
+    }
+    return result;
+}
+
 void MariadbLazy::setFilter(const MariadbFilteringLazy filter)
 {
   mFilter=filter;

@@ -34,6 +34,19 @@ std::string LazyOrm::bulk_update_query() const {return {};}
 void LazyOrm::appendFilter(const Filters &filter, DbVariant dbVariant){}
 
 
+ParameterizedQuery LazyOrm::buildParameterized(const DBMS_TYPE &dbms) const
+{
+    switch (dbms) {
+    case MariaDB:
+        return static_cast<MariadbLazy>(*this).buildParameterized();
+    case Postgres:
+        return static_cast<PostgreLazy>(*this).buildParameterized();
+    case Sqlite3:
+        return {};
+    }
+    return {};
+}
+
 std::string LazyOrm::queryString(const DBMS_TYPE &dbms) const
 {
     switch (dbms) {

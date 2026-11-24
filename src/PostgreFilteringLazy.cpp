@@ -98,25 +98,36 @@ std::string PostgreFilteringLazy::limitString() const
         return {};
     }
 
-    std::string retStr(" LIMIT ");
-
-    std::visit([&retStr, this](auto&& arg) {
+    std::vector<DbVariant> limits;
+    std::visit([&limits](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
-            if(arg.size()==3){
-                auto middleVar = arg[1];
-                if(middleVar==","){
-                    retStr.append(string_join(" OFFSET ",{arg[0],arg[2]}, QuoteFor::LimitType));
-                }
+            if(arg.size()==3 && arg[1].toString()==","){
+                limits = {arg[0], arg[2]};
             } else {
-                retStr.append(string_join(" OFFSET ",arg, QuoteFor::LimitType));
+                limits = arg;
             }
         }
         else if constexpr (std::is_same_v<T, DbVariant>) {
-            retStr.append(arg.toString());
+            const std::string value = arg.toString();
+            const auto comma = value.find(',');
+            if(comma != std::string::npos){
+                limits = {DbVariant(value.substr(0, comma)).trim(), DbVariant(value.substr(comma + 1)).trim()};
+            } else {
+                limits = {arg};
+            }
         }
     }, mLimitConditions);
 
+    if(limits.empty()){
+        return {};
+    }
+
+    std::string retStr(" LIMIT ");
+    retStr.append(limits[0].trim());
+    if(limits.size()>1){
+        retStr.append(" OFFSET "+limits[1].trim());
+    }
     retStr.append(" ");
 
     return retStr;

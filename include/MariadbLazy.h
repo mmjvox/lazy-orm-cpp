@@ -30,6 +30,8 @@ public:
   MariadbLazy();
   MariadbLazy(const std::string &table, const Query &queryType);
 
+  ParameterizedQuery buildParameterized() const override;
+
   void setFilter(const MariadbFilteringLazy filter);
 
   // copy contructors:;

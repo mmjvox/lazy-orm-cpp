@@ -258,7 +258,7 @@ TEST_CASE( "Factorials are computed", "[Lazy_FILTER]" ) {
 
     REQUIRE( Catch::trim(filter1()) == R"(GROUP BY "group1","group2" ORDER BY "num1","num2" LIMIT 11 OFFSET 23)" );
     REQUIRE( Catch::trim(filter2()) == R"(GROUP BY "group1","group2" ORDER BY "num1","num2" LIMIT 11 OFFSET 23)" );
-    REQUIRE( Catch::trim(filter3()) == R"(GROUP BY "group1","group2" ORDER BY "num1","num2" LIMIT 10,10)" );
+    REQUIRE( Catch::trim(filter3()) == R"(GROUP BY "group1","group2" ORDER BY "num1","num2" LIMIT 10 OFFSET 10)" );
     REQUIRE( Catch::trim(filter4()) == R"(GROUP BY "group1","group2" ORDER BY "num1","num2" LIMIT 14 OFFSET 26)" );
     REQUIRE( Catch::trim(filter5()) == R"(ORDER BY "num1","num2","num3" DESC,"num4" ASC LIMIT 11 OFFSET 23)" );
     REQUIRE( Catch::trim(filter6()) == R"(ORDER BY "num1" DESC,"num2" DESC,"num3" DESC,"num4" ASC LIMIT 11 OFFSET 23)" );

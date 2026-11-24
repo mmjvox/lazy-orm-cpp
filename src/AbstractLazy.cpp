@@ -270,6 +270,11 @@ HavingFilter AbstractLazy::havingFilter() const
     return mHavingFilter;
 }
 
+ParameterizedQuery AbstractLazy::buildParameterized() const
+{
+    return {};
+}
+
 std::string AbstractLazy::queryString() const
 {
   switch (mQueryType) {
@@ -333,7 +338,7 @@ void AbstractLazy::setProperties(const std::initializer_list<std::pair<DbVariant
   for(const auto &item : items)
     {
         if(!appendPropAsCount(item.first)){
-            mProperties[item.first] = item.second.toString();
+            mProperties[item.first] = item.second;
         }
     }
 }

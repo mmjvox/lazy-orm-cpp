@@ -32,6 +32,7 @@
 - **Bulk Operations**: Efficient bulk insert and update
 - **Transactions**: Built-in transaction support
 - **Type-Safe**: Strong typing with DbVariant for multiple data types
+- **Parameterized Queries**: PostgreSQL `$1` and MariaDB `?` placeholders with typed parameters
 - **C++20**: Modern C++ features and best practices
 
 ---
@@ -55,6 +56,22 @@ int main() {
     return 0;
 }
 ```
+
+### Parameterized Queries
+
+```cpp
+LazyOrm::PostgreLazy query;
+query[LazyOrm::SELECT] = "users";
+query << "id" << "name";
+query[LazyOrm::WHERE] = {{"id", ">=", 18}};
+query[LazyOrm::LIMIT] = {{20, 0}};
+
+auto parameterized = query.buildParameterized();
+// parameterized.sql: SELECT "id","name" FROM users WHERE ("id" >= $1) LIMIT $2 OFFSET $3 ;
+// parameterized.params: typed DbVariant values {18, 20, 0}
+```
+
+The legacy `queryString()` API remains available. Use `buildParameterized()` when passing values separately to a database client.
 
 ---
 

@@ -34,6 +34,8 @@ public:
   PostgreLazy();
   PostgreLazy(const std::string &table, const Query &queryType);
 
+  ParameterizedQuery buildParameterized() const override;
+
   void setFilter(const PostgreFilteringLazy filter);
 
   // copy contructors:;

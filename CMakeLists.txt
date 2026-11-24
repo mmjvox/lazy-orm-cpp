@@ -46,10 +46,13 @@ set(LazyORM_HEADERS
     include/WhereFilterPostgre.h
     include/HavingFilter.h
     include/FilterVariant.h
+    include/ParameterizedQuery.h
     include/AbstractLazy.h
     include/FilteringAbstractLazy.h
     include/LazyOrm.h
     include/FilteringLazy.h
+    include/JoinAbstract.h
+    include/JoinMariadb.h
 
     include/MariadbLazy.h
     include/MariadbFilteringLazy.h
@@ -67,11 +70,12 @@ set(LazyORM_HEADERS
     include/LazyTransaction.h
 )
 
-add_library(lazyorm STATIC
+add_library(lazyorm
     ${LazyORM_HEADERS}
 
     src/WhereFilter.cpp
     src/FilterVariant.cpp
+    src/ParameterizedQuery.cpp
     src/WhereFilterPostgre.cpp
     src/LazyOrm.cpp
     src/FilteringLazy.cpp
@@ -107,6 +111,7 @@ target_compile_definitions(lazyorm PRIVATE LazyOrm_LIBRARY)
 
 option(orm_tests "build tests of lazy-orm-cpp" OFF)
 if(orm_tests)
+enable_testing()
 add_subdirectory(tests)
 endif(orm_tests)
 
@@ -138,7 +143,15 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lazyormConfig.cmake
 #              ${CMAKE_CURRENT_BINARY_DIR}/FooConfigVersion.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lazyorm)
 install(TARGETS lazyorm
+    EXPORT lazyormTargets
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LazyOrm
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LazyOrm
+)
+install(EXPORT lazyormTargets
+    FILE lazyormTargets.cmake
+    NAMESPACE lazyorm::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lazyorm
 )

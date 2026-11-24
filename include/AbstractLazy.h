@@ -4,6 +4,7 @@
 #include "DbVariant.h"
 #include "FilteringAbstractLazy.h"
 #include "HavingFilter.h"
+#include "ParameterizedQuery.h"
 #include "WhereFilter.h"
 
 #include <list>
@@ -88,12 +89,20 @@ protected:
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
   virtual void appendFilter(const Filters &filter, LazyOrm::DbVariant dbVariant) = 0;
 
+  enum class ParameterDialect
+  {
+      PostgreSQL,
+      MariaDB
+  };
+  ParameterizedQuery parameterizedQuery(ParameterDialect dialect) const;
+
   WhereFilter mWhereFilter;
   HavingFilter mHavingFilter;
 
 public:
   const static char* version;
   virtual std::string queryString() const;
+  virtual ParameterizedQuery buildParameterized() const;
 
   void setTabeName(const std::string &name);
   void setQueryType(LazyOrm::Query queryType);
