@@ -32,7 +32,7 @@
 - **Bulk Operations**: Efficient bulk insert and update
 - **Transactions**: Built-in transaction support
 - **Type-Safe**: Strong typing with DbVariant for multiple data types
-- **Parameterized Queries**: PostgreSQL `$1` and MariaDB `?` placeholders with typed parameters
+- **Parameterized Queries**: PostgreSQL `$1` and MariaDB/SQLite `?` placeholders with typed parameters
 - **C++20**: Modern C++ features and best practices
 
 ---
