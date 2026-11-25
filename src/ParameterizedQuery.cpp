@@ -47,8 +47,11 @@ DbVariant limitValue(const DbVariant &value)
 
 class ParameterizedBuilder
 {
-    bool mPostgreSQL;
+    AbstractLazy::ParameterDialect mDialect;
     ParameterizedQuery &mQuery;
+
+    bool postgreSQL() const { return mDialect == AbstractLazy::ParameterDialect::PostgreSQL; }
+    bool mariaDB() const { return mDialect == AbstractLazy::ParameterDialect::MariaDB; }
 
     std::string bind(const DbVariant &value)
     {
@@ -60,7 +63,7 @@ class ParameterizedBuilder
         }
 
         mQuery.params.push_back(value);
-        if (mPostgreSQL) {
+        if (postgreSQL()) {
             return "$" + std::to_string(mQuery.params.size());
         }
         return "?";
@@ -68,7 +71,7 @@ class ParameterizedBuilder
 
     std::string quote(const DbVariant &identifier) const
     {
-        return mPostgreSQL ? identifier.setDoubleQuote() : identifier.setBackTick();
+        return postgreSQL() ? identifier.setDoubleQuote() : identifier.setBackTick();
     }
 
     static bool nullOperand(const DbVariant &value)
@@ -184,7 +187,7 @@ class ParameterizedBuilder
             return {};
         }
 
-        if (commaSyntax && !mPostgreSQL && values.size() == 2) {
+        if (commaSyntax && mariaDB() && values.size() == 2) {
             std::swap(values[0], values[1]);
         }
 
@@ -196,8 +199,8 @@ class ParameterizedBuilder
     }
 
 public:
-    ParameterizedBuilder(bool postgreSQL, ParameterizedQuery &query)
-        : mPostgreSQL(postgreSQL), mQuery(query)
+    ParameterizedBuilder(AbstractLazy::ParameterDialect dialect, ParameterizedQuery &query)
+        : mDialect(dialect), mQuery(query)
     {
     }
 
@@ -273,8 +276,10 @@ public:
 ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) const
 {
     ParameterizedQuery result;
-    ParameterizedBuilder builder(dialect == ParameterDialect::PostgreSQL, result);
+    ParameterizedBuilder builder(dialect, result);
     const bool postgreSQL = dialect == ParameterDialect::PostgreSQL;
+    const bool mariaDB = dialect == ParameterDialect::MariaDB;
+    const bool sqlite = dialect == ParameterDialect::SQLite;
     const auto appendFilters = [&]() {
         result.sql.append(getFilter().groupByString());
         result.sql.append(builder.having(mHavingFilter));
@@ -286,7 +291,11 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
     case INSERT:
     case INSERT_IGNORE: {
         std::vector<std::string> columns;
-        result.sql = postgreSQL ? "INSERT INTO " : (mQueryType == INSERT_IGNORE ? "INSERT IGNORE INTO " : "INSERT INTO ");
+        if (mQueryType == INSERT_IGNORE) {
+            result.sql = mariaDB ? "INSERT IGNORE INTO " : (sqlite ? "INSERT OR IGNORE INTO " : "INSERT INTO ");
+        } else {
+            result.sql = "INSERT INTO ";
+        }
         result.sql.append(mTabeName + " (");
         const std::string values = builder.insertValues(mProperties, false, &columns);
         result.sql.append(join(columns, ",") + ") VALUES " + values + " ");
@@ -304,10 +313,11 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
         result.sql = "INSERT INTO " + mTabeName + " (";
         const std::string values = builder.insertValues(mProperties, true, &columns);
         result.sql.append(join(columns, ",") + ") VALUES " + values + " ");
-        const std::string updates = (!postgreSQL || !mUniqueKeys.empty()) ? builder.updates(mProperties, true) : "";
-        if (!updates.empty() && (postgreSQL ? !mUniqueKeys.empty() : true)) {
-            result.sql.append(postgreSQL ? "ON CONFLICT (" : "ON DUPLICATE KEY UPDATE ");
-            if (postgreSQL) {
+        const bool conflictSyntax = postgreSQL || sqlite;
+        const std::string updates = (mariaDB || !mUniqueKeys.empty()) ? builder.updates(mProperties, true) : "";
+        if (!updates.empty() && (conflictSyntax ? !mUniqueKeys.empty() : true)) {
+            result.sql.append(conflictSyntax ? "ON CONFLICT (" : "ON DUPLICATE KEY UPDATE ");
+            if (conflictSyntax) {
                 result.sql.append(builder.conflictKeys(mUniqueKeys) + ") DO UPDATE SET ");
             }
             result.sql.append(updates);

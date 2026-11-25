@@ -31,6 +31,15 @@ SqliteLazy::SqliteLazy(const std::string &table, const Query &queryType)
   setQueryType(queryType);
 }
 
+ParameterizedQuery SqliteLazy::buildParameterized() const
+{
+    auto result = parameterizedQuery(ParameterDialect::SQLite);
+    if (queryType() != RAW_QUERY) {
+        trim_consecutive_spaces(result.sql);
+    }
+    return result;
+}
+
 void SqliteLazy::setFilter(const SqliteFilteringLazy filter)
 {
   mFilter=filter;

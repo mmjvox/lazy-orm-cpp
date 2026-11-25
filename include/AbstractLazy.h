@@ -50,6 +50,14 @@ enum Unique_Keys{
 
 class AbstractLazy
 {
+public:
+  enum class ParameterDialect
+  {
+      PostgreSQL,
+      MariaDB,
+      SQLite
+  };
+
 protected:
 
     enum QuoteType
@@ -89,11 +97,6 @@ protected:
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
   virtual void appendFilter(const Filters &filter, LazyOrm::DbVariant dbVariant) = 0;
 
-  enum class ParameterDialect
-  {
-      PostgreSQL,
-      MariaDB
-  };
   ParameterizedQuery parameterizedQuery(ParameterDialect dialect) const;
 
   WhereFilter mWhereFilter;

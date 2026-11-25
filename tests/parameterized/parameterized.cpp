@@ -1,6 +1,7 @@
 #include "DbList.h"
 #include "MariadbLazy.h"
 #include "PostgreLazy.h"
+#include "SqliteLazy.h"
 
 #include <catch2/catch_all.hpp>
 
@@ -127,6 +128,15 @@ TEST_CASE("parameterized INSERT preserves native values", "[parameterized][inser
     requireInteger(maria.params[2], 7);
     requireString(maria.params[3], "O'Reilly");
     requireDouble(maria.params[4], 9.5);
+
+    const auto sqlite = insertQuery<LazyOrm::SqliteLazy>().buildParameterized();
+    REQUIRE(Catch::trim(sqlite.sql) == R"(INSERT INTO users (`active`,`deleted_at`,`id`,`name`,`score`) VALUES (?,?,?,?,?) ;)");
+    REQUIRE(sqlite.params.size() == 5);
+    REQUIRE(sqlite.params[0].typeName() == "boolean");
+    REQUIRE(sqlite.params[1].typeName().empty());
+    requireInteger(sqlite.params[2], 7);
+    requireString(sqlite.params[3], "O'Reilly");
+    requireDouble(sqlite.params[4], 9.5);
 }
 
 TEST_CASE("parameterized SELECT handles null IN BETWEEN and pagination", "[parameterized][select]")
@@ -154,6 +164,18 @@ TEST_CASE("parameterized SELECT handles null IN BETWEEN and pagination", "[param
     REQUIRE(maria.params[5].typeName() == "boolean");
     requireInteger(maria.params[6], 10);
     requireInteger(maria.params[7], 20);
+
+    const auto sqlite = selectQuery<LazyOrm::SqliteLazy>().buildParameterized();
+    REQUIRE(Catch::trim(sqlite.sql) == R"(SELECT `id`,`name` FROM users WHERE ((`deleted_at` IS NULL) AND (`id` in (?,?,?)) AND (`score` BETWEEN ? AND ?) AND (`active` = ?)) LIMIT ? OFFSET ? ;)");
+    REQUIRE(sqlite.params.size() == 8);
+    requireInteger(sqlite.params[0], 2);
+    requireInteger(sqlite.params[1], 4);
+    requireInteger(sqlite.params[2], 6);
+    requireDouble(sqlite.params[3], 1.5);
+    requireDouble(sqlite.params[4], 9.5);
+    REQUIRE(sqlite.params[5].typeName() == "boolean");
+    requireInteger(sqlite.params[6], 10);
+    requireInteger(sqlite.params[7], 20);
 }
 
 TEST_CASE("parameterized UPDATE numbers SET before WHERE", "[parameterized][update]")
@@ -171,6 +193,13 @@ TEST_CASE("parameterized UPDATE numbers SET before WHERE", "[parameterized][upda
     requireInteger(maria.params[0], 31);
     requireString(maria.params[1], "updated");
     requireInteger(maria.params[2], 42);
+
+    const auto sqlite = updateQuery<LazyOrm::SqliteLazy>().buildParameterized();
+    REQUIRE(Catch::trim(sqlite.sql) == R"(UPDATE users SET `age`=?,`name`=? WHERE (`id` = ?) ;)");
+    REQUIRE(sqlite.params.size() == 3);
+    requireInteger(sqlite.params[0], 31);
+    requireString(sqlite.params[1], "updated");
+    requireInteger(sqlite.params[2], 42);
 }
 
 TEST_CASE("parameterized DELETE expands typed IN lists", "[parameterized][delete]")
@@ -186,6 +215,12 @@ TEST_CASE("parameterized DELETE expands typed IN lists", "[parameterized][delete
     REQUIRE(maria.params.size() == 2);
     requireInteger(maria.params[0], 7);
     requireInteger(maria.params[1], 9);
+
+    const auto sqlite = deleteQuery<LazyOrm::SqliteLazy>().buildParameterized();
+    REQUIRE(Catch::trim(sqlite.sql) == R"(DELETE FROM users WHERE (`id` in (?,?)) ;)");
+    REQUIRE(sqlite.params.size() == 2);
+    requireInteger(sqlite.params[0], 7);
+    requireInteger(sqlite.params[1], 9);
 }
 
 TEST_CASE("parameterized UPSERT uses dialect conflict syntax", "[parameterized][upsert]")
@@ -203,6 +238,13 @@ TEST_CASE("parameterized UPSERT uses dialect conflict syntax", "[parameterized][
     requireInteger(maria.params[0], 7);
     requireString(maria.params[1], "inserted");
     requireString(maria.params[2], "updated");
+
+    const auto sqlite = upsertQuery<LazyOrm::SqliteLazy>().buildParameterized();
+    REQUIRE(Catch::trim(sqlite.sql) == R"(INSERT INTO users (`id`,`name`) VALUES (?,?) ON CONFLICT (`id`) DO UPDATE SET `name`=?;)");
+    REQUIRE(sqlite.params.size() == 3);
+    requireInteger(sqlite.params[0], 7);
+    requireString(sqlite.params[1], "inserted");
+    requireString(sqlite.params[2], "updated");
 }
 
 TEST_CASE("parameterized BULK INSERT numbers every row", "[parameterized][bulk_insert]")
@@ -222,6 +264,14 @@ TEST_CASE("parameterized BULK INSERT numbers every row", "[parameterized][bulk_i
     requireString(maria.params[1], "first");
     requireInteger(maria.params[2], 2);
     requireString(maria.params[3], "second");
+
+    const auto sqlite = bulkInsertQuery<LazyOrm::SqliteLazy>().buildParameterized();
+    REQUIRE(Catch::trim(sqlite.sql) == R"(INSERT INTO users (`id`,`name`) VALUES (?,?),(?,?) ;)");
+    REQUIRE(sqlite.params.size() == 4);
+    requireInteger(sqlite.params[0], 1);
+    requireString(sqlite.params[1], "first");
+    requireInteger(sqlite.params[2], 2);
+    requireString(sqlite.params[3], "second");
 }
 
 TEST_CASE("PostgreSQL converts comma pagination in both APIs", "[parameterized][limit]")
@@ -258,4 +308,51 @@ TEST_CASE("parameterized raw queries retain placeholders and native parameters",
     REQUIRE(maria.params.size() == 2);
     requireInteger(maria.params[0], 12);
     requireString(maria.params[1], "raw");
+
+    LazyOrm::SqliteLazy sqliteQuery;
+    sqliteQuery[LazyOrm::RAW_QUERY] = "INSERT INTO users (id,name) VALUES (?,?)";
+    sqliteQuery.setProperties({{"name", "raw"}, {"id", 12}});
+    const auto sqlite = sqliteQuery.buildParameterized();
+    REQUIRE(sqlite.sql == "INSERT INTO users (id,name) VALUES (?,?)");
+    REQUIRE(sqlite.params.size() == 2);
+    requireInteger(sqlite.params[0], 12);
+    requireString(sqlite.params[1], "raw");
+}
+
+TEST_CASE("parameterized INSERT IGNORE uses dialect-specific syntax", "[parameterized][insert_ignore]")
+{
+    LazyOrm::PostgreLazy postgreQuery;
+    postgreQuery[LazyOrm::INSERT_IGNORE] = "users";
+    postgreQuery.setProperties({{"id", 7}, {"name", "ignored"}});
+    const auto postgre = postgreQuery.buildParameterized();
+    REQUIRE(Catch::trim(postgre.sql) == R"(INSERT INTO users ("id","name") VALUES ($1,$2) ON CONFLICT DO NOTHING;)");
+    REQUIRE(postgre.params.size() == 2);
+
+    LazyOrm::MariadbLazy mariaQuery;
+    mariaQuery[LazyOrm::INSERT_IGNORE] = "users";
+    mariaQuery.setProperties({{"id", 7}, {"name", "ignored"}});
+    const auto maria = mariaQuery.buildParameterized();
+    REQUIRE(Catch::trim(maria.sql) == R"(INSERT IGNORE INTO users (`id`,`name`) VALUES (?,?) ;)");
+    REQUIRE(maria.params.size() == 2);
+
+    LazyOrm::SqliteLazy sqliteQuery;
+    sqliteQuery[LazyOrm::INSERT_IGNORE] = "users";
+    sqliteQuery.setProperties({{"id", 7}, {"name", "ignored"}});
+    const auto sqlite = sqliteQuery.buildParameterized();
+    REQUIRE(Catch::trim(sqlite.sql) == R"(INSERT OR IGNORE INTO users (`id`,`name`) VALUES (?,?) ;)");
+    REQUIRE(sqlite.params.size() == 2);
+}
+
+TEST_CASE("SQLite converts comma pagination to OFFSET form", "[parameterized][limit][sqlite]")
+{
+    LazyOrm::SqliteLazy query;
+    query[LazyOrm::SELECT] = "users";
+    query << "id";
+    query[LazyOrm::LIMIT] = "5,10";
+
+    const auto parameterized = query.buildParameterized();
+    REQUIRE(Catch::trim(parameterized.sql) == R"(SELECT `id` FROM users LIMIT ? OFFSET ? ;)");
+    REQUIRE(parameterized.params.size() == 2);
+    requireInteger(parameterized.params[0], 5);
+    requireInteger(parameterized.params[1], 10);
 }

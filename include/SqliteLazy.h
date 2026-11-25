@@ -32,6 +32,8 @@ public:
   SqliteLazy();
   SqliteLazy(const std::string &table, const Query &queryType);
 
+  ParameterizedQuery buildParameterized() const override;
+
   void setFilter(const SqliteFilteringLazy filter);
 
 // copy contructors:;
