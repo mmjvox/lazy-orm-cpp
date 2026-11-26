@@ -691,15 +691,37 @@ TEST_CASE("copy assignment transfers state into SqliteLazy", "[copy][assign][sql
     REQUIRE(sql.find("LIMIT 4 OFFSET 5") != std::string::npos);
 }
 
-TEST_CASE("copy assignment transfers state into LazyOrm for every dialect", "[copy][assign][lazyorm]")
+namespace {
+
+void requireSameParameterized(const LazyOrm::ParameterizedQuery &actual,
+                              const LazyOrm::ParameterizedQuery &expected)
+{
+    REQUIRE(actual.sql == expected.sql);
+    REQUIRE(actual.params.size() == expected.params.size());
+    for (size_t i = 0; i < expected.params.size(); ++i) {
+        REQUIRE(actual.params[i].typeName() == expected.params[i].typeName());
+        REQUIRE(actual.params[i].toString() == expected.params[i].toString());
+    }
+}
+
+}
+
+TEST_CASE("copy assignment transfers state into LazyOrm for MariaDB", "[copy][assign][lazyorm]")
 {
     LazyOrm::MariadbLazy source;
     source[LazyOrm::SELECT] = "student";
     source << "name";
     source.setCountType({"age"});
-    source[LazyOrm::WHERE] = {{"grade", "in", LazyOrm::DbList({1, 5})}};
+    source[LazyOrm::WHERE] = {
+        {"grade", "in", LazyOrm::DbList({1, 5})},
+        {"OR"},
+        {"grade", "in", LazyOrm::DbList({7, 9})},
+        {"AND"},
+        {"name", "like", "a%"}
+    };
     source[LazyOrm::GROUPBY] = {{"group1"}};
     source[LazyOrm::ORDERBY_DESC] = {{"num1"}};
+    source[LazyOrm::LIMIT] = {{10, 20}};
 
     LazyOrm::LazyOrm assigned;
     assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
@@ -709,6 +731,109 @@ TEST_CASE("copy assignment transfers state into LazyOrm for every dialect", "[co
     const std::string sql = assigned.queryString(LazyOrm::LazyOrm::MariaDB);
     REQUIRE(sql.find("COUNT(`age`)") != std::string::npos);
     REQUIRE(sql.find("`grade` in (1,5)") != std::string::npos);
+    REQUIRE(sql.find("`grade` in (7,9)") != std::string::npos);
     REQUIRE(sql.find("GROUP BY `group1`") != std::string::npos);
     REQUIRE(sql.find("ORDER BY `num1` DESC") != std::string::npos);
+    REQUIRE(sql.find("LIMIT 10 OFFSET 20") != std::string::npos);
+
+    requireSameParameterized(assigned.buildParameterized(LazyOrm::LazyOrm::MariaDB),
+                             source.buildParameterized());
+}
+
+TEST_CASE("copy assignment transfers state into LazyOrm for PostgreSQL", "[copy][assign][lazyorm]")
+{
+    LazyOrm::PostgreLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source.setCountType({"age"});
+    source[LazyOrm::WHERE] = {
+        {
+            {"name", "like", "a%"},
+            {"OR"},
+            {"name", "like", "%z"}
+        },
+        {"AND"},
+        {
+            {"age", ">", "18"},
+            {"AND"},
+            {"grade", "in", LazyOrm::DbList({1, 5})}
+        }
+    };
+    source[LazyOrm::GROUPBY] = {{"group1"}};
+    source[LazyOrm::ORDERBY_DESC] = {{"num1"}};
+    source[LazyOrm::LIMIT] = "5,10";
+
+    LazyOrm::LazyOrm assigned;
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(assigned.queryString(LazyOrm::LazyOrm::Postgres) == source.queryString());
+
+    const std::string sql = assigned.queryString(LazyOrm::LazyOrm::Postgres);
+    REQUIRE(sql.find("COUNT(\"age\")") != std::string::npos);
+    REQUIRE(sql.find("\"name\" like 'a%'") != std::string::npos);
+    REQUIRE(sql.find("\"grade\" in (1,5)") != std::string::npos);
+    REQUIRE(sql.find("GROUP BY \"group1\"") != std::string::npos);
+    REQUIRE(sql.find("ORDER BY \"num1\" DESC") != std::string::npos);
+    REQUIRE(sql.find("LIMIT 5 OFFSET 10") != std::string::npos);
+    REQUIRE(sql.find('`') == std::string::npos);
+
+    requireSameParameterized(assigned.buildParameterized(LazyOrm::LazyOrm::Postgres),
+                             source.buildParameterized());
+}
+
+TEST_CASE("copy assignment transfers state into LazyOrm for SQLite", "[copy][assign][lazyorm]")
+{
+    LazyOrm::SqliteLazy source;
+    source[LazyOrm::UPDATE] = "student";
+    source["name"] = "anya";
+    source["age"] = 6;
+    source[LazyOrm::WHERE] = {{"id", 3}, {"AND"}, {"hair", "pink"}};
+    source[LazyOrm::ORDERBY_ASC] = {{"num1"}};
+    source[LazyOrm::LIMIT] = {{4, 5}};
+
+    LazyOrm::LazyOrm assigned;
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(assigned.queryString(LazyOrm::LazyOrm::Sqlite3) == source.queryString());
+
+    const std::string sql = assigned.queryString(LazyOrm::LazyOrm::Sqlite3);
+    REQUIRE(sql.find("UPDATE student SET") != std::string::npos);
+    REQUIRE(sql.find("`age`='6'") != std::string::npos);
+    REQUIRE(sql.find("WHERE ((`id` = '3') AND (`hair` = 'pink'))") != std::string::npos);
+    REQUIRE(sql.find("ORDER BY `num1` ASC") != std::string::npos);
+    REQUIRE(sql.find("LIMIT 4 OFFSET 5") != std::string::npos);
+
+    requireSameParameterized(assigned.buildParameterized(LazyOrm::LazyOrm::Sqlite3),
+                             source.buildParameterized());
+}
+
+TEST_CASE("copy assignment clears destination filters when source has none", "[copy][assign][stale][filters]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    REQUIRE(source.whereFilter().empty());
+    REQUIRE(source.havingFilter().empty());
+
+    LazyOrm::MariadbLazy destination;
+    destination[LazyOrm::SELECT] = "student";
+    destination << "name";
+    destination[LazyOrm::WHERE] = {{"stale", "=", 1}};
+    destination[LazyOrm::Having::HAVING] = {{"stale_count", ">", "9"}};
+
+    REQUIRE_FALSE(destination.whereFilter().empty());
+    REQUIRE_FALSE(destination.havingFilter().empty());
+    REQUIRE(destination.query_with_trim_consecutive_spaces().find("WHERE") != std::string::npos);
+    REQUIRE(destination.query_with_trim_consecutive_spaces().find("HAVING") != std::string::npos);
+
+    destination = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(destination.whereFilter().empty());
+    REQUIRE(destination.havingFilter().empty());
+
+    const std::string sql = destination.query_with_trim_consecutive_spaces();
+    REQUIRE(sql.find("WHERE") == std::string::npos);
+    REQUIRE(sql.find("HAVING") == std::string::npos);
+    REQUIRE(sql.find("stale") == std::string::npos);
+    REQUIRE(Catch::trim(sql) == R"(SELECT `name` FROM student;)");
 }
