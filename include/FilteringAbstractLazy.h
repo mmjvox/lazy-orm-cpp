@@ -60,6 +60,11 @@ public:
     void operator=(const LazyOrm::FilterVariant &variant);
     void appendFilter(const Filters &filter, LazyOrm::DbVariant &dbVariant);
 
+protected:
+    void copyStateFrom(const FilteringAbstractLazy &other);
+
+public:
+
     void setDESC(bool desc=true);
     void setASC(bool asc=true);
 

@@ -25,6 +25,7 @@ std::string LazyTransaction::queryString(const DBMS_TYPE &dbms) const
     case Sqlite3:
         return static_cast<TransactionSqlite>(*this).queryString();
     }
+    return {};
 }
 
 std::string LazyTransaction::queryStringWithoutBegining(const DBMS_TYPE &dbms) const
@@ -37,6 +38,7 @@ std::string LazyTransaction::queryStringWithoutBegining(const DBMS_TYPE &dbms) c
     case Sqlite3:
         return static_cast<TransactionSqlite>(*this).queryStringWithoutBegining();
     }
+    return {};
 }
 
 std::string LazyTransaction::query_with_trim_consecutive_spaces(const DBMS_TYPE &dbms) const
@@ -49,6 +51,7 @@ std::string LazyTransaction::query_with_trim_consecutive_spaces(const DBMS_TYPE 
     case Sqlite3:
         return static_cast<TransactionSqlite>(*this).query_with_trim_consecutive_spaces();
     }
+    return {};
 }
 
 std::string LazyTransaction::queryString() const

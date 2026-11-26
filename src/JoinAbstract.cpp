@@ -25,12 +25,12 @@ std::string JoinAbstract::minQueryString() const
     std::string queryString = "SELECT \n";
 
     queryString.append(propertiesToJoinedString(mPrimaryOne));
-    queryString.append(" \n");
 
     for(const auto &joinedItem : mJoinedOnes){
+        queryString.append(", \n");
         queryString.append(propertiesToJoinedString(joinedItem.joinedOne));
-        queryString.append(" \n");
     }
+    queryString.append(" \n");
 
     queryString.append("FROM ");
     queryString.append(mPrimaryOne.tabeName());

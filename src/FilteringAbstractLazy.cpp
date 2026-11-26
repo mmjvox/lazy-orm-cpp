@@ -120,6 +120,15 @@ FilteringAbstractLazy::FilteringAbstractLazy()
 {
 }
 
+void FilteringAbstractLazy::copyStateFrom(const FilteringAbstractLazy &other)
+{
+    mReservedFilter = other.mReservedFilter;
+    mOrderByType = other.mOrderByType;
+    mLimitConditions = other.mLimitConditions;
+    mOrderConditions = other.mOrderConditions;
+    mGroupConditions = other.mGroupConditions;
+}
+
 void FilteringAbstractLazy::setFilterForReserved(const FilterVariant &variant)
 {
   setFilter(mReservedFilter, variant);

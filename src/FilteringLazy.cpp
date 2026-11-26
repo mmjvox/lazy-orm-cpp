@@ -13,10 +13,7 @@ FilteringLazy::FilteringLazy(const FilteringAbstractLazy &abstractLaz)
 
 void FilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
 {
-    mReservedFilter = abstractLaz.reservedFilter();
-    mLimitConditions = abstractLaz.limitConditions();
-    mOrderConditions = abstractLaz.orderConditions();
-    mGroupConditions = abstractLaz.groupConditions();
+    copyStateFrom(abstractLaz);
 }
 
 void FilteringLazy::setLimitConditions(const std::initializer_list<FilterVariant> &filtersList)

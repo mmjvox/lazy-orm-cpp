@@ -97,6 +97,8 @@ protected:
   virtual FilteringAbstractLazy& getCurrentFilters() = 0;
   virtual void appendFilter(const Filters &filter, LazyOrm::DbVariant dbVariant) = 0;
 
+  void copyStateFrom(const AbstractLazy &other);
+
   ParameterizedQuery parameterizedQuery(ParameterDialect dialect) const;
 
   WhereFilter mWhereFilter;

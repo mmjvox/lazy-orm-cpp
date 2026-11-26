@@ -13,14 +13,8 @@ LazyOrm::LazyOrm(const AbstractLazy &mariadbLazy)
 
 void LazyOrm::operator=(const AbstractLazy &abstractLaz)
 {
-    mQueryType = abstractLaz.queryType();
-    mTabeName = abstractLaz.tabeName();
-    mProperties = abstractLaz.properties();
-    mBatchProperties = abstractLaz.batchProperties();
-    mWhereFilter = abstractLaz.whereFilter();
-    mHavingFilter = abstractLaz.havingFilter();
+    copyStateFrom(abstractLaz);
     mFilter = abstractLaz.getFilter();
-    mPrimaryKey = abstractLaz.primaryKey();
 }
 
 std::string LazyOrm::insert_query() const {return {};}
@@ -31,7 +25,10 @@ std::string LazyOrm::insert_update_query() const {return {};}
 std::string LazyOrm::bulk_insert_query() const {return {};}
 std::string LazyOrm::insert_ignore_query() const {return {};}
 std::string LazyOrm::bulk_update_query() const {return {};}
-void LazyOrm::appendFilter(const Filters &filter, DbVariant dbVariant){}
+void LazyOrm::appendFilter(const Filters &filter, DbVariant dbVariant)
+{
+    mFilter.appendFilter(filter, dbVariant);
+}
 
 
 ParameterizedQuery LazyOrm::buildParameterized(const DBMS_TYPE &dbms) const
@@ -42,7 +39,7 @@ ParameterizedQuery LazyOrm::buildParameterized(const DBMS_TYPE &dbms) const
     case Postgres:
         return static_cast<PostgreLazy>(*this).buildParameterized();
     case Sqlite3:
-        return {};
+        return static_cast<SqliteLazy>(*this).buildParameterized();
     }
     return {};
 }
@@ -57,6 +54,7 @@ std::string LazyOrm::queryString(const DBMS_TYPE &dbms) const
     case Sqlite3:
         return static_cast<SqliteLazy>(*this).queryString();
     }
+    return {};
 }
 
 }

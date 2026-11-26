@@ -6,6 +6,19 @@ namespace LazyOrm {
 
 const char *AbstractLazy::version = lazy_orm_version;
 
+void AbstractLazy::copyStateFrom(const AbstractLazy &other)
+{
+  mQueryType = other.queryType();
+  mTabeName = other.tabeName();
+  mProperties = other.properties();
+  mBatchProperties = other.batchProperties();
+  mWhereFilter = other.whereFilter();
+  mHavingFilter = other.havingFilter();
+  mPrimaryKey = other.primaryKey();
+  mUniqueKeys = other.uniqueKeys();
+  mCounts = other.mCounts;
+}
+
 void AbstractLazy::setTabeName(const std::string &name)
 {
   mTabeName = name;
@@ -223,10 +236,10 @@ std::string AbstractLazy::raw_query() const {
             {
                 oss << queryString.substr(last, pos - last);
                 size_t digitStart = pos + 1;
-                if (digitStart < queryString.length() && std::isdigit(queryString[digitStart]))
+                if (digitStart < queryString.length() && std::isdigit(static_cast<unsigned char>(queryString[digitStart])))
                 {
                     size_t digitEnd = digitStart;
-                    while (digitEnd < queryString.length() && std::isdigit(queryString[digitEnd]))
+                    while (digitEnd < queryString.length() && std::isdigit(static_cast<unsigned char>(queryString[digitEnd])))
                     {
                         digitEnd++;
                     }

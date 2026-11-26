@@ -15,14 +15,8 @@ SqliteLazy::SqliteLazy(const AbstractLazy &abstractLaz)
 
 void SqliteLazy::operator=(const AbstractLazy &abstractLaz)
 {
-    mQueryType = abstractLaz.queryType();
-    mTabeName = abstractLaz.tabeName();
-    mProperties = abstractLaz.properties();
-    mBatchProperties = abstractLaz.batchProperties();
-    mWhereFilter = abstractLaz.whereFilter();
-    mHavingFilter = abstractLaz.havingFilter();
+    copyStateFrom(abstractLaz);
     mFilter = abstractLaz.getFilter();
-    mPrimaryKey = abstractLaz.primaryKey();
 }
 
 SqliteLazy::SqliteLazy(const std::string &table, const Query &queryType)

@@ -151,10 +151,7 @@ MariadbFilteringLazy::MariadbFilteringLazy(const FilteringAbstractLazy &abstract
 
 void MariadbFilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
 {
-    mReservedFilter = abstractLaz.reservedFilter();
-    mLimitConditions = abstractLaz.limitConditions();
-    mOrderConditions = abstractLaz.orderConditions();
-    mGroupConditions = abstractLaz.groupConditions();
+    copyStateFrom(abstractLaz);
 }
 
 }

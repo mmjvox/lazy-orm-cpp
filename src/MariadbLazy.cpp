@@ -14,14 +14,8 @@ MariadbLazy::MariadbLazy(const AbstractLazy &abstractLaz)
 
 void MariadbLazy::operator=(const AbstractLazy &abstractLaz)
 {
-    mQueryType = abstractLaz.queryType();
-    mTabeName = abstractLaz.tabeName();
-    mProperties = abstractLaz.properties();
-    mBatchProperties = abstractLaz.batchProperties();
-    mWhereFilter = abstractLaz.whereFilter();
-    mHavingFilter = abstractLaz.havingFilter();
+    copyStateFrom(abstractLaz);
     mFilter = abstractLaz.getFilter();
-    mPrimaryKey = abstractLaz.primaryKey();
 }
 
 MariadbLazy::MariadbLazy(const std::string &table, const Query &queryType)

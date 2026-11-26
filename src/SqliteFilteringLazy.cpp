@@ -153,10 +153,7 @@ SqliteFilteringLazy::SqliteFilteringLazy(const FilteringAbstractLazy &abstractLa
 
 void SqliteFilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
 {
-    mReservedFilter = abstractLaz.reservedFilter();
-    mLimitConditions = abstractLaz.limitConditions();
-    mOrderConditions = abstractLaz.orderConditions();
-    mGroupConditions = abstractLaz.groupConditions();
+    copyStateFrom(abstractLaz);
 }
 
 }

@@ -171,6 +171,9 @@ class ParameterizedBuilder
             if constexpr (std::is_same_v<T, std::vector<DbVariant>>) {
                 values = value;
                 commaSyntax = values.size() == 3 && values[1].toString() == ",";
+                if (commaSyntax) {
+                    values = {values[0], values[2]};
+                }
             } else if constexpr (std::is_same_v<T, DbVariant>) {
                 const std::string text = value.toString();
                 const auto comma = text.find(',');
@@ -299,11 +302,13 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
         result.sql.append(mTabeName + " (");
         const std::string values = builder.insertValues(mProperties, false, &columns);
         result.sql.append(join(columns, ",") + ") VALUES " + values + " ");
-        if (postgreSQL && !mPrimaryKey.empty()) {
-            result.sql.append(" returning " + mPrimaryKey);
-        }
         if (postgreSQL && mQueryType == INSERT_IGNORE) {
             result.sql.append("ON CONFLICT DO NOTHING");
+            if (!mPrimaryKey.empty()) {
+                result.sql.append(" returning " + mPrimaryKey);
+            }
+        } else if (postgreSQL && !mPrimaryKey.empty()) {
+            result.sql.append(" returning " + mPrimaryKey);
         }
         result.sql.append(";");
         return result;

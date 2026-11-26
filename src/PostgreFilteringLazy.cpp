@@ -164,10 +164,7 @@ PostgreFilteringLazy::PostgreFilteringLazy(const FilteringAbstractLazy &abstract
 
 void PostgreFilteringLazy::operator=(const FilteringAbstractLazy &abstractLaz)
 {
-    mReservedFilter = abstractLaz.reservedFilter();
-    mLimitConditions = abstractLaz.limitConditions();
-    mOrderConditions = abstractLaz.orderConditions();
-    mGroupConditions = abstractLaz.groupConditions();
+    copyStateFrom(abstractLaz);
 }
 
 std::string PostgreFilteringLazy::string_join(const std::string &delimiter, const std::vector<DbVariant> &container, QuoteFor setQuote) const

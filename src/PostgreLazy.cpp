@@ -16,14 +16,8 @@ PostgreLazy::PostgreLazy(const AbstractLazy &abstractLaz)
 
 void PostgreLazy::operator=(const AbstractLazy &abstractLaz)
 {
-    mQueryType = abstractLaz.queryType();
-    mTabeName = abstractLaz.tabeName();
-    mProperties = abstractLaz.properties();
-    mBatchProperties = abstractLaz.batchProperties();
-    mWhereFilter = abstractLaz.whereFilter();
-    mHavingFilter = abstractLaz.havingFilter();
+    copyStateFrom(abstractLaz);
     mFilter = abstractLaz.getFilter();
-    mPrimaryKey = abstractLaz.primaryKey();
 }
 
 PostgreLazy::PostgreLazy(const std::string &table, const Query &queryType)
@@ -193,6 +187,24 @@ std::string PostgreLazy::bulk_insert_query() const
 void PostgreLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
 {
     mFilter.appendFilter(filter, dbVariant);
+}
+
+std::string PostgreLazy::contains_query() const
+{
+    std::string queryString = "SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END AS \"contains\" FROM ";
+    queryString.append(mTabeName);
+    queryString.append(getWhereFilterPostgre().toString());
+    queryString.append(";");
+    return queryString;
+}
+
+std::string PostgreLazy::count_query() const
+{
+    std::string queryString = "SELECT COUNT(*) AS \"count\" FROM ";
+    queryString.append(mTabeName);
+    queryString.append(getWhereFilterPostgre().toString());
+    queryString.append(";");
+    return queryString;
 }
 
 std::string PostgreLazy::insert_update_query() const
