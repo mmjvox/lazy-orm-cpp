@@ -1,4 +1,6 @@
 #include "DbList.h"
+#include "JoinMariadb.h"
+#include "LazyOrm.h"
 #include "MariadbLazy.h"
 #include "PostgreLazy.h"
 #include "SqliteLazy.h"
@@ -355,4 +357,358 @@ TEST_CASE("SQLite converts comma pagination to OFFSET form", "[parameterized][li
     REQUIRE(parameterized.params.size() == 2);
     requireInteger(parameterized.params[0], 5);
     requireInteger(parameterized.params[1], 10);
+}
+
+TEST_CASE("copies transfer count properties", "[copy][counts]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source.setCountType({"age"});
+
+    LazyOrm::MariadbLazy copy(source);
+    REQUIRE(Catch::trim(copy.query_with_trim_consecutive_spaces()) ==
+            R"(SELECT `name`,COUNT(`age`) FROM student;)");
+}
+
+TEST_CASE("copies transfer unique keys", "[copy][unique_keys]")
+{
+    LazyOrm::PostgreLazy source;
+    source[LazyOrm::INSERT_UPDATE] = "users";
+    source[LazyOrm::UniqueKeys] = {"id"};
+    source["id"] = 7;
+    source["name"] = "inserted";
+    source["[update]name"] = "updated";
+
+    LazyOrm::PostgreLazy copy(source);
+    REQUIRE(Catch::trim(copy.query_with_trim_consecutive_spaces()) ==
+            R"(INSERT INTO users ("id","name") VALUES ('7','inserted') ON CONFLICT ("id") DO UPDATE SET "name"='updated';)");
+}
+
+TEST_CASE("copies transfer descending order type", "[copy][orderby]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source[LazyOrm::ORDERBY_DESC] = {{"num1"}};
+
+    LazyOrm::MariadbLazy copy(source);
+    REQUIRE(Catch::trim(copy.query_with_trim_consecutive_spaces()) ==
+            R"(SELECT `name` FROM student ORDER BY `num1` DESC ;)");
+}
+
+TEST_CASE("LazyOrm builds parameterized SQLite queries", "[parameterized][sqlite][lazyorm]")
+{
+    LazyOrm::LazyOrm lazyOrm;
+    lazyOrm[LazyOrm::INSERT] = "users";
+    lazyOrm.setProperties({{"id", 7}, {"name", "jack"}, {"score", 9.5}});
+
+    LazyOrm::SqliteLazy direct;
+    direct[LazyOrm::INSERT] = "users";
+    direct.setProperties({{"id", 7}, {"name", "jack"}, {"score", 9.5}});
+
+    const auto viaLazyOrm = lazyOrm.buildParameterized(LazyOrm::LazyOrm::Sqlite3);
+    const auto expected = direct.buildParameterized();
+    REQUIRE_FALSE(viaLazyOrm.sql.empty());
+    REQUIRE(Catch::trim(viaLazyOrm.sql) == Catch::trim(expected.sql));
+    REQUIRE(viaLazyOrm.params.size() == expected.params.size());
+    for (size_t i = 0; i < expected.params.size(); ++i) {
+        REQUIRE(viaLazyOrm.params[i].typeName() == expected.params[i].typeName());
+        REQUIRE(viaLazyOrm.params[i].toString() == expected.params[i].toString());
+    }
+}
+
+TEST_CASE("parameterized LIMIT accepts comma vector syntax", "[parameterized][limit]")
+{
+    LazyOrm::PostgreLazy postgreQuery;
+    postgreQuery[LazyOrm::SELECT] = "users";
+    postgreQuery << "id";
+    postgreQuery[LazyOrm::LIMIT] = {{11, ",", 23}};
+    const auto postgre = postgreQuery.buildParameterized();
+    REQUIRE(Catch::trim(postgre.sql) == R"(SELECT "id" FROM users LIMIT $1 OFFSET $2 ;)");
+    REQUIRE(postgre.params.size() == 2);
+    REQUIRE(postgre.params[0].toLongLong() == 11);
+    REQUIRE(postgre.params[1].toLongLong() == 23);
+
+    LazyOrm::MariadbLazy mariaQuery;
+    mariaQuery[LazyOrm::SELECT] = "users";
+    mariaQuery << "id";
+    mariaQuery[LazyOrm::LIMIT] = {{11, ",", 23}};
+    const auto maria = mariaQuery.buildParameterized();
+    REQUIRE(Catch::trim(maria.sql) == R"(SELECT `id` FROM users LIMIT ? OFFSET ? ;)");
+    REQUIRE(maria.params.size() == 2);
+    REQUIRE(maria.params[0].toLongLong() == 23);
+    REQUIRE(maria.params[1].toLongLong() == 11);
+}
+
+TEST_CASE("parameterized PostgreSQL INSERT IGNORE places RETURNING after ON CONFLICT", "[parameterized][insert_ignore]")
+{
+    LazyOrm::PostgreLazy query;
+    query[LazyOrm::INSERT_IGNORE] = "users";
+    query.setProperties({{"id", 7}, {"name", "ignored"}});
+    query.setPrimaryKey("id");
+
+    const auto parameterized = query.buildParameterized();
+    REQUIRE(Catch::trim(parameterized.sql) ==
+            R"(INSERT INTO users ("id","name") VALUES ($1,$2) ON CONFLICT DO NOTHING returning id;)");
+    REQUIRE(parameterized.params.size() == 2);
+}
+
+TEST_CASE("PostgreSQL CONTAINS and COUNT quote identifiers with double quotes", "[postgres][contains][count]")
+{
+    LazyOrm::PostgreLazy containsQuery;
+    containsQuery[LazyOrm::CONTAINS] = "users";
+    containsQuery[LazyOrm::WHERE] = {{"id", 7}};
+    REQUIRE(Catch::trim(containsQuery.query_with_trim_consecutive_spaces()) ==
+            R"(SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END AS "contains" FROM users WHERE ("id" = '7') ;)");
+
+    LazyOrm::PostgreLazy countQuery;
+    countQuery[LazyOrm::COUNT] = "users";
+    countQuery[LazyOrm::WHERE] = {{"id", 7}};
+    REQUIRE(Catch::trim(countQuery.query_with_trim_consecutive_spaces()) ==
+            R"(SELECT COUNT(*) AS "count" FROM users WHERE ("id" = '7') ;)");
+}
+
+TEST_CASE("join separates select lists of joined tables with commas", "[join][mariadb]")
+{
+    LazyOrm::MariadbLazy student;
+    student[LazyOrm::SELECT] = "student";
+    student.setProperties({"name", "age", "hair"});
+
+    LazyOrm::MariadbLazy grade;
+    grade[LazyOrm::SELECT] = "grade";
+    grade << "grade" << "passed";
+
+    LazyOrm::JoinMariadb joinMariadb;
+    joinMariadb[LazyOrm::Primary] = student;
+    joinMariadb[LazyOrm::Joins] = {
+        {LazyOrm::JoinRole::LeftJoin, grade, "student_id", "id"}
+    };
+
+    REQUIRE(Catch::trim(joinMariadb.query_with_trim_consecutive_spaces()) ==
+            "SELECT \n"
+            "`student`.`age`, \n"
+            "`student`.`hair`, \n"
+            "`student`.`name`, \n"
+            "`grade`.`grade`, \n"
+            "`grade`.`passed` \n"
+            "FROM student \n"
+            "LEFT JOIN grade ON `student`.`id` = `grade`.`student_id` \n"
+            ";");
+}
+
+TEST_CASE("copy assignment transfers full query state", "[copy][assign]")
+{
+    LazyOrm::PostgreLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source.setCountType({"age"});
+    source[LazyOrm::WHERE] = {{"grade", "in", LazyOrm::DbList({1, 5})}};
+    source[LazyOrm::GROUPBY] = {{"group1", "group2"}};
+    source[LazyOrm::ORDERBY_DESC] = {{"num1"}};
+    source[LazyOrm::LIMIT] = "5,6";
+    source.setPrimaryKey("id");
+
+    LazyOrm::PostgreLazy assigned;
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+            Catch::trim(source.query_with_trim_consecutive_spaces()));
+
+    const std::string sql = assigned.query_with_trim_consecutive_spaces();
+    REQUIRE(sql.find("COUNT(\"age\")") != std::string::npos);
+    REQUIRE(sql.find("\"grade\" in (1,5)") != std::string::npos);
+    REQUIRE(sql.find("GROUP BY \"group1\",\"group2\"") != std::string::npos);
+    REQUIRE(sql.find("ORDER BY \"num1\" DESC") != std::string::npos);
+    REQUIRE(sql.find("LIMIT 5 OFFSET 6") != std::string::npos);
+}
+
+TEST_CASE("copy assignment transfers WHERE and HAVING state", "[copy][assign][where][having]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source[LazyOrm::WHERE] = {{"name", "like", "a%"}};
+    source[LazyOrm::Having::HAVING] = {{"COUNT(*)", ">", "2"}};
+
+    LazyOrm::MariadbLazy assigned;
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+            Catch::trim(source.query_with_trim_consecutive_spaces()));
+
+    const std::string sql = assigned.query_with_trim_consecutive_spaces();
+    REQUIRE(sql.find("WHERE (`name` like 'a%')") != std::string::npos);
+    REQUIRE(sql.find("HAVING (`COUNT(*)` > '2')") != std::string::npos);
+}
+
+TEST_CASE("copy assignment transfers unique keys across dialects", "[copy][assign][unique_keys]")
+{
+    LazyOrm::PostgreLazy source;
+    source[LazyOrm::INSERT_UPDATE] = "users";
+    source[LazyOrm::UniqueKeys] = {"id"};
+    source["id"] = 7;
+    source["name"] = "inserted";
+    source["[update]name"] = "updated";
+
+    LazyOrm::SqliteLazy assigned;
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+            R"(INSERT INTO users (`id`,`name`) VALUES ('7','inserted') ON CONFLICT (`id`) DO UPDATE SET `name`='updated';)");
+}
+
+TEST_CASE("join separates select lists for multiple joined tables", "[join][mariadb]")
+{
+    LazyOrm::MariadbLazy student;
+    student[LazyOrm::SELECT] = "student";
+    student.setProperties({"name"});
+
+    LazyOrm::MariadbLazy grade;
+    grade[LazyOrm::SELECT] = "grade";
+    grade << "grade" << "passed";
+
+    LazyOrm::MariadbLazy classes;
+    classes[LazyOrm::SELECT] = "classes";
+    classes << "title";
+
+    LazyOrm::JoinMariadb joinMariadb;
+    joinMariadb[LazyOrm::Primary] = student;
+    joinMariadb[LazyOrm::Joins] = {
+        {LazyOrm::JoinRole::LeftJoin, grade, "student_id", "id"},
+        {LazyOrm::JoinRole::InnerJoin, classes, "student_id", "id"}
+    };
+
+    const std::string sql = joinMariadb.query_with_trim_consecutive_spaces();
+    REQUIRE(Catch::trim(sql) ==
+            "SELECT \n"
+            "`student`.`name`, \n"
+            "`grade`.`grade`, \n"
+            "`grade`.`passed`, \n"
+            "`classes`.`title` \n"
+            "FROM student \n"
+            "LEFT JOIN grade ON `student`.`id` = `grade`.`student_id` \n"
+            "INNER JOIN classes ON `student`.`id` = `classes`.`student_id` \n"
+            ";");
+    REQUIRE(sql.find(",,") == std::string::npos);
+    REQUIRE(sql.find("SELECT \n,") == std::string::npos);
+    REQUIRE(sql.find(", \nFROM") == std::string::npos);
+}
+
+TEST_CASE("PostgreSQL COUNT and CONTAINS quote nested WHERE conditions", "[postgres][contains][count][nested]")
+{
+    const auto nestedWhere = [] {
+        return LazyOrm::WhereFilter{
+            {
+                {"name", "like", "a%"},
+                {"OR"},
+                {"name", "like", "%z"}
+            },
+            {"AND"},
+            {
+                {"age", ">", "18"},
+                {"AND"},
+                {"grade", "in", LazyOrm::DbList({1, 5})}
+            }
+        };
+    };
+
+    LazyOrm::PostgreLazy countQuery;
+    countQuery[LazyOrm::COUNT] = "users";
+    countQuery[LazyOrm::WHERE] = nestedWhere();
+    REQUIRE(Catch::trim(countQuery.query_with_trim_consecutive_spaces()) ==
+            R"(SELECT COUNT(*) AS "count" FROM users WHERE ((("name" like 'a%') OR ("name" like '%z')) AND (("age" > '18') AND ("grade" in (1,5)))) ;)");
+
+    LazyOrm::PostgreLazy containsQuery;
+    containsQuery[LazyOrm::CONTAINS] = "users";
+    containsQuery[LazyOrm::WHERE] = nestedWhere();
+    REQUIRE(Catch::trim(containsQuery.query_with_trim_consecutive_spaces()) ==
+            R"(SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END AS "contains" FROM users WHERE ((("name" like 'a%') OR ("name" like '%z')) AND (("age" > '18') AND ("grade" in (1,5)))) ;)");
+}
+
+TEST_CASE("copy assignment replaces stale destination state", "[copy][assign][stale]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source[LazyOrm::WHERE] = {{"name", "like", "a%"}};
+    source[LazyOrm::Having::HAVING] = {{"COUNT(*)", ">", "2"}};
+
+    LazyOrm::MariadbLazy destination;
+    destination[LazyOrm::UPDATE] = "old_table";
+    destination["stale_column"] = "stale_value";
+    destination[LazyOrm::WHERE] = {{"stale", "=", 1}};
+    destination[LazyOrm::Having::HAVING] = {{"stale_count", ">", "9"}};
+
+    destination = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(Catch::trim(destination.query_with_trim_consecutive_spaces()) ==
+            Catch::trim(source.query_with_trim_consecutive_spaces()));
+
+    const std::string sql = destination.query_with_trim_consecutive_spaces();
+    REQUIRE(sql.find("stale") == std::string::npos);
+    REQUIRE(sql.find("old_table") == std::string::npos);
+}
+
+TEST_CASE("copy assignment transfers batch properties", "[copy][assign][bulk_insert]")
+{
+    LazyOrm::SqliteLazy source;
+    source[LazyOrm::BULK_INSERT] = "users";
+    source.setProperties({
+        {{"id", 1}, {"name", "first"}},
+        {{"id", 2}, {"name", "second"}}
+    });
+
+    LazyOrm::SqliteLazy assigned;
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+            Catch::trim(source.query_with_trim_consecutive_spaces()));
+    REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+            R"(INSERT INTO users (`id`,`name`) VALUES ('1','first'),('2','second') ;)");
+}
+
+TEST_CASE("copy assignment transfers state into SqliteLazy", "[copy][assign][sqlite]")
+{
+    LazyOrm::SqliteLazy source;
+    source[LazyOrm::UPDATE] = "student";
+    source["name"] = "anya";
+    source["age"] = 6;
+    source[LazyOrm::WHERE] = {{"id", 3}};
+    source[LazyOrm::ORDERBY_ASC] = {{"num1"}};
+    source[LazyOrm::LIMIT] = {{4, 5}};
+
+    LazyOrm::SqliteLazy assigned;
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+            Catch::trim(source.query_with_trim_consecutive_spaces()));
+
+    const std::string sql = assigned.query_with_trim_consecutive_spaces();
+    REQUIRE(sql.find("UPDATE student SET") != std::string::npos);
+    REQUIRE(sql.find("WHERE (`id` = '3')") != std::string::npos);
+    REQUIRE(sql.find("ORDER BY `num1` ASC") != std::string::npos);
+    REQUIRE(sql.find("LIMIT 4 OFFSET 5") != std::string::npos);
+}
+
+TEST_CASE("copy assignment transfers state into LazyOrm for every dialect", "[copy][assign][lazyorm]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source.setCountType({"age"});
+    source[LazyOrm::WHERE] = {{"grade", "in", LazyOrm::DbList({1, 5})}};
+    source[LazyOrm::GROUPBY] = {{"group1"}};
+    source[LazyOrm::ORDERBY_DESC] = {{"num1"}};
+
+    LazyOrm::LazyOrm assigned;
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(assigned.queryString(LazyOrm::LazyOrm::MariaDB) == source.queryString());
+
+    const std::string sql = assigned.queryString(LazyOrm::LazyOrm::MariaDB);
+    REQUIRE(sql.find("COUNT(`age`)") != std::string::npos);
+    REQUIRE(sql.find("`grade` in (1,5)") != std::string::npos);
+    REQUIRE(sql.find("GROUP BY `group1`") != std::string::npos);
+    REQUIRE(sql.find("ORDER BY `num1` DESC") != std::string::npos);
 }

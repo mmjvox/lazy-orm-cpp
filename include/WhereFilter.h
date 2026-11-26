@@ -7,6 +7,8 @@ namespace LazyOrm {
 
 class WhereFilter{
 
+    friend class AbstractLazy;
+
 private:
     virtual std::string leadingString() const;
     bool isWhereFilter() const;

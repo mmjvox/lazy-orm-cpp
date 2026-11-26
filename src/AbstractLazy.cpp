@@ -8,15 +8,25 @@ const char *AbstractLazy::version = lazy_orm_version;
 
 void AbstractLazy::copyStateFrom(const AbstractLazy &other)
 {
-  mQueryType = other.queryType();
-  mTabeName = other.tabeName();
-  mProperties = other.properties();
-  mBatchProperties = other.batchProperties();
-  mWhereFilter = other.whereFilter();
-  mHavingFilter = other.havingFilter();
-  mPrimaryKey = other.primaryKey();
-  mUniqueKeys = other.uniqueKeys();
+  mQueryType = other.mQueryType;
+  mTabeName = other.mTabeName;
+  mProperties = other.mProperties;
+  mBatchProperties = other.mBatchProperties;
+  mPrimaryKey = other.mPrimaryKey;
+  mUniqueKeys = other.mUniqueKeys;
   mCounts = other.mCounts;
+  // WhereFilter::operator= appends instead of replacing (existing public
+  // behavior used when building filters). Copy-construct the nested filter
+  // vectors and swap them in, so assignment faithfully replaces any previous
+  // filter state instead of merging into it.
+  mWhereFilter.mNestedDbVariant = other.mWhereFilter.mNestedDbVariant;
+  std::vector<WhereFilter> whereFilters(other.mWhereFilter.mNestedWhereFilters.begin(),
+                                        other.mWhereFilter.mNestedWhereFilters.end());
+  mWhereFilter.mNestedWhereFilters.swap(whereFilters);
+  mHavingFilter.mNestedDbVariant = other.mHavingFilter.mNestedDbVariant;
+  std::vector<WhereFilter> havingFilters(other.mHavingFilter.mNestedWhereFilters.begin(),
+                                         other.mHavingFilter.mNestedWhereFilters.end());
+  mHavingFilter.mNestedWhereFilters.swap(havingFilters);
 }
 
 void AbstractLazy::setTabeName(const std::string &name)
