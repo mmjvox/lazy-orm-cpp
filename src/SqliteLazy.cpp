@@ -39,6 +39,11 @@ ParameterizedQuery SqliteLazy::buildParameterized() const
     return result;
 }
 
+AbstractLazy::ParameterDialect SqliteLazy::rawQueryDialect() const
+{
+    return ParameterDialect::SQLite;
+}
+
 void SqliteLazy::setFilter(const SqliteFilteringLazy filter)
 {
   mFilter=filter;

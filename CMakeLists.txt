@@ -47,6 +47,7 @@ set(LazyORM_HEADERS
     include/HavingFilter.h
     include/FilterVariant.h
     include/ParameterizedQuery.h
+    include/RawQueryHelper.h
     include/AbstractLazy.h
     include/FilteringAbstractLazy.h
     include/LazyOrm.h
@@ -76,6 +77,7 @@ add_library(lazyorm
     src/WhereFilter.cpp
     src/FilterVariant.cpp
     src/ParameterizedQuery.cpp
+    src/RawQueryHelper.cpp
     src/WhereFilterPostgre.cpp
     src/LazyOrm.cpp
     src/FilteringLazy.cpp

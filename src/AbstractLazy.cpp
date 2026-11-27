@@ -1,4 +1,5 @@
 #include "AbstractLazy.h"
+#include "RawQueryHelper.h"
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -16,6 +17,7 @@ void AbstractLazy::copyStateFrom(const AbstractLazy &other)
   mQueryType = other.mQueryType;
   mTabeName = other.mTabeName;
   mProperties = other.mProperties;
+  mShorthandKeys = other.mShorthandKeys;
   mBatchProperties = other.mBatchProperties;
   mPrimaryKey = other.mPrimaryKey;
   mUniqueKeys = other.mUniqueKeys;
@@ -49,6 +51,7 @@ void AbstractLazy::setTabeName(const std::string &name)
 
 DbVariant &AbstractLazy::operator[](const std::string &key)
 {
+    mShorthandKeys.erase(key);
     return mProperties[key];
 }
 
@@ -845,91 +848,76 @@ std::string AbstractLazy::count_query() const
     return queryString;
 }
 
-// std::string AbstractLazy::raw_query() const
-// {
-//     std::vector<DbVariant> keys;
-//     for(const auto &[key, value] : mProperties)
-//     {
-//         if(key.toString()=="*")
-//         {
-//             keys.push_back(key);
-//         }
-//         else
-//         {
-//             keys.push_back(key.setQuote());
-//         }
-//     }
+AbstractLazy::ParameterDialect AbstractLazy::rawQueryDialect() const
+{
+    return ParameterDialect::MariaDB;
+}
 
-//     std::string queryString(mTabeName);
-
-//     return [&queryString, &keys] {
-//         std::ostringstream oss;
-//         size_t pos = 0, last = 0, idx = 0;
-//         while ((pos = queryString.find('?', last)) != std::string::npos && idx < keys.size()) {
-//             oss << queryString.substr(last, pos - last) << keys[idx++].toString();
-//             last = pos + 1;
-//         }
-//         oss << queryString.substr(last);
-//         return oss.str();
-//     }();
-// }
-
-
+// RAW_QUERY substitution contract (regular queryString() path):
+// - Parameters come from mProperties in std::map key order. Keys added
+//   via key-only shorthand (`<< "value"` / `setProperties(vector<string>)`)
+//   contribute their key; keyed entries contribute their value (including
+//   explicit empty strings).
+// - Scanning uses dialect-specific lexical rules from rawQueryDialect().
+// - PostgreSQL uses numbered $N placeholders only (`1..N` complete, no gaps);
+//   `?` is left untouched as a JSONB operator.
+// - MariaDB and SQLite accept positional `?` placeholders or numbered `$N`
+//   placeholders (not mixed in the same query).
+// - Contract violations and malformed tokens produce an empty string.
 std::string AbstractLazy::raw_query() const {
-    std::vector<DbVariant> keys;
-    for(const auto &[key, value] : mProperties) {
-        if(key.toString()=="*") {
-            keys.push_back(key);
-        } else {
-            keys.push_back(key.setQuote());
-        }
+    RawQuery::Dialect dialect = RawQuery::Dialect::MariaDB;
+    switch (rawQueryDialect()) {
+    case ParameterDialect::PostgreSQL:
+        dialect = RawQuery::Dialect::PostgreSQL;
+        break;
+    case ParameterDialect::SQLite:
+        dialect = RawQuery::Dialect::SQLite;
+        break;
+    case ParameterDialect::MariaDB:
+    default:
+        dialect = RawQuery::Dialect::MariaDB;
+        break;
     }
-    std::string queryString(mTabeName);
-    return [&queryString, &keys] {
+
+    const RawQuery::ScanResult scanResult = RawQuery::scan(mTabeName, dialect);
+    if (!scanResult.valid) {
+        return {};
+    }
+    const std::vector<RawQuery::ResolvedParameter> params =
+        RawQuery::resolveParameters(mProperties, mShorthandKeys);
+
+    const bool numberedMode = dialect == RawQuery::Dialect::PostgreSQL ||
+        std::any_of(scanResult.tokens.begin(), scanResult.tokens.end(),
+            [](const RawQuery::PlaceholderToken &token) { return token.numbered; });
+
+    if (numberedMode) {
+        if (!RawQuery::numberedContractSatisfied(scanResult, params.size())) {
+            return {};
+        }
         std::ostringstream oss;
-        size_t pos = 0, last = 0;
-        if (queryString.find('$') != std::string::npos)
-        {
-            size_t idx = 0;
-            while ((pos = queryString.find('$', last)) != std::string::npos)
-            {
-                oss << queryString.substr(last, pos - last);
-                size_t digitStart = pos + 1;
-                if (digitStart < queryString.length() && std::isdigit(static_cast<unsigned char>(queryString[digitStart])))
-                {
-                    size_t digitEnd = digitStart;
-                    while (digitEnd < queryString.length() && std::isdigit(static_cast<unsigned char>(queryString[digitEnd])))
-                    {
-                        digitEnd++;
-                    }
-                    last = digitEnd;
-                    if (idx < keys.size())
-                    {
-                        oss << keys[idx++].toString();
-                    }
-                    else
-                    {
-                        oss << queryString.substr(pos, digitEnd - pos);
-                    }
-                }
-                else
-                {
-                    oss << '$'; last = pos + 1;
-                }
-            }
-            oss << queryString.substr(last);
+        size_t last = 0;
+        for (const auto &token : scanResult.tokens) {
+            oss << mTabeName.substr(last, token.position - last);
+            oss << RawQuery::renderParameter(params[token.index - 1]);
+            last = token.position + token.length;
         }
-        else
-        {
-            size_t idx = 0;
-            while ((pos = queryString.find('?', last)) != std::string::npos && idx < keys.size())
-            {
-                oss << queryString.substr(last, pos - last) << keys[idx++].toString(); last = pos + 1;
-            }
-            oss << queryString.substr(last);
-        }
+        oss << mTabeName.substr(last);
         return oss.str();
-    }();
+    }
+
+    if (!RawQuery::positionalContractSatisfied(scanResult, params.size())) {
+        return {};
+    }
+    std::ostringstream oss;
+    size_t last = 0;
+    size_t index = 0;
+    for (const auto &token : scanResult.tokens) {
+        oss << mTabeName.substr(last, token.position - last);
+        oss << RawQuery::renderParameter(params[index++]);
+        last = token.position + token.length;
+    }
+    oss << mTabeName.substr(last);
+    return oss.str();
 }
 
 WhereFilter AbstractLazy::whereFilter() const
@@ -984,6 +972,7 @@ void AbstractLazy::setProperty(const std::string key, const DbVariant value)
 {
     if(!appendPropAsCount(key)){
         mProperties[key]=value;
+        mShorthandKeys.erase(key);
     }
 }
 
@@ -993,6 +982,7 @@ void AbstractLazy::setProperties(const std::vector<std::string> &keys)
     {
         if(!appendPropAsCount(key)){
             mProperties[key]="";
+            mShorthandKeys.insert(key);
         }
     }
 }
@@ -1001,6 +991,7 @@ AbstractLazy & AbstractLazy::operator<<(const std::string &key)
 {
     if(!appendPropAsCount(key)){
         mProperties[key]="";
+        mShorthandKeys.insert(key);
     }
     return *this;
 }
@@ -1011,6 +1002,7 @@ void AbstractLazy::setProperties(const std::initializer_list<std::pair<DbVariant
     {
         if(!appendPropAsCount(item.first)){
             mProperties[item.first] = item.second;
+            mShorthandKeys.erase(item.first);
         }
     }
 }
@@ -1029,6 +1021,7 @@ AbstractLazy &AbstractLazy::operator<<(const std::pair<DbVariant, DbVariant> &ke
 {
     if(!appendPropAsCount(key_value.first)){
         mProperties[key_value.first] = key_value.second;
+        mShorthandKeys.erase(key_value.first);
     }
 
     return *this;

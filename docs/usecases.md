@@ -719,6 +719,148 @@ std::cout << lazyOrm.queryString(LazyOrm::LazyOrm::MariaDB) << std::endl;
 // Output: INSERT INTO student (`age`,`hair`,`name`) VALUES ('56','black','jack') returning idx;
 ```
 
+### Raw Query Contract
+
+#### Property and Parameter Resolution
+
+Parameters are supplied through the property map, in one of two forms:
+
+- **Key-only shorthand** (`lazyOrm << "value"` or
+  `setProperties(std::vector<std::string>)`): the string is stored as the
+  property *key* in `mProperties` (with an empty value for compatibility with
+  `properties()` and `SELECT`), and tracked internally as a shorthand entry so
+  the key itself becomes the parameter.
+- **Key/value form** (`setProperties({{"label", value}})`,
+  `setProperty("label", value)`, `lazyOrm["label"] = value`, or
+  `lazyOrm << std::pair{...}`): the property *value* is the parameter and the
+  key is only a label.
+
+An explicitly supplied empty-string value (such as `{{"name", ""}}` or
+`lazyOrm["name"] = ""`) is **not** treated as shorthand; it resolves to the
+empty string `""`. Assigning or inserting a key via a key/value method clears
+any prior shorthand status for that key, and `lazyOrm << "key"` marks that key
+as shorthand.
+
+Parameters are ordered by ascending property key (`std::map` order,
+lexicographic for string keys) — **not** by insertion order. Choose labels
+accordingly when order matters:
+
+```cpp
+LazyOrm::PostgreLazy lazyOrm;
+lazyOrm[LazyOrm::RAW_QUERY] = "INSERT INTO users (id,name) VALUES ($1,$2)";
+lazyOrm.setProperties({{"name", "raw"}, {"id", 12}});
+// key order: "id" < "name", so $1 <- 12 and $2 <- "raw"
+```
+
+#### Regular Query Rendering (`queryString()`)
+
+`queryString()` substitutes resolved parameter values directly into the SQL
+text:
+
+- **Quoting and wildcard/`[no']` rules**: Ordinary values are formatted with
+  `DbVariant::setQuote()` (strings are single-quoted and escaped, booleans
+  render as `true`/`false`, `"null"` / `std::monostate{}` render as `NULL`).
+  An ordinary keyed parameter whose value is `"*"` (e.g. `{{"col", "*"}}`)
+  is quoted as `'*'`. Unquoted wildcard/raw SQL rendering is preserved only for
+  intentional shorthand `"*"` (`lazyOrm << "*"` / `setProperties({"*"})`) or
+  explicit `"[no']"` / `"[no`]"` prefixes handled by `DbVariant::setQuote()`.
+- **Dialect placeholder conventions**:
+  - **PostgreSQL** (`PostgreLazy` / `LazyOrm::Postgres`): uses numbered `$N`
+    placeholders only (`1`-based). `?`, `?|`, and `?&` are treated as
+    PostgreSQL JSONB operators, not placeholders.
+  - **MariaDB and SQLite**: accept positional `?` placeholders or numbered
+    `$N` placeholders, but not mixed together in the same query.
+- **Numbered `$N` validation**: Every index from `1` through `N` (where `N` is
+  the supplied parameter count) must appear at least once. Repeated
+  (`$1, $1, $2`) and out-of-order (`$2, $1`) references are valid, while gaps
+  (`$2` with 2 params, `$1, $3` with 3 params), missing parameters, and extra
+  unused parameters are rejected.
+- **Rejection behavior**: Any contract violation or malformed placeholder
+  (`$0`, `$1abc`, bare `$`, `$abc`, numeric overflow, or non-PostgreSQL
+  dollar-quoting) causes `queryString()` to return an empty string.
+
+#### Parameterized Query Building (`buildParameterized()`)
+
+`buildParameterized()` passes the SQL text through unchanged and returns bound
+parameters in `params` (in ascending property key order):
+
+- **PostgreSQL**: uses numbered `$N` placeholders only. Each `$N` binds
+  `params[N - 1]`. Repeated references (`$1, $1`) reuse `params[0]` without
+  duplicating it; out-of-order references (`$2, $1`) keep `params` in property
+  key order; every index `1..N` must be referenced at least once (no gaps,
+  missing parameters, or extra unused parameters). PostgreSQL JSONB operators
+  `#>`, `#>>`, `?`, `?|`, and `?&` are preserved untouched and never mistaken
+  for comments or placeholders.
+- **MariaDB and SQLite**: use positional `?` placeholders only, bound in
+  parameter order (`params.size()` must equal the number of `?` placeholders).
+  Numbered `$N` placeholders (`$1`, `$1, $2`), mixed `$N`/`?` queries, and
+  `$tag$` dollar-quoted syntax are **rejected**.
+- **Bound values**: Values are never interpolated into `sql`; native types
+  (`int`, `double`, `bool`, `std::monostate`, `BlobType`, `std::string`
+  including `""` and `"*"`) are preserved in `params`.
+- **Rejection behavior**: Rejected queries return empty `sql` and empty
+  `params`.
+
+#### Dialect-Aware SQL Scanning and Limitations
+
+`RawQuery::scan()` skips non-placeholder SQL constructs according to the active
+dialect:
+
+- **PostgreSQL**:
+  - Single-quoted strings `'...'` use `''` doubling only (`standard_conforming_strings = on`);
+    backslash escapes apply only inside `E'...'` / `e'...'` escape strings.
+  - Double-quoted identifiers `"..."` use `""` doubling only.
+  - Dollar-quoted strings (`$$...$$`, `$tag$...$tag$`) are skipped.
+  - Comments: `--` to end of line (no trailing whitespace required) and nested
+    `/* ... */` block comments. `#` is not a comment (`#>`, `#>>` stay valid).
+  - Unquoted identifiers containing `$` (e.g. `col$1`) are skipped as whole
+    identifiers.
+- **MariaDB**:
+  - Single-quoted `'...'` and double-quoted `"..."` strings honor both
+    backslash escapes and doubled quotes; backticks `` `...` `` use `` `` ``
+    doubling only.
+  - Comments: `#` to end of line, `--` only when followed by whitespace, a
+    control character, or EOF (so `1--2` or `1--?` is not treated as a comment),
+    and non-nested `/* ... */` block comments.
+- **SQLite**:
+  - Single-quoted `'...'`, double-quoted `"..."`, backtick `` `...` ``, and
+    bracketed `[...]` tokens use quote doubling (`''`, `""`, `` `` ``) with no
+    backslash escapes.
+  - Comments: `--` to end of line (no trailing whitespace required) and
+    non-nested `/* ... */` block comments (`#` is not a comment).
+
+**Scanner limitations** (inherent to stateless scanning without a live server
+connection):
+
+- PostgreSQL scanning assumes `standard_conforming_strings = on` (the default
+  since PostgreSQL 9.1); legacy `standard_conforming_strings = off` is not
+  detected.
+- MariaDB/MySQL scanning assumes default SQL mode (backslash escapes enabled in
+  `'...'` and `"..."`); server modes `NO_BACKSLASH_ESCAPES` and `ANSI_QUOTES`
+  cannot be queried without a connection. MariaDB versioned executable comments
+  (`/*! ... */`) are treated as block comments.
+- In PostgreSQL, `?` is treated solely as an operator rather than a placeholder;
+  a standalone stray `?` with zero parameters cannot be distinguished from
+  operator syntax without schema/type information.
+- In SQLite, only `?` positional placeholders are supported by LazyOrm;
+  SQLite-native `?NNN`, `:name`, and `@name` host parameter syntaxes are not
+  recognized as LazyOrm placeholders (while `$`-prefixed tokens such as `$1`
+  and `$name` are rejected).
+- Unterminated quotes, comments, or dollar-quoted strings swallow through the
+  end of the SQL string.
+
+### Raw Query with Numbered Placeholders
+
+```cpp
+LazyOrm::PostgreLazy lazyOrm;
+lazyOrm[LazyOrm::RAW_QUERY] = "SELECT $2, $1";
+lazyOrm << "a" << "b";
+
+const auto parameterized = lazyOrm.buildParameterized();
+// parameterized.sql    == "SELECT $2, $1"
+// parameterized.params == ["a", "b"]  ($1 -> "a", $2 -> "b")
+```
+
 ## Multi-Database Support
 
 ### Using LazyOrm for Multiple Databases

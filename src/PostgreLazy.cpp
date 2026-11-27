@@ -40,6 +40,11 @@ ParameterizedQuery PostgreLazy::buildParameterized() const
     return result;
 }
 
+AbstractLazy::ParameterDialect PostgreLazy::rawQueryDialect() const
+{
+    return ParameterDialect::PostgreSQL;
+}
+
 void PostgreLazy::setFilter(const PostgreFilteringLazy filter)
 {
   mFilter=filter;

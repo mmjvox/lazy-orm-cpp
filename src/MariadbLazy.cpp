@@ -38,6 +38,11 @@ ParameterizedQuery MariadbLazy::buildParameterized() const
     return result;
 }
 
+AbstractLazy::ParameterDialect MariadbLazy::rawQueryDialect() const
+{
+    return ParameterDialect::MariaDB;
+}
+
 void MariadbLazy::setFilter(const MariadbFilteringLazy filter)
 {
   mFilter=filter;

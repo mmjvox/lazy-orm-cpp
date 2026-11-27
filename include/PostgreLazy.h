@@ -24,6 +24,7 @@ protected:
   std::string bulk_update_query() const override;
   std::string contains_query() const override;
   std::string count_query() const override;
+  ParameterDialect rawQueryDialect() const override;
 
   FilteringAbstractLazy& getCurrentFilters() override
   {

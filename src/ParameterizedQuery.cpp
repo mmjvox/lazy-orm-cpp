@@ -1,4 +1,5 @@
 #include "AbstractLazy.h"
+#include "RawQueryHelper.h"
 
 #include <algorithm>
 #include <charconv>
@@ -528,34 +529,33 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
         result.sql.append(";");
         return result;
     case RAW_QUERY: {
+        // Parameters follow std::map key order, using mShorthandKeys to
+        // distinguish key-only shorthand entries from explicit key/value pairs.
+        // PostgreSQL accepts numbered $N placeholders; MariaDB and SQLite
+        // accept positional ? placeholders only. The SQL text is passed
+        // through unchanged; values are only ever bound, never interpolated.
+        RawQuery::Dialect rawDialect = RawQuery::Dialect::SQLite;
+        if (postgreSQL) {
+            rawDialect = RawQuery::Dialect::PostgreSQL;
+        } else if (mariaDB) {
+            rawDialect = RawQuery::Dialect::MariaDB;
+        }
+        const RawQuery::ScanResult scanResult = RawQuery::scan(mTabeName, rawDialect);
+        if (!scanResult.valid) {
+            return {};
+        }
+        const std::vector<RawQuery::ResolvedParameter> resolved =
+            RawQuery::resolveParameters(mProperties, mShorthandKeys);
+        const bool contractSatisfied = postgreSQL
+            ? RawQuery::numberedContractSatisfied(scanResult, resolved.size())
+            : RawQuery::positionalContractSatisfied(scanResult, resolved.size());
+        if (!contractSatisfied) {
+            return {};
+        }
         result.sql = mTabeName;
-        std::vector<DbVariant> values;
-        for (const auto &[key, value] : mProperties) {
-            const bool keyParameter = value.typeName() == "string" && value.toString().empty();
-            values.push_back(keyParameter ? key : value);
-        }
-        if (!postgreSQL) {
-            result.params = std::move(values);
-            return result;
-        }
-
-        size_t largestIndex = 0;
-        for (size_t position = 0; position < result.sql.size(); ++position) {
-            if (result.sql[position] != '$' || position + 1 >= result.sql.size() ||
-                !std::isdigit(static_cast<unsigned char>(result.sql[position + 1]))) {
-                continue;
-            }
-            size_t index = 0;
-            const auto [end, error] = std::from_chars(result.sql.data() + position + 1,
-                                                       result.sql.data() + result.sql.size(), index);
-            if (error == std::errc()) {
-                largestIndex = std::max(largestIndex, index);
-                position = static_cast<size_t>(end - result.sql.data()) - 1;
-            }
-        }
-        result.params.resize(largestIndex);
-        for (size_t i = 0; i < largestIndex && i < values.size(); ++i) {
-            result.params[i] = values[i];
+        result.params.reserve(resolved.size());
+        for (const auto &entry : resolved) {
+            result.params.push_back(entry.value);
         }
         return result;
     }

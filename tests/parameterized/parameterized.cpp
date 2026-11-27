@@ -550,6 +550,409 @@ TEST_CASE("parameterized raw queries retain placeholders and native parameters",
     requireString(sqlite.params[1], "raw");
 }
 
+TEST_CASE("parameterized postgres raw queries resolve numbered placeholders by index", "[parameterized][raw]")
+{
+    // Out-of-order placeholders: the parameter vector stays in property key
+    // order; $2 still binds the second parameter.
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $2, $1";
+        query["b"] = "second";
+        query["a"] = "first";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT $2, $1");
+        REQUIRE(parameterized.params.size() == 2);
+        requireString(parameterized.params[0], "first");
+        requireString(parameterized.params[1], "second");
+    }
+    // Repeated placeholders bind a single parameter; it is not consumed twice.
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $1, $1";
+        query["a"] = "same";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT $1, $1");
+        REQUIRE(parameterized.params.size() == 1);
+        requireString(parameterized.params[0], "same");
+    }
+}
+
+TEST_CASE("parameterized postgres raw queries reject missing, extra and invalid placeholders", "[parameterized][raw]")
+{
+    const auto requireRejected = [](LazyOrm::PostgreLazy &query) {
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql.empty());
+        REQUIRE(parameterized.params.empty());
+    };
+    // Gap: $2 referenced but only one parameter supplied.
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $2";
+        query["a"] = "only";
+        requireRejected(query);
+    }
+    // Gap: $2 referenced with two parameters supplied ($1 never referenced).
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $2";
+        query.setProperties({{"a", 1}, {"b", 2}});
+        requireRejected(query);
+    }
+    // Gap: $1, $3 referenced with three parameters supplied ($2 never referenced).
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $1, $3";
+        query.setProperties({{"a", 1}, {"b", 2}, {"c", 3}});
+        requireRejected(query);
+    }
+    // Extra: more parameters than the largest referenced index.
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $1";
+        query.setProperties({{"a", 1}, {"b", 2}});
+        requireRejected(query);
+    }
+    // $0 is not a valid PostgreSQL placeholder.
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $0";
+        query.setProperties({{"a", 1}});
+        requireRejected(query);
+    }
+    // Malformed dollar tokens ($1abc, $1_x, $1$, bare $, $abc).
+    for (const std::string &badSql : {
+             std::string("SELECT $1abc"),
+             std::string("SELECT $1_x"),
+             std::string("SELECT $1$"),
+             std::string("SELECT $"),
+             std::string("SELECT $abc"),
+             std::string("SELECT $1tag$"),
+         }) {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = badSql;
+        query.setProperties({{"a", 1}});
+        requireRejected(query);
+    }
+    // Placeholder index overflow can never be satisfied.
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $99999999999999999999999999";
+        requireRejected(query);
+    }
+    // Parameters without any placeholder are silently-discarded extras.
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT 1";
+        query.setProperties({{"a", 1}});
+        requireRejected(query);
+    }
+}
+
+TEST_CASE("parameterized postgres raw queries ignore placeholder-like text in literals and comments", "[parameterized][raw]")
+{
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT '$1', $1";
+        query["a"] = "v";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT '$1', $1");
+        REQUIRE(parameterized.params.size() == 1);
+        requireString(parameterized.params[0], "v");
+    }
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $1 /* $2 */ -- $3\n";
+        query["a"] = "v";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT $1 /* $2 */ -- $3\n");
+        REQUIRE(parameterized.params.size() == 1);
+        requireString(parameterized.params[0], "v");
+    }
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $$ $1 $$, $tag$ $2 $tag$, $1";
+        query["a"] = "v";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT $$ $1 $$, $tag$ $2 $tag$, $1");
+        REQUIRE(parameterized.params.size() == 1);
+        requireString(parameterized.params[0], "v");
+    }
+}
+
+TEST_CASE("parameterized raw queries reject positional placeholder count mismatches", "[parameterized][raw]")
+{
+    // Missing parameter.
+    {
+        LazyOrm::MariadbLazy mariaQuery;
+        mariaQuery[LazyOrm::RAW_QUERY] = "INSERT INTO users (id,name) VALUES (?,?)";
+        mariaQuery.setProperties({{"id", 12}});
+        const auto maria = mariaQuery.buildParameterized();
+        REQUIRE(maria.sql.empty());
+        REQUIRE(maria.params.empty());
+
+        LazyOrm::SqliteLazy sqliteQuery;
+        sqliteQuery[LazyOrm::RAW_QUERY] = "INSERT INTO users (id,name) VALUES (?,?)";
+        sqliteQuery.setProperties({{"id", 12}});
+        const auto sqlite = sqliteQuery.buildParameterized();
+        REQUIRE(sqlite.sql.empty());
+        REQUIRE(sqlite.params.empty());
+    }
+    // Extra parameter.
+    {
+        LazyOrm::MariadbLazy mariaQuery;
+        mariaQuery[LazyOrm::RAW_QUERY] = "INSERT INTO users (id) VALUES (?)";
+        mariaQuery.setProperties({{"id", 12}, {"name", "raw"}});
+        const auto maria = mariaQuery.buildParameterized();
+        REQUIRE(maria.sql.empty());
+        REQUIRE(maria.params.empty());
+
+        LazyOrm::SqliteLazy sqliteQuery;
+        sqliteQuery[LazyOrm::RAW_QUERY] = "INSERT INTO users (id) VALUES (?)";
+        sqliteQuery.setProperties({{"id", 12}, {"name", "raw"}});
+        const auto sqlite = sqliteQuery.buildParameterized();
+        REQUIRE(sqlite.sql.empty());
+        REQUIRE(sqlite.params.empty());
+    }
+}
+
+TEST_CASE("parameterized raw queries ignore question marks in literals and comments", "[parameterized][raw]")
+{
+    {
+        LazyOrm::MariadbLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT '?' AS q, ? /* ? */ -- ?\n";
+        query["a"] = "v";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT '?' AS q, ? /* ? */ -- ?\n");
+        REQUIRE(parameterized.params.size() == 1);
+        requireString(parameterized.params[0], "v");
+    }
+    {
+        LazyOrm::SqliteLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT `col?`, ?";
+        query["a"] = "v";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT `col?`, ?");
+        REQUIRE(parameterized.params.size() == 1);
+        requireString(parameterized.params[0], "v");
+    }
+}
+
+TEST_CASE("parameterized raw queries preserve native parameter types", "[parameterized][raw]")
+{
+    const LazyOrm::BlobType blob{LazyOrm::ByteType{0x01}, LazyOrm::ByteType{0x02}};
+    LazyOrm::PostgreLazy query;
+    query[LazyOrm::RAW_QUERY] = "SELECT $1, $2, $3, $4, $5";
+    query.setProperties({
+        {"v_bool", true},
+        {"v_float", 1.5},
+        {"v_int", 42},
+        {"v_null", std::monostate{}},
+        {"v_text", "O'Brien"},
+    });
+    const auto parameterized = query.buildParameterized();
+    REQUIRE(parameterized.sql == "SELECT $1, $2, $3, $4, $5");
+    REQUIRE(parameterized.params.size() == 5);
+    // Property key order: v_bool, v_float, v_int, v_null, v_text.
+    REQUIRE(parameterized.params[0].typeName() == "boolean");
+    REQUIRE(parameterized.params[0].toBool() == true);
+    requireDouble(parameterized.params[1], 1.5);
+    requireInteger(parameterized.params[2], 42);
+    REQUIRE(parameterized.params[3].typeName().empty()); // monostate binds as NULL
+    requireString(parameterized.params[4], "O'Brien");
+
+    LazyOrm::PostgreLazy blobQuery;
+    blobQuery[LazyOrm::RAW_QUERY] = "SELECT $1";
+    blobQuery.setProperties({{"v_blob", blob}});
+    const auto blobParameterized = blobQuery.buildParameterized();
+    REQUIRE(blobParameterized.params.size() == 1);
+    REQUIRE(blobParameterized.params[0].toBlob() == blob);
+}
+
+TEST_CASE("parameterized and regular raw queries agree on parameter values and order", "[parameterized][raw]")
+{
+    // Keys deliberately out of lexicographic insertion order: both paths
+    // must resolve parameters in property key order.
+    LazyOrm::PostgreLazy query;
+    query[LazyOrm::RAW_QUERY] = "SELECT $2, $1, $3";
+    query["c"] = "third";
+    query["a"] = "first";
+    query["b"] = "second";
+    const auto parameterized = query.buildParameterized();
+    REQUIRE(parameterized.params.size() == 3);
+    requireString(parameterized.params[0], "first");
+    requireString(parameterized.params[1], "second");
+    requireString(parameterized.params[2], "third");
+
+    LazyOrm::LazyOrm regular = query;
+    REQUIRE(Catch::trim(regular.queryString(LazyOrm::LazyOrm::Postgres)) ==
+            R"(SELECT 'second', 'first', 'third')");
+}
+
+TEST_CASE("parameterized postgres raw queries accept repeated and out-of-order complete sets", "[parameterized][raw]")
+{
+    using Pair = std::pair<DbVariant, DbVariant>;
+    LazyOrm::PostgreLazy query;
+    query[LazyOrm::RAW_QUERY] = "SELECT $1, $1, $2";
+    query.setProperties({Pair{"a", "first"}, Pair{"b", "second"}});
+    const auto parameterized = query.buildParameterized();
+    REQUIRE(parameterized.sql == "SELECT $1, $1, $2");
+    REQUIRE(parameterized.params.size() == 2);
+    requireString(parameterized.params[0], "first");
+    requireString(parameterized.params[1], "second");
+}
+
+TEST_CASE("parameterized raw queries distinguish explicit empty strings and star from shorthand", "[parameterized][raw]")
+{
+    using Pair = std::pair<DbVariant, DbVariant>;
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT $1, $2";
+        query.setProperties({Pair{"a", ""}, Pair{"b", "*"}});
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT $1, $2");
+        REQUIRE(parameterized.params.size() == 2);
+        requireString(parameterized.params[0], "");
+        requireString(parameterized.params[1], "*");
+
+        LazyOrm::LazyOrm regular = query;
+        REQUIRE(Catch::trim(regular.queryString(LazyOrm::LazyOrm::Postgres)) == R"(SELECT '', '*')");
+    }
+    {
+        LazyOrm::MariadbLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT ?, ?";
+        query << "shorthand" << LazyOrm::pair{"explicit", ""};
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT ?, ?");
+        REQUIRE(parameterized.params.size() == 2);
+        requireString(parameterized.params[0], "");
+        requireString(parameterized.params[1], "shorthand");
+    }
+    {
+        LazyOrm::SqliteLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT ?";
+        query["name"] = "";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT ?");
+        REQUIRE(parameterized.params.size() == 1);
+        requireString(parameterized.params[0], "");
+    }
+}
+
+TEST_CASE("parameterized MariaDB and SQLite raw queries reject numbered and malformed dollar placeholders", "[parameterized][raw]")
+{
+    const auto requireMariaRejected = [](const std::string &sql,
+                                         std::initializer_list<std::pair<DbVariant, DbVariant>> props) {
+        LazyOrm::MariadbLazy query;
+        query[LazyOrm::RAW_QUERY] = sql;
+        query.setProperties(props);
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql.empty());
+        REQUIRE(parameterized.params.empty());
+    };
+    const auto requireSqliteRejected = [](const std::string &sql,
+                                          std::initializer_list<std::pair<DbVariant, DbVariant>> props) {
+        LazyOrm::SqliteLazy query;
+        query[LazyOrm::RAW_QUERY] = sql;
+        query.setProperties(props);
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql.empty());
+        REQUIRE(parameterized.params.empty());
+    };
+
+    for (const auto &sql : {
+             std::string("SELECT $1"),
+             std::string("SELECT $1, $2"),
+             std::string("SELECT ?, $1"),
+             std::string("SELECT $1, ?"),
+             std::string("SELECT $0"),
+             std::string("SELECT $1abc"),
+             std::string("SELECT $"),
+             std::string("SELECT $abc"),
+             std::string("SELECT $$ ? $$"),
+             std::string("SELECT $tag$ ? $tag$"),
+         }) {
+        requireMariaRejected(sql, {});
+        requireMariaRejected(sql, {{"a", 1}});
+        requireMariaRejected(sql, {{"a", 1}, {"b", 2}});
+        requireSqliteRejected(sql, {});
+        requireSqliteRejected(sql, {{"a", 1}});
+        requireSqliteRejected(sql, {{"a", 1}, {"b", 2}});
+    }
+
+    // Valid quoted/identifier uses of '$' still work with '?'.
+    {
+        LazyOrm::MariadbLazy maria;
+        maria[LazyOrm::RAW_QUERY] = "SELECT '$1', col$1, ?";
+        maria["a"] = "ok";
+        const auto m = maria.buildParameterized();
+        REQUIRE(m.sql == "SELECT '$1', col$1, ?");
+        REQUIRE(m.params.size() == 1);
+        requireString(m.params[0], "ok");
+
+        LazyOrm::SqliteLazy sqlite;
+        sqlite[LazyOrm::RAW_QUERY] = "SELECT '$1', col$1, ?";
+        sqlite["a"] = "ok";
+        const auto s = sqlite.buildParameterized();
+        REQUIRE(s.sql == "SELECT '$1', col$1, ?");
+        REQUIRE(s.params.size() == 1);
+        requireString(s.params[0], "ok");
+    }
+}
+
+TEST_CASE("parameterized postgres raw queries handle JSONB operators and dialect-aware scanning", "[parameterized][raw]")
+{
+    using Pair = std::pair<DbVariant, DbVariant>;
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] =
+            "SELECT data #> $1, data #>> $2, data ? 'k', data ?| $3, data ?& $4 FROM users";
+        query.setProperties({Pair{"a", "{a}"}, Pair{"b", "{b}"}, Pair{"c", "x"}, Pair{"d", "y"}});
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql ==
+                "SELECT data #> $1, data #>> $2, data ? 'k', data ?| $3, data ?& $4 FROM users");
+        REQUIRE(parameterized.params.size() == 4);
+    }
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT data ? 'k' FROM users";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql == "SELECT data ? 'k' FROM users");
+        REQUIRE(parameterized.params.empty());
+    }
+    {
+        // Stray '?' with parameter in PostgreSQL is rejected.
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] = "SELECT ? FROM users";
+        query["a"] = "v";
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.sql.empty());
+        REQUIRE(parameterized.params.empty());
+    }
+    // Dialect-specific comments, backslash escapes, and identifiers.
+    {
+        LazyOrm::PostgreLazy query;
+        query[LazyOrm::RAW_QUERY] =
+            R"(SELECT '\', E'O\'Brien $2', /* /* $2 */ $3 */ $1--$2)" "\n, $2 # $3";
+        query.setProperties({{"a", 1}, {"b", 2}, {"c", 3}});
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.params.size() == 3);
+    }
+    {
+        LazyOrm::MariadbLazy query;
+        query[LazyOrm::RAW_QUERY] = R"(SELECT 1--2, /* /* c */ ?, '\\', `col\`, ?)";
+        query.setProperties({{"a", 1}, {"b", 2}});
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.params.size() == 2);
+    }
+    {
+        LazyOrm::SqliteLazy query;
+        query[LazyOrm::RAW_QUERY] = R"(SELECT '\', /* /* c */ ?, [col?], ? # ?)" "\n--?\n";
+        query.setProperties({{"a", 1}, {"b", 2}, {"c", 3}});
+        const auto parameterized = query.buildParameterized();
+        REQUIRE(parameterized.params.size() == 3);
+    }
+}
+
 TEST_CASE("parameterized INSERT IGNORE uses dialect-specific syntax", "[parameterized][insert_ignore]")
 {
     LazyOrm::PostgreLazy postgreQuery;

@@ -22,6 +22,7 @@ protected:
   std::string insert_update_query() const override;
   std::string insert_ignore_query() const override;
   std::string bulk_update_query() const override;
+  ParameterDialect rawQueryDialect() const override;
 
   FilteringAbstractLazy& getCurrentFilters() override
   {

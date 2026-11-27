@@ -10,6 +10,7 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <set>
 #include <variant>
 #include <string>
 #include <initializer_list>
@@ -72,6 +73,7 @@ protected:
     // TODO: set backtick for name of tabes in queries
   std::string mTabeName;
   std::map<DbVariant, DbVariant> mProperties;
+  std::set<DbVariant> mShorthandKeys;
   std::list<std::map<DbVariant, DbVariant>> mBatchProperties;
   std::string mPrimaryKey;
   std::vector<std::string> mUniqueKeys;
@@ -91,6 +93,7 @@ protected:
   virtual std::string contains_query() const;
   virtual std::string count_query() const;
   virtual std::string raw_query() const;
+  virtual ParameterDialect rawQueryDialect() const;
 
   virtual std::list<std::string> count_queries() const;
 
