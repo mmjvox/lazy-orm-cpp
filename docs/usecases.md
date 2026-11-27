@@ -477,21 +477,49 @@ to the target table by the configured primary key.
 - All rows must have exactly the same column set; values are matched to
   columns by name, not by position in the source container.
 - The remaining columns are the columns updated, in one `SET` clause.
-- Primary-key values in a batch must share one SQL type category (`Integer`
-  [signed/unsigned], `Float`, `String`, `Boolean`, or `Blob`), and
-  duplicate primary-key values are rejected. Mixed-type primary keys (such
-  as `int(1)` with `string("1")` or `int(1)` with `double(1.0)`) are
-  conservatively rejected because database staging-table column coercion can
-  collapse them into duplicate keys and cause nondeterministic `UPDATE FROM`
-  / `UPDATE JOIN` results.
+- Primary-key values in a batch are validated on the C++ side across five
+  `DbVariant` categories (`Integer` [signed/unsigned], `Float`, `String`,
+  `Boolean`, or `Blob`), without database schema introspection or
+  engine-specific type normalization:
+  - Duplicate primary keys that are equivalent under the library's C++-side
+    type-aware comparison are rejected.
+  - Values with different C++ types may be treated as distinct or rejected
+    according to the existing normalization and validation rules: signed and
+    unsigned integers share the `Integer` category and are compared by
+    numeric value (so `int(1)`, `long long(1)`, and `unsigned int(1)` are
+    treated as duplicates, whereas `int(1)` and `unsigned int(2)` are
+    distinct), while mixing different categories in one batch (such as
+    `int(1)` with `string("1")`, or `int(1)` with `double(1.0)`) is
+    conservatively rejected.
+  - Distinct values of the same C++ type may still become equivalent after
+    database type conversion. For a numeric database primary-key column,
+    values such as `1`, `"1"`, and `"01"` may be converted by the database
+    into equivalent numeric values depending on the database engine and
+    column type: although mixed `1` and `"1"` are rejected by the category
+    check, distinct strings such as `"1"` and `"01"` pass C++-side
+    validation and can still collapse into the same key in the database.
 - `LazyOrm::WHERE` filters which target rows are updated; it never restricts
   the staging-table insert.
 - When the input violates the contract (empty batch, empty row, missing or
   unconfigured primary key, NULL or mixed-type primary key, inconsistent
-  column sets, duplicate primary keys, primary-key-only rows, invalid
-  column/table identifiers, or disallowed raw-expression markers),
-  `queryString()` and `buildParameterized()` return an empty query instead
-  of generating a partial or misleading statement.
+  column sets, duplicate primary keys under the C++-side rules above,
+  primary-key-only rows, invalid column/table identifiers, or disallowed
+  raw-expression markers), `queryString()` and `buildParameterized()` return
+  an empty query instead of generating a partial or misleading statement.
+
+**Duplicate primary-key limitations and caller responsibility**: C++-side
+duplicate detection is an early validation check, not a replacement for
+database constraints, and does not guarantee detection of all database-level
+equivalences caused by implicit type conversion. Conversion behavior depends on
+the database engine, target column type, and staging-table schema (for
+example, MariaDB and PostgreSQL create staging tables using `LIKE`, while
+SQLite creates staging columns without declared types). SQLite may still apply
+its own type-affinity and comparison rules. Therefore, distinct C++ primary-key
+values may become equivalent in the staging table or join condition, depending
+on the database's conversion and comparison semantics, causing `UPDATE ... JOIN`
+/ `UPDATE ... FROM` / correlated subqueries to behave nondeterministically. The
+caller must supply primary-key values that remain unique after conversion to
+the target database column's type.
 
 **Generated statement sequence** (same staging-table name in every
 statement):
