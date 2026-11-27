@@ -245,27 +245,68 @@ std::string SqliteLazy::insert_ignore_query() const
 
 std::string SqliteLazy::bulk_update_query() const
 {
-    if(mBatchProperties.size()<1)
+    std::vector<DbVariant> columns, updateColumns;
+    if(!prepareBulkUpdate(columns, updateColumns))
     {
         return {};
     }
 
-    const std::string &createTempTableQuery = "CREATE TEMPORARY TABLE lazyormtemp"+ mTabeName +" LIKE "+ mTabeName +";";
+    const std::string targetTable = bulkUpdateTargetTable(BackTick);
+    const std::string targetRef = bulkUpdateTargetRef(BackTick);
+    const std::string quotedStaging = DbVariant(bulkUpdateStagingName()).setBackTick();
+    const std::string quotedPrimaryKey = DbVariant(mPrimaryKey).setBackTick();
 
-    const std::string &bulkInsertQuery = bulk_insert_query();
-
-
-    std::string updateTableQuery ="UPDATE "+ mTabeName +" t \nJOIN updates u ON t."+mPrimaryKey+" = u."+mPrimaryKey + " ";
-
-    const auto &updateRow = *mBatchProperties.begin();
-    for (const auto& [key, value] : updateRow) {
-        const auto & col = key.toCleanString();
-        updateTableQuery.append( "\nSET t."+ col +" = u."+ col +"; " );
+    // Populate the staging table, never the original target table.
+    std::vector<std::string> keys;
+    for(const auto &column : columns)
+    {
+        keys.push_back(column.setBackTick());
+    }
+    std::vector<std::string> rows;
+    for(const auto &row : mBatchProperties)
+    {
+        std::vector<std::string> rowValues;
+        for(const auto &[key, value] : row)
+        {
+            rowValues.push_back(bulkUpdateValue(value));
+        }
+        rows.push_back("("+string_join(",",rowValues)+")");
     }
 
-    const std::string &dropTempTableQuery = "DROP TEMPORARY TABLE IF EXISTS lazyormtemp"+ mTabeName +";";
+    // SQLite has no UPDATE ... JOIN, and UPDATE ... FROM requires SQLite
+    // 3.33+. Correlated subqueries work on every SQLite 3.x version. The
+    // EXISTS guard ensures target rows absent from the staging table are
+    // never overwritten with NULL.
+    std::string updateQuery;
+    updateQuery.append("UPDATE "+ targetTable +" SET ");
+    std::vector<std::string> assignments;
+    for(const auto &column : updateColumns)
+    {
+        const auto &quotedColumn = column.setBackTick();
+        assignments.push_back(quotedColumn +" = (SELECT u."+ quotedColumn
+                              +" FROM "+ quotedStaging +" u WHERE u."+ quotedPrimaryKey
+                              +" = "+ targetRef +"."+ quotedPrimaryKey +")");
+    }
+    updateQuery.append(string_join(",", assignments));
+    updateQuery.append(" WHERE EXISTS (SELECT 1 FROM "+ quotedStaging
+                       +" u WHERE u."+ quotedPrimaryKey +" = "+ targetRef +"."+ quotedPrimaryKey +")");
+    if(mWhereFilter.empty())
+    {
+        updateQuery.append(" ");
+    }
+    else
+    {
+        updateQuery.append(bulkUpdateWhereString("", " AND ", BackTick));
+    }
+    updateQuery.append(";");
 
-    return dropTempTableQuery +" \n"+ createTempTableQuery +" \n"+ bulkInsertQuery +" \n"+ updateTableQuery +" \n"+ dropTempTableQuery;
+    const std::string &dropTempTableQuery = "DROP TABLE IF EXISTS temp."+ quotedStaging +";";
+    const std::string &createTempTableQuery = "CREATE TEMPORARY TABLE "+ quotedStaging
+            +" ("+ string_join(",", keys) +");";
+    const std::string &insertQuery = "INSERT INTO "+ quotedStaging
+            +" ("+string_join(",",keys)+") VALUES "+ string_join(",", rows) +" ;";
+
+    return dropTempTableQuery +" \n"+ createTempTableQuery +" \n"+ insertQuery +" \n"+ updateQuery +" \n"+ dropTempTableQuery;
 }
 
 

@@ -337,6 +337,174 @@ TEST_CASE("parameterized BULK INSERT numbers every row", "[parameterized][bulk_i
     requireString(sqlite.params[3], "second");
 }
 
+template<typename Lazy>
+Lazy bulkUpdateQuery()
+{
+    Lazy query;
+    query[LazyOrm::PrimaryKey] = "id";
+    query[LazyOrm::BULK_UPDATE] = "users";
+    query.setProperties({
+        {{"id", 1}, {"name", "first"}, {"score", 1.5}},
+        {{"id", 2}, {"name", "second"}, {"score", 2.5}}
+    });
+    query[LazyOrm::WHERE] = {
+        {"deleted_at", "IS", "NULL"},
+        {"AND"},
+        {"id", "in", LazyOrm::DbList({2, 4, 6})}
+    };
+    return query;
+}
+
+TEST_CASE("parameterized BULK UPDATE stages, joins and filters per dialect", "[parameterized][bulk_update]")
+{
+    // Batch values are bound row-major first, the WHERE filter values are
+    // bound last, and every statement references the same staging table.
+    const auto postgre = bulkUpdateQuery<LazyOrm::PostgreLazy>().buildParameterized();
+    REQUIRE(Catch::trim(postgre.sql) == R"(DROP TABLE IF EXISTS pg_temp."lazyormtemp_users" ; CREATE TEMPORARY TABLE "lazyormtemp_users" (LIKE "users") ; INSERT INTO "lazyormtemp_users" ("id","name","score") VALUES ($1,$2,$3),($4,$5,$6) ; UPDATE "users" t SET "name" = u."name","score" = u."score" FROM "lazyormtemp_users" u WHERE t."id" = u."id" AND ((t."deleted_at" IS NULL) AND (t."id" in ($7,$8,$9))) ; DROP TABLE IF EXISTS pg_temp."lazyormtemp_users" ;)");
+    REQUIRE(postgre.params.size() == 9);
+    requireInteger(postgre.params[0], 1);
+    requireString(postgre.params[1], "first");
+    requireDouble(postgre.params[2], 1.5);
+    requireInteger(postgre.params[3], 2);
+    requireString(postgre.params[4], "second");
+    requireDouble(postgre.params[5], 2.5);
+    // WHERE parameters follow all batch parameters.
+    requireInteger(postgre.params[6], 2);
+    requireInteger(postgre.params[7], 4);
+    requireInteger(postgre.params[8], 6);
+
+    const auto maria = bulkUpdateQuery<LazyOrm::MariadbLazy>().buildParameterized();
+    REQUIRE(Catch::trim(maria.sql) == R"(DROP TEMPORARY TABLE IF EXISTS `lazyormtemp_users` ; CREATE TEMPORARY TABLE `lazyormtemp_users` LIKE `users` ; INSERT INTO `lazyormtemp_users` (`id`,`name`,`score`) VALUES (?,?,?),(?,?,?) ; UPDATE `users` t JOIN `lazyormtemp_users` u ON t.`id` = u.`id` SET t.`name` = u.`name`,t.`score` = u.`score` WHERE ((t.`deleted_at` IS NULL) AND (t.`id` in (?,?,?))) ; DROP TEMPORARY TABLE IF EXISTS `lazyormtemp_users` ;)");
+    REQUIRE(maria.params.size() == 9);
+    requireInteger(maria.params[0], 1);
+    requireString(maria.params[1], "first");
+    requireDouble(maria.params[2], 1.5);
+    requireInteger(maria.params[3], 2);
+    requireString(maria.params[4], "second");
+    requireDouble(maria.params[5], 2.5);
+    requireInteger(maria.params[6], 2);
+    requireInteger(maria.params[7], 4);
+    requireInteger(maria.params[8], 6);
+
+    const auto sqlite = bulkUpdateQuery<LazyOrm::SqliteLazy>().buildParameterized();
+    REQUIRE(Catch::trim(sqlite.sql) == R"(DROP TABLE IF EXISTS temp.`lazyormtemp_users` ; CREATE TEMPORARY TABLE `lazyormtemp_users` (`id`,`name`,`score`) ; INSERT INTO `lazyormtemp_users` (`id`,`name`,`score`) VALUES (?,?,?),(?,?,?) ; UPDATE `users` SET `name` = (SELECT u.`name` FROM `lazyormtemp_users` u WHERE u.`id` = `users`.`id`),`score` = (SELECT u.`score` FROM `lazyormtemp_users` u WHERE u.`id` = `users`.`id`) WHERE EXISTS (SELECT 1 FROM `lazyormtemp_users` u WHERE u.`id` = `users`.`id`) AND ((`deleted_at` IS NULL) AND (`id` in (?,?,?))) ; DROP TABLE IF EXISTS temp.`lazyormtemp_users` ;)");
+    REQUIRE(sqlite.params.size() == 9);
+    requireInteger(sqlite.params[0], 1);
+    requireString(sqlite.params[1], "first");
+    requireDouble(sqlite.params[2], 1.5);
+    requireInteger(sqlite.params[3], 2);
+    requireString(sqlite.params[4], "second");
+    requireDouble(sqlite.params[5], 2.5);
+    requireInteger(sqlite.params[6], 2);
+    requireInteger(sqlite.params[7], 4);
+    requireInteger(sqlite.params[8], 6);
+}
+
+TEST_CASE("parameterized BULK UPDATE binds blobs, NULLs and quoted strings", "[parameterized][bulk_update]")
+{
+    LazyOrm::PostgreLazy query;
+    query[LazyOrm::PrimaryKey] = "id";
+    query[LazyOrm::BULK_UPDATE] = "users";
+    query.setProperties({
+        {{"id", 1}, {"name", "O'Brien"}, {"avatar", LazyOrm::BlobType{std::byte{0x01}, std::byte{0x02}}}, {"deleted_at", std::monostate{}}}
+    });
+    query[LazyOrm::WHERE] = {{"active", true}};
+
+    const auto parameterized = query.buildParameterized();
+    REQUIRE(Catch::trim(parameterized.sql) == R"(DROP TABLE IF EXISTS pg_temp."lazyormtemp_users" ; CREATE TEMPORARY TABLE "lazyormtemp_users" (LIKE "users") ; INSERT INTO "lazyormtemp_users" ("avatar","deleted_at","id","name") VALUES ($1,$2,$3,$4) ; UPDATE "users" t SET "avatar" = u."avatar","deleted_at" = u."deleted_at","name" = u."name" FROM "lazyormtemp_users" u WHERE t."id" = u."id" AND (t."active" = $5) ; DROP TABLE IF EXISTS pg_temp."lazyormtemp_users" ;)");
+
+    REQUIRE(parameterized.params.size() == 5);
+    // Blob values are bound, never interpolated.
+    REQUIRE(parameterized.params[0].typeName() == "blob");
+    REQUIRE(parameterized.params[0].toBlob() == LazyOrm::BlobType{std::byte{0x01}, std::byte{0x02}});
+    // NULL is bound as a parameter on the staging INSERT.
+    REQUIRE(parameterized.params[1].typeName().empty());
+    requireInteger(parameterized.params[2], 1);
+    requireString(parameterized.params[3], "O'Brien");
+    // The WHERE value is bound after all batch values.
+    REQUIRE(parameterized.params[4].typeName() == "boolean");
+    REQUIRE(parameterized.params[4].toBool());
+}
+
+TEST_CASE("parameterized BULK UPDATE rejects invalid input", "[parameterized][bulk_update]")
+{
+    LazyOrm::PostgreLazy noPrimaryKey;
+    noPrimaryKey[LazyOrm::BULK_UPDATE] = "users";
+    noPrimaryKey.setProperties({
+        {{"id", 1}, {"name", "first"}}
+    });
+    REQUIRE(noPrimaryKey.buildParameterized().sql.empty());
+
+    LazyOrm::MariadbLazy duplicateKeys;
+    duplicateKeys[LazyOrm::PrimaryKey] = "id";
+    duplicateKeys[LazyOrm::BULK_UPDATE] = "users";
+    duplicateKeys.setProperties({
+        {{"id", 1}, {"name", "first"}},
+        {{"id", 1}, {"name", "second"}}
+    });
+    REQUIRE(duplicateKeys.buildParameterized().sql.empty());
+
+    LazyOrm::SqliteLazy primaryKeyOnly;
+    primaryKeyOnly[LazyOrm::PrimaryKey] = "id";
+    primaryKeyOnly[LazyOrm::BULK_UPDATE] = "users";
+    primaryKeyOnly.setProperties({
+        {{"id", 1}},
+        {{"id", 2}}
+    });
+    REQUIRE(primaryKeyOnly.buildParameterized().sql.empty());
+
+    LazyOrm::PostgreLazy badTable;
+    badTable[LazyOrm::PrimaryKey] = "id";
+    badTable[LazyOrm::BULK_UPDATE] = "public..users";
+    badTable.setProperties({{{"id", 1}, {"name", "first"}}});
+    REQUIRE(badTable.buildParameterized().sql.empty());
+
+    LazyOrm::SqliteLazy nullPk;
+    nullPk[LazyOrm::PrimaryKey] = "id";
+    nullPk[LazyOrm::BULK_UPDATE] = "users";
+    nullPk.setProperties({{{"id", std::monostate{}}, {"name", "first"}}});
+    REQUIRE(nullPk.buildParameterized().sql.empty());
+
+    LazyOrm::PostgreLazy mixedTypes;
+    mixedTypes[LazyOrm::PrimaryKey] = "id";
+    mixedTypes[LazyOrm::BULK_UPDATE] = "public.users";
+    mixedTypes.setProperties({
+        {{"id", 1}, {"name", "int_one"}},
+        {{"id", std::string("1")}, {"name", "str_one"}}
+    });
+    REQUIRE(mixedTypes.buildParameterized().sql.empty());
+
+    LazyOrm::PostgreLazy schemaQualified;
+    schemaQualified[LazyOrm::PrimaryKey] = "id";
+    schemaQualified[LazyOrm::BULK_UPDATE] = "public.users";
+    schemaQualified.setProperties({
+        {{"id", 1}, {"name", "NULL"}, {"note", std::monostate{}}},
+        {{"id", 2}, {"name", "second"}, {"note", "ok"}}
+    });
+    schemaQualified[LazyOrm::WHERE] = {
+        {
+            {"status", "active"},
+            {"OR"},
+            {"role", "admin"}
+        },
+        {"AND NOT"},
+        {"deleted", true}
+    };
+    const auto schemaResult = schemaQualified.buildParameterized();
+    REQUIRE(Catch::trim(schemaResult.sql) == R"(DROP TABLE IF EXISTS pg_temp."lazyormtemp_public_users" ; CREATE TEMPORARY TABLE "lazyormtemp_public_users" (LIKE "public"."users") ; INSERT INTO "lazyormtemp_public_users" ("id","name","note") VALUES ($1,$2,$3),($4,$5,$6) ; UPDATE "public"."users" t SET "name" = u."name","note" = u."note" FROM "lazyormtemp_public_users" u WHERE t."id" = u."id" AND (((t."status" = $7) OR (t."role" = $8)) AND NOT (t."deleted" = $9)) ; DROP TABLE IF EXISTS pg_temp."lazyormtemp_public_users" ;)");
+    REQUIRE(schemaResult.params.size() == 9);
+    requireInteger(schemaResult.params[0], 1);
+    requireString(schemaResult.params[1], "NULL");
+    REQUIRE(schemaResult.params[2].typeName().empty());
+    requireInteger(schemaResult.params[3], 2);
+    requireString(schemaResult.params[4], "second");
+    requireString(schemaResult.params[5], "ok");
+    requireString(schemaResult.params[6], "active");
+    requireString(schemaResult.params[7], "admin");
+    REQUIRE(schemaResult.params[8].typeName() == "boolean");
+    REQUIRE(schemaResult.params[8].toBool());
+}
+
 TEST_CASE("PostgreSQL converts comma pagination in both APIs", "[parameterized][limit]")
 {
     LazyOrm::PostgreLazy query;
@@ -1249,6 +1417,7 @@ void requireCrossDialectAssignment()
     requireAssignment(deleteQuery<Source>(), deleteQuery<Dest>());
     requireAssignment(crossDialectInsertIgnore<Source>(), crossDialectInsertIgnore<Dest>());
     requireAssignment(bulkInsertQuery<Source>(), bulkInsertQuery<Dest>());
+    requireAssignment(bulkUpdateQuery<Source>(), bulkUpdateQuery<Dest>());
     requireAssignment(upsertQuery<Source>(), upsertQuery<Dest>());
     requireAssignment(crossDialectSelect<Source>(), crossDialectSelect<Dest>());
 }

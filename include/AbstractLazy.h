@@ -99,6 +99,36 @@ protected:
 
   void copyStateFrom(const AbstractLazy &other);
 
+  // Bulk UPDATE support.
+  // Validates the batch and fills `columns` (ordered column list of the
+  // batch rows) and `updateColumns` (columns minus the primary key).
+  // Returns false when the input does not satisfy the Bulk UPDATE contract;
+  // callers must then produce an empty query, matching the failure
+  // convention of bulk_insert_query().
+  bool prepareBulkUpdate(std::vector<DbVariant> &columns,
+                         std::vector<DbVariant> &updateColumns) const;
+  // Name of the temporary staging table, identical for CREATE, INSERT,
+  // UPDATE and DROP statements.
+  std::string bulkUpdateStagingName() const;
+  // Renders the validated target table identifier with dialect quoting
+  // per component (e.g. `schema`.`table` or "schema"."table").
+  std::string bulkUpdateTargetTable(QuoteType quote) const;
+  // Renders the unqualified quoted target table name for column
+  // qualification inside SQLite correlated subqueries and EXISTS.
+  std::string bulkUpdateTargetRef(QuoteType quote) const;
+  // Formats a validated batch cell value for regular SQL Bulk UPDATE:
+  // std::monostate becomes SQL NULL, ordinary strings (including "NULL")
+  // remain quoted strings, booleans stay true/false, and numeric/blob
+  // values keep DbVariant::setQuote() formatting.
+  std::string bulkUpdateValue(const DbVariant &value) const;
+  // Renders mWhereFilter with every identifier qualified by `alias`
+  // (empty alias leaves identifiers unqualified). `quote` selects the
+  // identifier quoting style of the dialect. `leading` is prepended when
+  // the filter is non-empty (e.g. " WHERE " or " AND ").
+  std::string bulkUpdateWhereString(const std::string &alias,
+                                    const std::string &leading,
+                                    QuoteType quote) const;
+
   ParameterizedQuery parameterizedQuery(ParameterDialect dialect) const;
 
   WhereFilter mWhereFilter;

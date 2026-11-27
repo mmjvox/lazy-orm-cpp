@@ -49,6 +49,7 @@ class ParameterizedBuilder
 {
     AbstractLazy::ParameterDialect mDialect;
     ParameterizedQuery &mQuery;
+    std::string mConditionAlias;
 
     bool postgreSQL() const { return mDialect == AbstractLazy::ParameterDialect::PostgreSQL; }
     bool mariaDB() const { return mDialect == AbstractLazy::ParameterDialect::MariaDB; }
@@ -74,6 +75,11 @@ class ParameterizedBuilder
         return postgreSQL() ? identifier.setDoubleQuote() : identifier.setBackTick();
     }
 
+    std::string identifier(const DbVariant &value) const
+    {
+        return mConditionAlias.empty() ? quote(value) : mConditionAlias + "." + quote(value);
+    }
+
     static bool nullOperand(const DbVariant &value)
     {
         return value.typeName().empty() ||
@@ -88,28 +94,28 @@ class ParameterizedBuilder
 
         if (items.size() == 2) {
             const bool isNull = nullOperand(items[1]);
-            return quote(items[0]) + (isNull ? " IS NULL" : " = " + bind(items[1]));
+            return identifier(items[0]) + (isNull ? " IS NULL" : " = " + bind(items[1]));
         }
 
         if (items.size() == 3) {
             const std::string operation = items[1].toLowerString();
             if ((operation == "is" || operation == "is not") && nullOperand(items[2])) {
-                return quote(items[0]) + " " + items[1].toString() + " NULL";
+                return identifier(items[0]) + " " + items[1].toString() + " NULL";
             }
             if ((operation == "in" || operation == "not in") && items[2].isList()) {
                 std::vector<std::string> placeholders;
                 for (const auto &value : items[2].toList()) {
                     placeholders.push_back(bind(value));
                 }
-                return quote(items[0]) + " " + items[1].toString() + " (" + join(placeholders, ",") + ")";
+                return identifier(items[0]) + " " + items[1].toString() + " (" + join(placeholders, ",") + ")";
             }
-            return quote(items[0]) + " " + items[1].toString() + " " + bind(items[2]);
+            return identifier(items[0]) + " " + items[1].toString() + " " + bind(items[2]);
         }
 
         if (items.size() == 5 && items[1].toLowerString() == "between") {
             const std::string lower = bind(items[2]);
             const std::string upper = bind(items[4]);
-            return quote(items[0]) + " " + items[1].toString() + " " + lower +
+            return identifier(items[0]) + " " + items[1].toString() + " " + lower +
                    " " + items[3].toString() + " " + upper;
         }
 
@@ -122,23 +128,24 @@ class ParameterizedBuilder
 
     std::string nestedFilter(const WhereFilter &filter)
     {
-        std::string result;
-        for (const auto &child : filter.nestedWhereFilters()) {
-            if (!child.nestedWhereFilters().empty()) {
+        if (!filter.nestedWhereFilters().empty()) {
+            std::string result;
+            for (const auto &child : filter.nestedWhereFilters()) {
                 result.append(nestedFilter(child));
-            } else {
-                for (const auto &items : child.nestedDbVariant()) {
-                    if (items.size() == 1) {
-                        result.append(" " + items[0].toString() + " ");
-                        return result;
-                    }
-                    result.append("(" + condition(items) + ")");
-                }
             }
+            if (filter.nestedWhereFilters().size() > 1) {
+                return "(" + result + ")";
+            }
+            return result;
         }
 
-        if (filter.nestedWhereFilters().size() > 1) {
-            return "(" + result + ")";
+        std::string result;
+        for (const auto &items : filter.nestedDbVariant()) {
+            if (items.size() == 1) {
+                result.append(" " + items[0].toString() + " ");
+            } else {
+                result.append("(" + condition(items) + ")");
+            }
         }
         return result;
     }
@@ -149,17 +156,24 @@ class ParameterizedBuilder
             return {};
         }
 
-        std::string result = leading;
+        std::string body;
         if (!where.nestedWhereFilters().empty()) {
             for (const auto &child : where.nestedWhereFilters()) {
-                result.append(nestedFilter(child));
+                body.append(nestedFilter(child));
+            }
+            if (where.nestedWhereFilters().size() > 1) {
+                body = "(" + body + ")";
             }
         } else {
             for (const auto &items : where.nestedDbVariant()) {
-                result.append(condition(items));
+                if (items.size() == 1) {
+                    body.append(" " + items[0].toString() + " ");
+                } else {
+                    body.append(condition(items));
+                }
             }
         }
-        return result.append(" ");
+        return leading + body + " ";
     }
 
     std::string limit(const FilterVariant &conditions)
@@ -212,9 +226,18 @@ public:
         return bind(input);
     }
 
-    std::string where(const WhereFilter &filterValue)
+    std::string where(const WhereFilter &filterValue, const std::string &leading = " WHERE ")
     {
-        return filter(filterValue, " WHERE ");
+        return filter(filterValue, leading);
+    }
+
+    std::string whereAliased(const WhereFilter &filterValue, const std::string &alias,
+                             const std::string &leading = " WHERE ")
+    {
+        mConditionAlias = alias;
+        const std::string result = filter(filterValue, leading);
+        mConditionAlias.clear();
+        return result;
     }
 
     std::string having(const HavingFilter &filterValue)
@@ -365,6 +388,98 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
 
         result.sql = "INSERT INTO " + mTabeName + " (" + join(columns, ",") + ") VALUES " +
                      join(rows, ",") + " ;";
+        return result;
+    }
+    case BULK_UPDATE: {
+        std::vector<DbVariant> columns, updateColumns;
+        if (!prepareBulkUpdate(columns, updateColumns)) {
+            return {};
+        }
+
+        const QuoteType tableQuote = postgreSQL ? DoubleQuote : BackTick;
+        const std::string targetTable = bulkUpdateTargetTable(tableQuote);
+        const std::string targetRef = bulkUpdateTargetRef(tableQuote);
+        const std::string quotedStaging = quote(DbVariant(bulkUpdateStagingName()));
+        const std::string quotedPrimaryKey = quote(DbVariant(mPrimaryKey));
+
+        std::vector<std::string> quotedColumns;
+        for (const auto &column : columns) {
+            quotedColumns.push_back(quote(column));
+        }
+
+        // Batch values are bound row-major; the WHERE filter values follow.
+        std::vector<std::string> rows;
+        for (const auto &row : mBatchProperties) {
+            std::vector<std::string> placeholders;
+            for (const auto &[key, value] : row) {
+                placeholders.push_back(builder.value(value));
+            }
+            rows.push_back("(" + join(placeholders, ",") + ")");
+        }
+
+        std::string dropSql;
+        std::string sql;
+        if (postgreSQL) {
+            dropSql = "DROP TABLE IF EXISTS pg_temp." + quotedStaging + " ;";
+            sql = dropSql;
+            sql.append(" CREATE TEMPORARY TABLE " + quotedStaging + " (LIKE " + targetTable + ") ;");
+        } else if (mariaDB) {
+            dropSql = "DROP TEMPORARY TABLE IF EXISTS " + quotedStaging + " ;";
+            sql = dropSql;
+            sql.append(" CREATE TEMPORARY TABLE " + quotedStaging + " LIKE " + targetTable + " ;");
+        } else {
+            dropSql = "DROP TABLE IF EXISTS temp." + quotedStaging + " ;";
+            sql = dropSql;
+            sql.append(" CREATE TEMPORARY TABLE " + quotedStaging + " (" + join(quotedColumns, ",") + ") ;");
+        }
+
+        sql.append(" INSERT INTO " + quotedStaging + " (" + join(quotedColumns, ",") +
+                   ") VALUES " + join(rows, ",") + " ;");
+
+        if (postgreSQL) {
+            std::vector<std::string> assignments;
+            for (const auto &column : updateColumns) {
+                const std::string quotedColumn = quote(column);
+                assignments.push_back(quotedColumn + " = u." + quotedColumn);
+            }
+            sql.append(" UPDATE " + targetTable + " t SET " + join(assignments, ",") +
+                       " FROM " + quotedStaging + " u WHERE t." + quotedPrimaryKey +
+                       " = u." + quotedPrimaryKey);
+            sql.append(builder.whereAliased(mWhereFilter, "t", " AND "));
+            sql.append(" ;");
+        } else if (mariaDB) {
+            std::vector<std::string> assignments;
+            for (const auto &column : updateColumns) {
+                const std::string quotedColumn = quote(column);
+                assignments.push_back("t." + quotedColumn + " = u." + quotedColumn);
+            }
+            sql.append(" UPDATE " + targetTable + " t JOIN " + quotedStaging +
+                       " u ON t." + quotedPrimaryKey + " = u." + quotedPrimaryKey +
+                       " SET " + join(assignments, ","));
+            sql.append(builder.whereAliased(mWhereFilter, "t"));
+            sql.append(" ;");
+        } else {
+            // SQLite has no UPDATE ... JOIN and UPDATE ... FROM needs 3.33+;
+            // correlated subqueries work on every SQLite 3.x version. The
+            // EXISTS guard ensures target rows absent from the staging table
+            // are never overwritten with NULL.
+            std::vector<std::string> correlated;
+            for (const auto &column : updateColumns) {
+                const std::string quotedColumn = quote(column);
+                correlated.push_back(quotedColumn + " = (SELECT u." + quotedColumn +
+                                     " FROM " + quotedStaging + " u WHERE u." + quotedPrimaryKey +
+                                     " = " + targetRef + "." + quotedPrimaryKey + ")");
+            }
+            sql.append(" UPDATE " + targetTable + " SET " + join(correlated, ","));
+            sql.append(" WHERE EXISTS (SELECT 1 FROM " + quotedStaging + " u WHERE u." +
+                       quotedPrimaryKey + " = " + targetRef + "." + quotedPrimaryKey + ")");
+            sql.append(mWhereFilter.empty() ? " " : builder.where(mWhereFilter, " AND "));
+            sql.append(" ;");
+        }
+
+        sql.append(" " + dropSql);
+
+        result.sql = sql;
         return result;
     }
     case SELECT:

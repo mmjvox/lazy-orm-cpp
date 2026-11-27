@@ -244,27 +244,53 @@ void MariadbLazy::appendFilter(const Filters &filter, DbVariant dbVariant)
 
 std::string MariadbLazy::bulk_update_query() const
 {
-    if(mBatchProperties.size()<1)
+    std::vector<DbVariant> columns, updateColumns;
+    if(!prepareBulkUpdate(columns, updateColumns))
     {
         return {};
     }
 
-    const std::string &createTempTableQuery = "CREATE TEMPORARY TABLE lazyormtemp"+ mTabeName +" LIKE "+ mTabeName +";";
+    const std::string targetTable = bulkUpdateTargetTable(BackTick);
+    const std::string quotedStaging = DbVariant(bulkUpdateStagingName()).setBackTick();
+    const std::string quotedPrimaryKey = DbVariant(mPrimaryKey).setBackTick();
 
-    const std::string &bulkInsertQuery = bulk_insert_query();
-
-
-    std::string updateTableQuery ="UPDATE "+ mTabeName +" t \nJOIN updates u ON t."+mPrimaryKey+" = u."+mPrimaryKey + " ";
-
-    const auto &updateRow = *mBatchProperties.begin();
-    for (const auto& [key, value] : updateRow) {
-        const auto & col = key.toCleanString();
-        updateTableQuery.append( "\nSET t."+ col +" = u."+ col +"; " );
+    // Populate the staging table, never the original target table.
+    std::vector<std::string> keys;
+    for(const auto &column : columns)
+    {
+        keys.push_back(column.setBackTick());
+    }
+    std::vector<std::string> rows;
+    for(const auto &row : mBatchProperties)
+    {
+        std::vector<std::string> rowValues;
+        for(const auto &[key, value] : row)
+        {
+            rowValues.push_back(bulkUpdateValue(value));
+        }
+        rows.push_back("("+string_join(",",rowValues)+")");
     }
 
-    const std::string &dropTempTableQuery = "DROP TEMPORARY TABLE IF EXISTS lazyormtemp"+ mTabeName +";";
+    std::string updateQuery;
+    updateQuery.append("UPDATE "+ targetTable +" t JOIN "+ quotedStaging);
+    updateQuery.append(" u ON t."+ quotedPrimaryKey +" = u."+ quotedPrimaryKey);
+    updateQuery.append(" SET ");
+    std::vector<std::string> assignments;
+    for(const auto &column : updateColumns)
+    {
+        const auto &quotedColumn = column.setBackTick();
+        assignments.push_back("t."+ quotedColumn +" = u."+ quotedColumn);
+    }
+    updateQuery.append(string_join(",", assignments));
+    updateQuery.append(bulkUpdateWhereString("t", " WHERE ", BackTick));
+    updateQuery.append(";");
 
-    return dropTempTableQuery +" \n"+ createTempTableQuery +" \n"+ bulkInsertQuery +" \n"+ updateTableQuery +" \n"+ dropTempTableQuery;
+    const std::string &dropTempTableQuery = "DROP TEMPORARY TABLE IF EXISTS "+ quotedStaging +";";
+    const std::string &createTempTableQuery = "CREATE TEMPORARY TABLE "+ quotedStaging +" LIKE "+ targetTable +";";
+    const std::string &insertQuery = "INSERT INTO "+ quotedStaging
+            +" ("+string_join(",",keys)+") VALUES "+ string_join(",", rows) +" ;";
+
+    return dropTempTableQuery +" \n"+ createTempTableQuery +" \n"+ insertQuery +" \n"+ updateQuery +" \n"+ dropTempTableQuery;
 }
 
 

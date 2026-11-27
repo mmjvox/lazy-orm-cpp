@@ -446,18 +446,148 @@ std::cout << lazyOrm.query_with_trim_consecutive_spaces() << std::endl;
 
 ### Bulk UPDATE
 
+Bulk UPDATE applies a batch of row updates to a table in a single generated
+statement sequence. Rows are staged in a temporary table that is joined back
+to the target table by the configured primary key.
+
+**Required configuration**
+
+- `LazyOrm::BULK_UPDATE` selects the target table (supports `table` and
+  `schema.table` identifiers; malformed identifiers are rejected).
+- `LazyOrm::PrimaryKey` must name the column that identifies the target row
+  of each batch row. Without it (or with an invalid identifier) no query is
+  generated.
+- `setProperties()` supplies the batch: every row is a
+  `std::map<DbVariant, DbVariant>` from column name to value.
+
+**Contract**
+
+- Every batch row must contain the primary-key column; the primary key
+  selects the target row and is never part of the `SET` assignments.
+- Every batch column name must be a valid `[A-Za-z_][A-Za-z0-9_]*`
+  identifier; raw-expression markers (`[no']`, `[no`]`, `[func]`,
+  `[update]`) and SQL fragments are rejected.
+- `std::monostate{}` represents SQL `NULL` in both regular and parameterized
+  Bulk UPDATE; ordinary strings such as `"NULL"` remain string values
+  (`'NULL'` in regular SQL and bound `"NULL"` in parameterized SQL).
+- Raw-expression markers (`[no']`, `[no`]`) in batch data values or Bulk
+  UPDATE `WHERE` filters are rejected so values cannot bypass parameter
+  binding.
+- NULL primary-key values (`std::monostate` or `"NULL"`) are rejected.
+- All rows must have exactly the same column set; values are matched to
+  columns by name, not by position in the source container.
+- The remaining columns are the columns updated, in one `SET` clause.
+- Primary-key values in a batch must share one SQL type category (`Integer`
+  [signed/unsigned], `Float`, `String`, `Boolean`, or `Blob`), and
+  duplicate primary-key values are rejected. Mixed-type primary keys (such
+  as `int(1)` with `string("1")` or `int(1)` with `double(1.0)`) are
+  conservatively rejected because database staging-table column coercion can
+  collapse them into duplicate keys and cause nondeterministic `UPDATE FROM`
+  / `UPDATE JOIN` results.
+- `LazyOrm::WHERE` filters which target rows are updated; it never restricts
+  the staging-table insert.
+- When the input violates the contract (empty batch, empty row, missing or
+  unconfigured primary key, NULL or mixed-type primary key, inconsistent
+  column sets, duplicate primary keys, primary-key-only rows, invalid
+  column/table identifiers, or disallowed raw-expression markers),
+  `queryString()` and `buildParameterized()` return an empty query instead
+  of generating a partial or misleading statement.
+
+**Generated statement sequence** (same staging-table name in every
+statement):
+
+1. `DROP` the staging table if it exists in the temporary namespace
+   (`pg_temp.` in PostgreSQL, `temp.` in SQLite, `DROP TEMPORARY TABLE` in
+   MariaDB) for safe re-runs on one connection.
+2. `CREATE` a temporary staging table shaped like the batch.
+3. `INSERT` all batch rows into the staging table.
+4. `UPDATE` the target table from the staging table, matched by primary
+   key, with the configured `WHERE` filter applied to target rows.
+5. `DROP` the staging table again for cleanup in the temporary namespace.
+
+**Transaction and atomicity expectations**: the library generates SQL text
+only; it does not wrap the sequence in `BEGIN`/`COMMIT`, so a caller-managed
+transaction (for example `LazyOrm::Transaction`) is not interfered with. All
+statements must run on the same connection, because temporary tables are
+per-connection. Without an enclosing transaction the sequence is not
+atomic: if an intermediate statement fails, the temporary staging table
+remains in the current session/connection (and earlier target updates remain
+committed if not in a transaction). The next Bulk UPDATE on the same
+connection for the same target table recovers cleanly because step 1
+(`DROP ... IF EXISTS` in the temporary namespace) removes any leftover
+staging table before recreating it.
+
 ```cpp
 LazyOrm::MariadbLazy lazyOrm;
+lazyOrm[LazyOrm::PrimaryKey] = "id";          // required
 lazyOrm[LazyOrm::BULK_UPDATE] = "fruits";
 lazyOrm.setProperties({
     {{"id", "1"}, {"name", "anya"}, {"family", "forger"}, {"age", 6}},
     {{"id", "2"}, {"name", "damian"}, {"family", "Desmond"}, {"age", 8}},
     {{"id", "3"}, {"name", "loid"}, {"family", "forger"}, {"age", 30}}
 });
-lazyOrm[LazyOrm::WHERE] = {{"userid", "20"}};
+lazyOrm[LazyOrm::WHERE] = {{"active", true}};
 
 std::cout << lazyOrm.query_with_trim_consecutive_spaces() << std::endl;
+// Output:
+// DROP TEMPORARY TABLE IF EXISTS `lazyormtemp_fruits`;
+// CREATE TEMPORARY TABLE `lazyormtemp_fruits` LIKE `fruits`;
+// INSERT INTO `lazyormtemp_fruits` (`age`,`family`,`id`,`name`) VALUES ('6','forger','1','anya'),('8','Desmond','2','damian'),('30','forger','3','loid') ;
+// UPDATE `fruits` t JOIN `lazyormtemp_fruits` u ON t.`id` = u.`id` SET t.`age` = u.`age`,t.`family` = u.`family`,t.`name` = u.`name` WHERE (t.`active` = true) ;
+// DROP TEMPORARY TABLE IF EXISTS `lazyormtemp_fruits`;
 ```
+
+#### Dialect-specific behavior
+
+- **MariaDB** uses `DROP TEMPORARY TABLE IF EXISTS`, `CREATE TEMPORARY TABLE ... LIKE`,
+  inserts the batch into the staging table, and updates with
+  `UPDATE ... JOIN ... ON t.pk = u.pk`. The `WHERE` filter is qualified with
+  the target alias `t` because the staging table has the same columns as
+  the target.
+- **PostgreSQL** uses `DROP TABLE IF EXISTS pg_temp."..."`,
+  `CREATE TEMPORARY TABLE ... (LIKE ...)`, and updates with
+  `UPDATE ... SET ... FROM ... WHERE t.pk = u.pk AND (<filter>)`.
+- **SQLite** uses `DROP TABLE IF EXISTS temp.`...``, has no `UPDATE ... JOIN`,
+  and `UPDATE ... FROM` requires SQLite 3.33 or newer, so each updated column
+  gets a correlated subquery (`SET col = (SELECT u.col FROM staging u WHERE u.pk = table.pk)`),
+  which works on every SQLite 3.x version. An outer `WHERE EXISTS (SELECT 1 FROM staging u WHERE u.pk = table.pk)`
+  guard (with any user `WHERE` filter appended via `AND (...)`) ensures that
+  target rows absent from the batch are never overwritten with `NULL`.
+
+#### Parameterized Bulk UPDATE
+
+`buildParameterized()` generates the same statement sequence with every
+batch value and every `WHERE` value bound as a parameter — no user data is
+interpolated into the SQL text. Batch parameters are ordered row by row,
+column by column, and the `WHERE` parameters follow all batch parameters.
+PostgreSQL placeholders (`$1`, `$2`, ...) are numbered across all statements;
+MariaDB and SQLite use `?` placeholders in binding order.
+
+```cpp
+LazyOrm::PostgreLazy lazyOrm;
+lazyOrm[LazyOrm::PrimaryKey] = "id";
+lazyOrm[LazyOrm::BULK_UPDATE] = "users";
+lazyOrm.setProperties({
+    {{"id", 1}, {"name", "Alice"}, {"age", 25}},
+    {{"id", 2}, {"name", "Bob"}, {"age", 30}}
+});
+lazyOrm[LazyOrm::WHERE] = {{"active", true}};
+
+const auto query = lazyOrm.buildParameterized();
+// query.sql:
+// DROP TABLE IF EXISTS pg_temp."lazyormtemp_users" ;
+// CREATE TEMPORARY TABLE "lazyormtemp_users" (LIKE "users") ;
+// INSERT INTO "lazyormtemp_users" ("age","id","name") VALUES ($1,$2,$3),($4,$5,$6) ;
+// UPDATE "users" t SET "age" = u."age","name" = u."name" FROM "lazyormtemp_users" u WHERE t."id" = u."id" AND (t."active" = $7) ;
+// DROP TABLE IF EXISTS pg_temp."lazyormtemp_users" ;
+// query.params: 25, 1, "Alice", 30, 2, "Bob", true
+```
+
+Note: the generated parameterized text contains several statements.
+Drivers such as `sqlite3_prepare`, MySQL prepared statements, or PostgreSQL
+extended-protocol `Parse` accept a single statement per prepare/bind cycle,
+so the consumer must split the sequence and bind the parameters that belong
+to each statement in order.
 
 ## Transactions
 

@@ -272,27 +272,54 @@ std::string PostgreLazy::insert_ignore_query() const
 
 std::string PostgreLazy::bulk_update_query() const
 {
-    if(mBatchProperties.size()<1)
+    std::vector<DbVariant> columns, updateColumns;
+    if(!prepareBulkUpdate(columns, updateColumns))
     {
         return {};
     }
 
-    const std::string &createTempTableQuery = "CREATE TEMPORARY TABLE lazyormtemp"+ mTabeName +" LIKE "+ mTabeName +";";
+    const std::string targetTable = bulkUpdateTargetTable(DoubleQuote);
+    const std::string quotedStaging = DbVariant(bulkUpdateStagingName()).setDoubleQuote();
+    const std::string quotedPrimaryKey = DbVariant(mPrimaryKey).setDoubleQuote();
 
-    const std::string &bulkInsertQuery = bulk_insert_query();
-
-
-    std::string updateTableQuery ="UPDATE "+ mTabeName +" t \nJOIN updates u ON t."+mPrimaryKey+" = u."+mPrimaryKey + " ";
-
-    const auto &updateRow = *mBatchProperties.begin();
-    for (const auto& [key, value] : updateRow) {
-        const auto & col = key.toCleanString();
-        updateTableQuery.append( "\nSET t."+ col +" = u."+ col +"; " );
+    // Populate the staging table, never the original target table.
+    std::vector<std::string> keys;
+    for(const auto &column : columns)
+    {
+        keys.push_back(column.setDoubleQuote());
+    }
+    std::vector<std::string> rows;
+    for(const auto &row : mBatchProperties)
+    {
+        std::vector<std::string> rowValues;
+        for(const auto &[key, value] : row)
+        {
+            rowValues.push_back(bulkUpdateValue(value));
+        }
+        rows.push_back("("+string_join(",",rowValues)+")");
     }
 
-    const std::string &dropTempTableQuery = "DROP TEMPORARY TABLE IF EXISTS lazyormtemp"+ mTabeName +";";
+    std::string updateQuery;
+    updateQuery.append("UPDATE "+ targetTable +" t SET ");
+    std::vector<std::string> assignments;
+    for(const auto &column : updateColumns)
+    {
+        const auto &quotedColumn = column.setDoubleQuote();
+        assignments.push_back(quotedColumn +" = u."+ quotedColumn);
+    }
+    updateQuery.append(string_join(",", assignments));
+    updateQuery.append(" FROM "+ quotedStaging +" u");
+    updateQuery.append(" WHERE t."+ quotedPrimaryKey +" = u."+ quotedPrimaryKey);
+    // The user filter restricts target rows; it must not restrict the join.
+    updateQuery.append(bulkUpdateWhereString("t", " AND ", DoubleQuote));
+    updateQuery.append(";");
 
-    return dropTempTableQuery +" \n"+ createTempTableQuery +" \n"+ bulkInsertQuery +" \n"+ updateTableQuery +" \n"+ dropTempTableQuery;
+    const std::string &dropTempTableQuery = "DROP TABLE IF EXISTS pg_temp."+ quotedStaging +";";
+    const std::string &createTempTableQuery = "CREATE TEMPORARY TABLE "+ quotedStaging +" (LIKE "+ targetTable +");";
+    const std::string &insertQuery = "INSERT INTO "+ quotedStaging
+            +" ("+string_join(",",keys)+") VALUES "+ string_join(",", rows) +" ;";
+
+    return dropTempTableQuery +" \n"+ createTempTableQuery +" \n"+ insertQuery +" \n"+ updateQuery +" \n"+ dropTempTableQuery;
 }
 
 std::list<std::string> PostgreLazy::count_queries() const
