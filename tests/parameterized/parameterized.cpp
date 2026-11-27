@@ -70,8 +70,9 @@ bool sameVariantValue(const DbVariant &actual, const DbVariant &expected)
         }
         return true;
     }
-    // monostate (empty typeName) carries no value
-    return true;
+    // Only monostate (empty typeName) carries no value. Unknown types must not
+    // silently compare equal.
+    return type.empty();
 }
 
 void requireSameVariant(const DbVariant &actual, const DbVariant &expected)
@@ -601,20 +602,152 @@ TEST_CASE("copy assignment transfers WHERE and HAVING state", "[copy][assign][wh
     REQUIRE(sql.find("HAVING (`COUNT(*)` > '2')") != std::string::npos);
 }
 
-TEST_CASE("copy assignment transfers unique keys across dialects", "[copy][assign][unique_keys]")
-{
-    LazyOrm::PostgreLazy source;
-    source[LazyOrm::INSERT_UPDATE] = "users";
-    source[LazyOrm::UniqueKeys] = {"id"};
-    source["id"] = 7;
-    source["name"] = "inserted";
-    source["[update]name"] = "updated";
+namespace {
 
-    LazyOrm::SqliteLazy assigned;
+LazyOrm::WhereFilter deepWhereFilter()
+{
+    return {
+        {
+            {"status", "=", "active"},
+            {"AND"},
+            {
+                {"age", ">", 18},
+                {"OR"},
+                {"role", "=", "admin"}
+            }
+        },
+        {"AND NOT"},
+        {
+            {"deleted", "=", true},
+            {"OR"},
+            {
+                {"archived", "=", true},
+                {"AND"},
+                {"hidden", "=", true}
+            }
+        }
+    };
+}
+
+LazyOrm::HavingFilter deepHavingFilter()
+{
+    return {
+        {
+            {"COUNT(*)", ">", 2},
+            {"AND"},
+            {
+                {"SUM(score)", ">=", 10},
+                {"OR"},
+                {"AVG(score)", "<", 5}
+            }
+        },
+        {"OR NOT"},
+        {
+            {"MIN(age)", "<", 18},
+            {"AND"},
+            {
+                {"MAX(age)", ">", 65},
+                {"OR"},
+                {"COUNT(DISTINCT role)", ">", 3}
+            }
+        }
+    };
+}
+
+LazyOrm::WhereFilter staleWhereFilter()
+{
+    return {
+        {
+            {"stale", "=", 1},
+            {"OR"},
+            {"old", "=", 2}
+        },
+        {"AND"},
+        {
+            {"legacy", "=", 3},
+            {"AND NOT"},
+            {"removed", "=", 4}
+        }
+    };
+}
+
+LazyOrm::HavingFilter staleHavingFilter()
+{
+    return {
+        {
+            {"stale_count", ">", 9},
+            {"OR"},
+            {"old_count", "<", 1}
+        },
+        {"AND NOT"},
+        {
+            {"legacy_count", "=", 3},
+            {"AND"},
+            {"removed_count", "=", 4}
+        }
+    };
+}
+
+}
+
+TEST_CASE("copy assignment preserves deeply nested WHERE filters", "[copy][assign][where][nested]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source[LazyOrm::WHERE] = deepWhereFilter();
+
+    LazyOrm::MariadbLazy assigned;
+    assigned[LazyOrm::SELECT] = "old_table";
+    assigned << "stale_column";
+    assigned[LazyOrm::WHERE] = staleWhereFilter();
     assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
 
+    REQUIRE(assigned.whereFilter() == source.whereFilter());
     REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
-            R"(INSERT INTO users (`id`,`name`) VALUES ('7','inserted') ON CONFLICT (`id`) DO UPDATE SET `name`='updated';)");
+            R"(SELECT `name` FROM student WHERE (((`status` = 'active') AND ((`age` > '18') OR (`role` = 'admin'))) AND NOT ((`deleted` = true) OR ((`archived` = true) AND (`hidden` = true)))) ;)");
+}
+
+TEST_CASE("copy assignment preserves deeply nested HAVING filters", "[copy][assign][having][nested]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source[LazyOrm::GROUPBY] = {{"name"}};
+    source[LazyOrm::Having::HAVING] = deepHavingFilter();
+
+    LazyOrm::MariadbLazy assigned;
+    assigned[LazyOrm::SELECT] = "old_table";
+    assigned << "stale_column";
+    assigned[LazyOrm::GROUPBY] = {{"stale_group"}};
+    assigned[LazyOrm::Having::HAVING] = staleHavingFilter();
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(assigned.havingFilter() == source.havingFilter());
+    REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+            R"(SELECT `name` FROM student GROUP BY `name` HAVING (((`COUNT(*)` > '2') AND ((`SUM(score)` >= '10') OR (`AVG(score)` < '5'))) OR NOT ((`MIN(age)` < '18') AND ((`MAX(age)` > '65') OR (`COUNT(DISTINCT role)` > '3')))) ;)");
+}
+
+TEST_CASE("copy assignment preserves nested WHERE and HAVING together", "[copy][assign][where][having][nested]")
+{
+    LazyOrm::MariadbLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    source[LazyOrm::WHERE] = deepWhereFilter();
+    source[LazyOrm::GROUPBY] = {{"name"}};
+    source[LazyOrm::Having::HAVING] = deepHavingFilter();
+
+    LazyOrm::MariadbLazy assigned;
+    assigned[LazyOrm::WHERE] = staleWhereFilter();
+    assigned[LazyOrm::Having::HAVING] = staleHavingFilter();
+    assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(assigned.whereFilter() == source.whereFilter());
+    REQUIRE(assigned.havingFilter() == source.havingFilter());
+    const std::string sql = Catch::trim(assigned.query_with_trim_consecutive_spaces());
+    REQUIRE(sql ==
+            R"(SELECT `name` FROM student WHERE (((`status` = 'active') AND ((`age` > '18') OR (`role` = 'admin'))) AND NOT ((`deleted` = true) OR ((`archived` = true) AND (`hidden` = true)))) GROUP BY `name` HAVING (((`COUNT(*)` > '2') AND ((`SUM(score)` >= '10') OR (`AVG(score)` < '5'))) OR NOT ((`MIN(age)` < '18') AND ((`MAX(age)` > '65') OR (`COUNT(DISTINCT role)` > '3')))) ;)");
+    REQUIRE(sql.find("stale") == std::string::npos);
 }
 
 TEST_CASE("join separates select lists for multiple joined tables", "[join][mariadb]")
@@ -862,8 +995,8 @@ TEST_CASE("copy assignment clears destination filters when source has none", "[c
     LazyOrm::MariadbLazy destination;
     destination[LazyOrm::SELECT] = "student";
     destination << "name";
-    destination[LazyOrm::WHERE] = {{"stale", "=", 1}};
-    destination[LazyOrm::Having::HAVING] = {{"stale_count", ">", "9"}};
+    destination[LazyOrm::WHERE] = staleWhereFilter();
+    destination[LazyOrm::Having::HAVING] = staleHavingFilter();
 
     REQUIRE_FALSE(destination.whereFilter().empty());
     REQUIRE_FALSE(destination.havingFilter().empty());
@@ -915,6 +1048,52 @@ TEST_CASE("parameter comparison distinguishes identical text with different type
     REQUIRE(intParams.params[0].toString() == stringParams.params[0].toString());
     REQUIRE(intParams.params[0].typeName() != stringParams.params[0].typeName());
     REQUIRE_FALSE(sameVariantValue(intParams.params[0], stringParams.params[0]));
+}
+
+TEST_CASE("parameter comparison handles every DbVariant alternative recursively", "[parameterized][types]")
+{
+    REQUIRE(sameVariantValue(DbVariant(std::string("value")), DbVariant(std::string("value"))));
+    REQUIRE_FALSE(sameVariantValue(DbVariant(std::string("value")), DbVariant(std::string("other"))));
+    REQUIRE(sameVariantValue(DbVariant(-7), DbVariant(-7)));
+    REQUIRE_FALSE(sameVariantValue(DbVariant(-7), DbVariant(-8)));
+    REQUIRE(sameVariantValue(DbVariant(7u), DbVariant(7u)));
+    REQUIRE_FALSE(sameVariantValue(DbVariant(7u), DbVariant(8u)));
+    REQUIRE(sameVariantValue(DbVariant(9.5), DbVariant(9.5)));
+    REQUIRE_FALSE(sameVariantValue(DbVariant(9.5), DbVariant(9.25)));
+    REQUIRE(sameVariantValue(DbVariant(true), DbVariant(true)));
+    REQUIRE_FALSE(sameVariantValue(DbVariant(true), DbVariant(false)));
+
+    const LazyOrm::BlobType blob{LazyOrm::ByteType{0x00}, LazyOrm::ByteType{0x7f}};
+    const LazyOrm::BlobType otherBlob{LazyOrm::ByteType{0x00}, LazyOrm::ByteType{0x01}};
+    REQUIRE(sameVariantValue(DbVariant(blob), DbVariant(blob)));
+    REQUIRE_FALSE(sameVariantValue(DbVariant(blob), DbVariant(otherBlob)));
+    REQUIRE(sameVariantValue(DbVariant(std::monostate{}), DbVariant(std::monostate{})));
+    REQUIRE(sameVariantValue(DbVariant(LazyOrm::DbList({})), DbVariant(LazyOrm::DbList({}))));
+
+    const DbVariant nested = LazyOrm::DbList({
+        1,
+        LazyOrm::DbList({std::string("two"), true, LazyOrm::DbList({3u, 4.5})}),
+        std::monostate{}
+    });
+    const DbVariant sameNested = LazyOrm::DbList({
+        1,
+        LazyOrm::DbList({std::string("two"), true, LazyOrm::DbList({3u, 4.5})}),
+        std::monostate{}
+    });
+    const DbVariant differentNestedValue = LazyOrm::DbList({
+        1,
+        LazyOrm::DbList({std::string("two"), false, LazyOrm::DbList({3u, 4.5})}),
+        std::monostate{}
+    });
+    const DbVariant reordered = LazyOrm::DbList({
+        std::monostate{},
+        LazyOrm::DbList({std::string("two"), true, LazyOrm::DbList({3u, 4.5})}),
+        1
+    });
+
+    REQUIRE(sameVariantValue(nested, sameNested));
+    REQUIRE_FALSE(sameVariantValue(nested, differentNestedValue));
+    REQUIRE_FALSE(sameVariantValue(nested, reordered));
 }
 
 TEST_CASE("same-type copy assignment replaces stale destination state", "[copy][assign][same_type]")
@@ -1022,14 +1201,12 @@ TEST_CASE("copy assignment clears destination grouping ordering and limit when s
 namespace {
 
 template<typename Lazy>
-Lazy crossDialectUpsert()
+Lazy crossDialectInsertIgnore()
 {
     Lazy query;
-    query[LazyOrm::INSERT_UPDATE] = "users";
-    query[LazyOrm::UniqueKeys] = {"id"};
-    query["id"] = 7;
-    query["name"] = "inserted";
-    query["[update]name"] = "updated";
+    query[LazyOrm::INSERT_IGNORE] = "users";
+    query.setProperties({{"id", 7}, {"name", "ignored"}});
+    query.setPrimaryKey("id");
     return query;
 }
 
@@ -1058,26 +1235,22 @@ Lazy crossDialectSelect()
 template<typename Source, typename Dest>
 void requireCrossDialectAssignment()
 {
-    {
-        Source source = crossDialectUpsert<Source>();
+    const auto requireAssignment = [](const Source &source, const Dest &native) {
         Dest assigned;
         assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
-        Dest native = crossDialectUpsert<Dest>();
 
         REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
                 Catch::trim(native.query_with_trim_consecutive_spaces()));
         requireSameParameterized(assigned.buildParameterized(), native.buildParameterized());
-    }
-    {
-        Source source = crossDialectSelect<Source>();
-        Dest assigned;
-        assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
-        Dest native = crossDialectSelect<Dest>();
+    };
 
-        REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
-                Catch::trim(native.query_with_trim_consecutive_spaces()));
-        requireSameParameterized(assigned.buildParameterized(), native.buildParameterized());
-    }
+    requireAssignment(insertQuery<Source>(), insertQuery<Dest>());
+    requireAssignment(updateQuery<Source>(), updateQuery<Dest>());
+    requireAssignment(deleteQuery<Source>(), deleteQuery<Dest>());
+    requireAssignment(crossDialectInsertIgnore<Source>(), crossDialectInsertIgnore<Dest>());
+    requireAssignment(bulkInsertQuery<Source>(), bulkInsertQuery<Dest>());
+    requireAssignment(upsertQuery<Source>(), upsertQuery<Dest>());
+    requireAssignment(crossDialectSelect<Source>(), crossDialectSelect<Dest>());
 }
 
 }
