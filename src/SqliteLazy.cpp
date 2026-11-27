@@ -19,6 +19,11 @@ void SqliteLazy::operator=(const AbstractLazy &abstractLaz)
     mFilter = abstractLaz.getFilter();
 }
 
+void SqliteLazy::operator=(const SqliteLazy &other)
+{
+    *this = static_cast<const AbstractLazy &>(other);
+}
+
 SqliteLazy::SqliteLazy(const std::string &table, const Query &queryType)
 {
   setTabeName(table);

@@ -37,6 +37,7 @@ public:
   // copy contructors:;
   MariadbLazy(const AbstractLazy& abstractLaz);
   void operator=(const AbstractLazy& abstractLaz);
+  void operator=(const MariadbLazy& other);
 
   const FilteringAbstractLazy& getFilter() const override
   {

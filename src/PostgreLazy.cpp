@@ -20,6 +20,11 @@ void PostgreLazy::operator=(const AbstractLazy &abstractLaz)
     mFilter = abstractLaz.getFilter();
 }
 
+void PostgreLazy::operator=(const PostgreLazy &other)
+{
+    *this = static_cast<const AbstractLazy &>(other);
+}
+
 PostgreLazy::PostgreLazy(const std::string &table, const Query &queryType)
 {
   setTabeName(table);

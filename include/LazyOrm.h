@@ -37,6 +37,7 @@ public:
     // copy contructors:;
     LazyOrm(const AbstractLazy& abstractLaz);
     void operator=(const AbstractLazy& abstractLaz);
+    void operator=(const LazyOrm& other);
 
     const FilteringAbstractLazy& getFilter() const override
     {

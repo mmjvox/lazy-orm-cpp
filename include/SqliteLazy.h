@@ -39,6 +39,7 @@ public:
 // copy contructors:;
   SqliteLazy(const AbstractLazy& abstractLaz);
   void operator=(const AbstractLazy& abstractLaz);
+  void operator=(const SqliteLazy& other);
 
   const FilteringAbstractLazy& getFilter() const override
   {

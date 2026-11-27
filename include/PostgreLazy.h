@@ -43,6 +43,7 @@ public:
   // copy contructors:;
   PostgreLazy(const AbstractLazy& abstractLaz);
   void operator=(const AbstractLazy& abstractLaz);
+  void operator=(const PostgreLazy& other);
 
   const FilteringAbstractLazy& getFilter() const override
   {

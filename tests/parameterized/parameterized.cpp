@@ -30,6 +30,66 @@ void requireString(const DbVariant &value, const std::string &expected)
     REQUIRE(value.toString() == expected);
 }
 
+// Type-aware DbVariant equality: two variants are equivalent only when they
+// hold the same underlying type and the same value of that type. Comparing
+// toString() alone would treat e.g. int 7 and string "7" as equal.
+bool sameVariantValue(const DbVariant &actual, const DbVariant &expected)
+{
+    if (actual.typeName() != expected.typeName()) {
+        return false;
+    }
+    const std::string type = actual.typeName();
+    if (type == "string") {
+        return actual.toString() == expected.toString();
+    }
+    if (type == "int") {
+        return actual.toLongLong() == expected.toLongLong();
+    }
+    if (type == "uint") {
+        return actual.toULongLong() == expected.toULongLong();
+    }
+    if (type == "float") {
+        return actual.toLongDouble() == expected.toLongDouble();
+    }
+    if (type == "boolean") {
+        return actual.toBool() == expected.toBool();
+    }
+    if (type == "blob") {
+        return actual.toBlob() == expected.toBlob();
+    }
+    if (type == "list") {
+        const auto actualList = actual.toList();
+        const auto expectedList = expected.toList();
+        if (actualList.size() != expectedList.size()) {
+            return false;
+        }
+        for (size_t i = 0; i < actualList.size(); ++i) {
+            if (!sameVariantValue(actualList.at(i), expectedList.at(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+    // monostate (empty typeName) carries no value
+    return true;
+}
+
+void requireSameVariant(const DbVariant &actual, const DbVariant &expected)
+{
+    REQUIRE(actual.typeName() == expected.typeName());
+    REQUIRE(sameVariantValue(actual, expected));
+}
+
+void requireSameParameterized(const LazyOrm::ParameterizedQuery &actual,
+                              const LazyOrm::ParameterizedQuery &expected)
+{
+    REQUIRE(actual.sql == expected.sql);
+    REQUIRE(actual.params.size() == expected.params.size());
+    for (size_t i = 0; i < expected.params.size(); ++i) {
+        requireSameVariant(actual.params[i], expected.params[i]);
+    }
+}
+
 template<typename Lazy>
 Lazy insertQuery()
 {
@@ -413,8 +473,7 @@ TEST_CASE("LazyOrm builds parameterized SQLite queries", "[parameterized][sqlite
     REQUIRE(Catch::trim(viaLazyOrm.sql) == Catch::trim(expected.sql));
     REQUIRE(viaLazyOrm.params.size() == expected.params.size());
     for (size_t i = 0; i < expected.params.size(); ++i) {
-        REQUIRE(viaLazyOrm.params[i].typeName() == expected.params[i].typeName());
-        REQUIRE(viaLazyOrm.params[i].toString() == expected.params[i].toString());
+        requireSameVariant(viaLazyOrm.params[i], expected.params[i]);
     }
 }
 
@@ -691,21 +750,6 @@ TEST_CASE("copy assignment transfers state into SqliteLazy", "[copy][assign][sql
     REQUIRE(sql.find("LIMIT 4 OFFSET 5") != std::string::npos);
 }
 
-namespace {
-
-void requireSameParameterized(const LazyOrm::ParameterizedQuery &actual,
-                              const LazyOrm::ParameterizedQuery &expected)
-{
-    REQUIRE(actual.sql == expected.sql);
-    REQUIRE(actual.params.size() == expected.params.size());
-    for (size_t i = 0; i < expected.params.size(); ++i) {
-        REQUIRE(actual.params[i].typeName() == expected.params[i].typeName());
-        REQUIRE(actual.params[i].toString() == expected.params[i].toString());
-    }
-}
-
-}
-
 TEST_CASE("copy assignment transfers state into LazyOrm for MariaDB", "[copy][assign][lazyorm]")
 {
     LazyOrm::MariadbLazy source;
@@ -836,4 +880,214 @@ TEST_CASE("copy assignment clears destination filters when source has none", "[c
     REQUIRE(sql.find("HAVING") == std::string::npos);
     REQUIRE(sql.find("stale") == std::string::npos);
     REQUIRE(Catch::trim(sql) == R"(SELECT `name` FROM student;)");
+}
+
+TEST_CASE("parameter comparison distinguishes identical text with different types", "[parameterized][types]")
+{
+    const DbVariant intSeven = 7;
+    const DbVariant uintSeven = 7u;
+    const DbVariant stringSeven = std::string("7");
+
+    // identical textual representation ...
+    REQUIRE(intSeven.toString() == stringSeven.toString());
+    REQUIRE(uintSeven.toString() == stringSeven.toString());
+    // ... but different underlying types, so they must not compare equal
+    REQUIRE(intSeven.typeName() != stringSeven.typeName());
+    REQUIRE(uintSeven.typeName() != intSeven.typeName());
+    REQUIRE_FALSE(sameVariantValue(intSeven, stringSeven));
+    REQUIRE_FALSE(sameVariantValue(uintSeven, intSeven));
+    REQUIRE(sameVariantValue(intSeven, DbVariant(7)));
+    REQUIRE(sameVariantValue(stringSeven, DbVariant(std::string("7"))));
+
+    // end-to-end: queries whose only difference is the parameter type
+    LazyOrm::PostgreLazy intQuery;
+    intQuery[LazyOrm::INSERT] = "users";
+    intQuery.setProperties({{"id", 7}});
+
+    LazyOrm::PostgreLazy stringQuery;
+    stringQuery[LazyOrm::INSERT] = "users";
+    stringQuery.setProperties({{"id", std::string("7")}});
+
+    const auto intParams = intQuery.buildParameterized();
+    const auto stringParams = stringQuery.buildParameterized();
+    REQUIRE(intParams.params.size() == 1);
+    REQUIRE(stringParams.params.size() == 1);
+    REQUIRE(intParams.params[0].toString() == stringParams.params[0].toString());
+    REQUIRE(intParams.params[0].typeName() != stringParams.params[0].typeName());
+    REQUIRE_FALSE(sameVariantValue(intParams.params[0], stringParams.params[0]));
+}
+
+TEST_CASE("same-type copy assignment replaces stale destination state", "[copy][assign][same_type]")
+{
+    LazyOrm::MariadbLazy mariaSource;
+    mariaSource[LazyOrm::SELECT] = "student";
+    mariaSource << "name";
+    mariaSource[LazyOrm::WHERE] = {{"name", "like", "a%"}};
+
+    LazyOrm::MariadbLazy mariaDest;
+    mariaDest[LazyOrm::UPDATE] = "old_table";
+    mariaDest["stale_column"] = "stale_value";
+    mariaDest[LazyOrm::WHERE] = {{"stale", "=", 1}};
+    mariaDest[LazyOrm::LIMIT] = {{9, 9}};
+
+    mariaDest = mariaSource;
+
+    REQUIRE(Catch::trim(mariaDest.query_with_trim_consecutive_spaces()) ==
+            Catch::trim(mariaSource.query_with_trim_consecutive_spaces()));
+    REQUIRE(mariaDest.query_with_trim_consecutive_spaces().find("stale") == std::string::npos);
+
+    LazyOrm::PostgreLazy postgreSource;
+    postgreSource[LazyOrm::DELETE] = "users";
+    postgreSource[LazyOrm::WHERE] = {{"id", "in", LazyOrm::DbList({7, 9})}};
+
+    LazyOrm::PostgreLazy postgreDest;
+    postgreDest[LazyOrm::UPDATE] = "old_table";
+    postgreDest["stale_column"] = "stale_value";
+    postgreDest[LazyOrm::WHERE] = {{"stale", "=", 1}};
+
+    postgreDest = postgreSource;
+
+    REQUIRE(Catch::trim(postgreDest.query_with_trim_consecutive_spaces()) ==
+            Catch::trim(postgreSource.query_with_trim_consecutive_spaces()));
+    REQUIRE(postgreDest.query_with_trim_consecutive_spaces().find("stale") == std::string::npos);
+
+    LazyOrm::SqliteLazy sqliteSource;
+    sqliteSource[LazyOrm::UPDATE] = "student";
+    sqliteSource["name"] = "anya";
+    sqliteSource[LazyOrm::WHERE] = {{"id", 3}};
+
+    LazyOrm::SqliteLazy sqliteDest;
+    sqliteDest[LazyOrm::SELECT] = "old_table";
+    sqliteDest << "stale_column";
+    sqliteDest[LazyOrm::WHERE] = {{"stale", "=", 1}};
+
+    sqliteDest = sqliteSource;
+
+    REQUIRE(Catch::trim(sqliteDest.query_with_trim_consecutive_spaces()) ==
+            Catch::trim(sqliteSource.query_with_trim_consecutive_spaces()));
+    REQUIRE(sqliteDest.query_with_trim_consecutive_spaces().find("stale") == std::string::npos);
+
+    LazyOrm::LazyOrm lazyOrmSource;
+    lazyOrmSource[LazyOrm::SELECT] = "student";
+    lazyOrmSource << "name";
+    lazyOrmSource[LazyOrm::WHERE] = {{"name", "like", "a%"}};
+
+    LazyOrm::LazyOrm lazyOrmDest;
+    lazyOrmDest[LazyOrm::UPDATE] = "old_table";
+    lazyOrmDest["stale_column"] = "stale_value";
+    lazyOrmDest[LazyOrm::WHERE] = {{"stale", "=", 1}};
+
+    lazyOrmDest = lazyOrmSource;
+
+    REQUIRE(lazyOrmDest.queryString(LazyOrm::LazyOrm::MariaDB) ==
+            lazyOrmSource.queryString(LazyOrm::LazyOrm::MariaDB));
+    REQUIRE(lazyOrmDest.queryString(LazyOrm::LazyOrm::MariaDB).find("stale") == std::string::npos);
+}
+
+TEST_CASE("copy assignment clears destination grouping ordering and limit when source has none",
+          "[copy][assign][stale][filters]")
+{
+    LazyOrm::PostgreLazy source;
+    source[LazyOrm::SELECT] = "student";
+    source << "name";
+    REQUIRE(source.getFilter().groupConditions().empty());
+    REQUIRE(source.getFilter().orderConditions().empty());
+    REQUIRE(source.getFilter().limitConditions().empty());
+
+    LazyOrm::PostgreLazy destination;
+    destination[LazyOrm::SELECT] = "student";
+    destination << "name";
+    destination[LazyOrm::GROUPBY] = {{"stale_group"}};
+    destination[LazyOrm::ORDERBY_DESC] = {{"stale_order"}};
+    destination[LazyOrm::LIMIT] = {{5, 6}};
+
+    REQUIRE(destination.query_with_trim_consecutive_spaces().find("GROUP BY") != std::string::npos);
+    REQUIRE(destination.query_with_trim_consecutive_spaces().find("ORDER BY") != std::string::npos);
+    REQUIRE(destination.query_with_trim_consecutive_spaces().find("LIMIT") != std::string::npos);
+
+    destination = static_cast<const LazyOrm::AbstractLazy &>(source);
+
+    REQUIRE(destination.getFilter().groupConditions().empty());
+    REQUIRE(destination.getFilter().orderConditions().empty());
+    REQUIRE(destination.getFilter().limitConditions().empty());
+
+    const std::string sql = destination.query_with_trim_consecutive_spaces();
+    REQUIRE(sql.find("stale") == std::string::npos);
+    REQUIRE(sql.find("GROUP BY") == std::string::npos);
+    REQUIRE(sql.find("ORDER BY") == std::string::npos);
+    REQUIRE(sql.find("LIMIT") == std::string::npos);
+    REQUIRE(Catch::trim(sql) == R"(SELECT "name" FROM student;)");
+}
+
+namespace {
+
+template<typename Lazy>
+Lazy crossDialectUpsert()
+{
+    Lazy query;
+    query[LazyOrm::INSERT_UPDATE] = "users";
+    query[LazyOrm::UniqueKeys] = {"id"};
+    query["id"] = 7;
+    query["name"] = "inserted";
+    query["[update]name"] = "updated";
+    return query;
+}
+
+template<typename Lazy>
+Lazy crossDialectSelect()
+{
+    Lazy query;
+    query[LazyOrm::SELECT] = "student";
+    query << "name";
+    query.setCountType({"age"});
+    query[LazyOrm::WHERE] = {
+        {"grade", "in", LazyOrm::DbList({1, 5})},
+        {"AND"},
+        {"name", "like", "a%"}
+    };
+    query[LazyOrm::GROUPBY] = {{"group1"}};
+    query[LazyOrm::ORDERBY_DESC] = {{"num1"}};
+    query[LazyOrm::LIMIT] = {{10, 20}};
+    return query;
+}
+
+// Cross-dialect assignment is supported API (every dialect class assigns from
+// const AbstractLazy&). The destination must keep its own dialect behavior:
+// assigning a Source into a Dest must produce exactly what a natively built
+// Dest produces, both as plain SQL and as a parameterized query.
+template<typename Source, typename Dest>
+void requireCrossDialectAssignment()
+{
+    {
+        Source source = crossDialectUpsert<Source>();
+        Dest assigned;
+        assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+        Dest native = crossDialectUpsert<Dest>();
+
+        REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+                Catch::trim(native.query_with_trim_consecutive_spaces()));
+        requireSameParameterized(assigned.buildParameterized(), native.buildParameterized());
+    }
+    {
+        Source source = crossDialectSelect<Source>();
+        Dest assigned;
+        assigned = static_cast<const LazyOrm::AbstractLazy &>(source);
+        Dest native = crossDialectSelect<Dest>();
+
+        REQUIRE(Catch::trim(assigned.query_with_trim_consecutive_spaces()) ==
+                Catch::trim(native.query_with_trim_consecutive_spaces()));
+        requireSameParameterized(assigned.buildParameterized(), native.buildParameterized());
+    }
+}
+
+}
+
+TEST_CASE("cross-dialect assignment retains destination dialect behavior", "[copy][assign][cross_dialect]")
+{
+    requireCrossDialectAssignment<LazyOrm::PostgreLazy, LazyOrm::MariadbLazy>();
+    requireCrossDialectAssignment<LazyOrm::PostgreLazy, LazyOrm::SqliteLazy>();
+    requireCrossDialectAssignment<LazyOrm::MariadbLazy, LazyOrm::PostgreLazy>();
+    requireCrossDialectAssignment<LazyOrm::MariadbLazy, LazyOrm::SqliteLazy>();
+    requireCrossDialectAssignment<LazyOrm::SqliteLazy, LazyOrm::PostgreLazy>();
+    requireCrossDialectAssignment<LazyOrm::SqliteLazy, LazyOrm::MariadbLazy>();
 }

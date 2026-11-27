@@ -18,6 +18,11 @@ void MariadbLazy::operator=(const AbstractLazy &abstractLaz)
     mFilter = abstractLaz.getFilter();
 }
 
+void MariadbLazy::operator=(const MariadbLazy &other)
+{
+    *this = static_cast<const AbstractLazy &>(other);
+}
+
 MariadbLazy::MariadbLazy(const std::string &table, const Query &queryType)
 {
   setTabeName(table);

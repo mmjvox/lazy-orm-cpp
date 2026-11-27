@@ -29,5 +29,14 @@ std::string join1() {
 // TODO: more tests
 
 TEST_CASE( "Factorials are computed", "[Lazy_JOIN]" ) {
-    REQUIRE( Catch::trim(join1()) == R"()" );
+    REQUIRE( Catch::trim(join1()) ==
+             "SELECT \n"
+             "`student`.`age`, \n"
+             "`student`.`hair`, \n"
+             "`student`.`name`, \n"
+             "`grade`.`grade`, \n"
+             "`grade`.`passed` \n"
+             "FROM student \n"
+             "LEFT JOIN grade ON `student`.`id` = `grade`.`student_id` \n"
+             ";" );
 }

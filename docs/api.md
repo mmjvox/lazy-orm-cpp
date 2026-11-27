@@ -435,6 +435,12 @@ void operator=(const AbstractLazy& abstractLaz);
 ```
 Copy constructor and assignment operator.
 
+Assignment copies only dialect-independent query state (query type, table
+name, properties, batch properties, primary key, unique keys, count fields,
+WHERE/HAVING filters, and LIMIT/ORDER BY/GROUP BY conditions). Cross-dialect
+assignment is supported: the destination object keeps its own dialect and
+renders the copied state with its own SQL syntax.
+
 **Example:**
 ```cpp
 LazyOrm::MariadbLazy mariaLazy;

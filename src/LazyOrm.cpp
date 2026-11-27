@@ -17,6 +17,11 @@ void LazyOrm::operator=(const AbstractLazy &abstractLaz)
     mFilter = abstractLaz.getFilter();
 }
 
+void LazyOrm::operator=(const LazyOrm &other)
+{
+    *this = static_cast<const AbstractLazy &>(other);
+}
+
 std::string LazyOrm::insert_query() const {return {};}
 std::string LazyOrm::select_query() const {return {};}
 std::string LazyOrm::update_query() const {return {};}
