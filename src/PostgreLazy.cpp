@@ -311,7 +311,14 @@ std::string PostgreLazy::bulk_update_query() const
     updateQuery.append(" FROM "+ quotedStaging +" u");
     updateQuery.append(" WHERE t."+ quotedPrimaryKey +" = u."+ quotedPrimaryKey);
     // The user filter restricts target rows; it must not restrict the join.
-    updateQuery.append(bulkUpdateWhereString("t", " AND ", DoubleQuote));
+    if(mWhereFilter.empty())
+    {
+        updateQuery.append(" ");
+    }
+    else
+    {
+        updateQuery.append(bulkUpdateWhereString("t", " AND ", DoubleQuote));
+    }
     updateQuery.append(";");
 
     const std::string &dropTempTableQuery = "DROP TABLE IF EXISTS pg_temp."+ quotedStaging +";";

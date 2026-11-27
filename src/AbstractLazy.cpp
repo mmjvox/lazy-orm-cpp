@@ -1088,7 +1088,7 @@ void AbstractLazy::trim_consecutive_spaces(std::string &str) {
     str.erase(new_end, str.end());
 }
 
-std::string AbstractLazy::query_with_trim_consecutive_spaces()
+std::string AbstractLazy::query_with_trim_consecutive_spaces() const
 {
     std::string str = queryString();
     auto new_end = std::unique(str.begin(), str.end(), [](char a, char b) {

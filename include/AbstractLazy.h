@@ -186,7 +186,7 @@ public:
 
 
   static void trim_consecutive_spaces(std::string& str);
-  virtual std::string query_with_trim_consecutive_spaces();
+  virtual std::string query_with_trim_consecutive_spaces() const;
 
 };
 }

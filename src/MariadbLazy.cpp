@@ -282,7 +282,14 @@ std::string MariadbLazy::bulk_update_query() const
         assignments.push_back("t."+ quotedColumn +" = u."+ quotedColumn);
     }
     updateQuery.append(string_join(",", assignments));
-    updateQuery.append(bulkUpdateWhereString("t", " WHERE ", BackTick));
+    if(mWhereFilter.empty())
+    {
+        updateQuery.append(" ");
+    }
+    else
+    {
+        updateQuery.append(bulkUpdateWhereString("t", " WHERE ", BackTick));
+    }
     updateQuery.append(";");
 
     const std::string &dropTempTableQuery = "DROP TEMPORARY TABLE IF EXISTS "+ quotedStaging +";";

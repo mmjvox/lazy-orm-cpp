@@ -399,12 +399,15 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
         const QuoteType tableQuote = postgreSQL ? DoubleQuote : BackTick;
         const std::string targetTable = bulkUpdateTargetTable(tableQuote);
         const std::string targetRef = bulkUpdateTargetRef(tableQuote);
-        const std::string quotedStaging = quote(DbVariant(bulkUpdateStagingName()));
-        const std::string quotedPrimaryKey = quote(DbVariant(mPrimaryKey));
+        const auto quoteIdentifier = [&](const DbVariant &identifier) {
+            return postgreSQL ? identifier.setDoubleQuote() : identifier.setBackTick();
+        };
+        const std::string quotedStaging = quoteIdentifier(DbVariant(bulkUpdateStagingName()));
+        const std::string quotedPrimaryKey = quoteIdentifier(DbVariant(mPrimaryKey));
 
         std::vector<std::string> quotedColumns;
         for (const auto &column : columns) {
-            quotedColumns.push_back(quote(column));
+            quotedColumns.push_back(quoteIdentifier(column));
         }
 
         // Batch values are bound row-major; the WHERE filter values follow.
@@ -439,7 +442,7 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
         if (postgreSQL) {
             std::vector<std::string> assignments;
             for (const auto &column : updateColumns) {
-                const std::string quotedColumn = quote(column);
+                const std::string quotedColumn = quoteIdentifier(column);
                 assignments.push_back(quotedColumn + " = u." + quotedColumn);
             }
             sql.append(" UPDATE " + targetTable + " t SET " + join(assignments, ",") +
@@ -450,7 +453,7 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
         } else if (mariaDB) {
             std::vector<std::string> assignments;
             for (const auto &column : updateColumns) {
-                const std::string quotedColumn = quote(column);
+                const std::string quotedColumn = quoteIdentifier(column);
                 assignments.push_back("t." + quotedColumn + " = u." + quotedColumn);
             }
             sql.append(" UPDATE " + targetTable + " t JOIN " + quotedStaging +
@@ -465,7 +468,7 @@ ParameterizedQuery AbstractLazy::parameterizedQuery(ParameterDialect dialect) co
             // are never overwritten with NULL.
             std::vector<std::string> correlated;
             for (const auto &column : updateColumns) {
-                const std::string quotedColumn = quote(column);
+                const std::string quotedColumn = quoteIdentifier(column);
                 correlated.push_back(quotedColumn + " = (SELECT u." + quotedColumn +
                                      " FROM " + quotedStaging + " u WHERE u." + quotedPrimaryKey +
                                      " = " + targetRef + "." + quotedPrimaryKey + ")");
